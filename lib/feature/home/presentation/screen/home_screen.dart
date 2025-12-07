@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:islandlink_frontend/feature/home/presentation/widget/home_widget.dart';
+import 'package:island_cafe/feature/home/presentation/widget/home_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

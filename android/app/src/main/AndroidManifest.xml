@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="islandlink_frontend"
+        android:label="Island Cafe"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

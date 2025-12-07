@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:islandlink_frontend/core/route/go_router_provider.dart';
-import 'package:islandlink_frontend/feature/theme/app_theme.dart';
-import 'package:islandlink_frontend/feature/theme/theme_notifier.dart';
+import 'package:island_cafe/core/route/go_router_provider.dart';
+import 'package:island_cafe/feature/theme/app_theme.dart';
+import 'package:island_cafe/feature/theme/theme_notifier.dart';
 
 class MainWidget extends ConsumerWidget {
   const MainWidget({super.key});

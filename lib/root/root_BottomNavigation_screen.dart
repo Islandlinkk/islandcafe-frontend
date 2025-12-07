@@ -31,22 +31,22 @@ class RootBottomnavigationScreen extends ConsumerWidget {
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home),
-            selectedIcon: Icon(Icons.home, color: Colors.orangeAccent),
+            selectedIcon: Icon(Icons.home, color: Colors.blue),
             label: 'Home',
           ),
           NavigationDestination(
             icon: Icon(Icons.menu),
-            selectedIcon: Icon(Icons.menu, color: Colors.orangeAccent),
+            selectedIcon: Icon(Icons.menu, color: Colors.blue),
             label: 'Menu',
           ),
           NavigationDestination(
             icon: Icon(Icons.history),
-            selectedIcon: Icon(Icons.history, color: Colors.orangeAccent),
+            selectedIcon: Icon(Icons.history, color: Colors.blue),
             label: 'History',
           ),
           NavigationDestination(
             icon: Icon(Icons.person),
-            selectedIcon: Icon(Icons.person, color: Colors.orangeAccent),
+            selectedIcon: Icon(Icons.person, color: Colors.blue),
             label: 'Profile',
           ),
         ],

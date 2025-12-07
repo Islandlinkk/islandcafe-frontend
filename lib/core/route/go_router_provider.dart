@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:islandlink_frontend/core/route/route_name.dart';
-import 'package:islandlink_frontend/feature/history/presentation/screen/history_screen.dart';
-import 'package:islandlink_frontend/feature/home/presentation/screen/home_screen.dart';
-import 'package:islandlink_frontend/feature/menu/presentation/screen/menu_screen.dart';
-import 'package:islandlink_frontend/feature/profile/presentation/screen/profile_screen.dart';
-import 'package:islandlink_frontend/root/root_BottomNavigation_screen.dart';
+import 'package:island_cafe/core/route/route_name.dart';
+import 'package:island_cafe/feature/history/presentation/screen/history_screen.dart';
+import 'package:island_cafe/feature/home/presentation/screen/home_screen.dart';
+import 'package:island_cafe/feature/menu/presentation/screen/menu_screen.dart';
+import 'package:island_cafe/feature/profile/presentation/screen/profile_screen.dart';
+import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
