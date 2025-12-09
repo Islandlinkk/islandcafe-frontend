@@ -22,9 +22,9 @@ class Billboard {
       title: json['title'] as String? ?? '',
       link: json['link'] as String? ?? '',
       isActive: json['isActive'] as bool? ?? false,
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 }
-

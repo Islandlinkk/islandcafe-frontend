@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island_cafe/feature/home/data/billboard_provider.dart';
-import 'package:island_cafe/feature/home/data/model/billboard.dart';
+import 'package:island_cafe/feature/home/data/provider/billboard_provider.dart';
+import 'package:island_cafe/feature/home/data/model/billboard_model.dart';
 
 class HomeWidget extends ConsumerStatefulWidget {
   const HomeWidget({super.key});
@@ -62,9 +62,7 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
                           (i) => Container(
                             width: 8,
                             height: 8,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                            ),
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: bannerIndex == i
@@ -75,11 +73,7 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
                         ),
                       ),
                     ),
-                    const Positioned(
-                      top: 40,
-                      left: 16,
-                      child: _StoreChip(),
-                    ),
+                    const Positioned(top: 40, left: 16, child: _StoreChip()),
                   ],
                 ),
               );
@@ -282,17 +276,17 @@ class _BillboardSlide extends StatelessWidget {
               Text(
                 billboard.title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               if (billboard.link.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(
                   billboard.link,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.white70,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.white70),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -311,20 +305,14 @@ class _StoreChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.blue,
         borderRadius: BorderRadius.circular(6),
       ),
       child: const Text(
         'PHERK-COFFEE-STORE',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
       ),
     );
   }
@@ -356,11 +344,7 @@ class _PlaceholderBanner extends StatelessWidget {
               label: const Text('Retry'),
             ),
           ),
-          const Positioned(
-            top: 40,
-            left: 16,
-            child: _StoreChip(),
-          ),
+          const Positioned(top: 40, left: 16, child: _StoreChip()),
         ],
       ),
     );
