@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island_cafe/feature/home/data/billboard_provider.dart';
+import 'package:island_cafe/feature/home/data/model/billboard.dart';
 
 class HomeWidget extends ConsumerStatefulWidget {
   const HomeWidget({super.key});
@@ -13,11 +15,7 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final images = const [
-      'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1000&h=500&q=80',
-      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1000&h=500&q=80',
-      'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=1000&h=500&q=80',
-    ];
+    final billboardsAsync = ref.watch(billboardProvider);
     final hour = DateTime.now().hour;
     final greeting = hour < 12
         ? 'Good Morning'
@@ -31,72 +29,67 @@ class _HomeWidgetState extends ConsumerState<HomeWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: 240,
-            child: Stack(
-              children: [
-                PageView.builder(
-                  controller: pageController,
-                  itemCount: images.length,
-                  onPageChanged: (i) {
-                    setState(() => bannerIndex = i);
-                  },
-                  itemBuilder: (context, index) {
-                    return Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.network(images[index], fit: BoxFit.cover),
-
-                        Positioned(
-                          bottom: 16,
-                          left: 16,
-                          right: 16,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              images.length,
-                              (i) => Container(
-                                width: 8,
-                                height: 8,
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: bannerIndex == i
-                                      ? Colors.white
-                                      : Colors.white.withValues(alpha: 0.4),
-                                ),
-                              ),
+          billboardsAsync.when(
+            data: (billboards) {
+              if (billboards.isEmpty) {
+                return _PlaceholderBanner(
+                  onRetry: () => ref.refresh(billboardProvider),
+                );
+              }
+              return SizedBox(
+                height: 240,
+                child: Stack(
+                  children: [
+                    PageView.builder(
+                      controller: pageController,
+                      itemCount: billboards.length,
+                      onPageChanged: (i) {
+                        setState(() => bannerIndex = i);
+                      },
+                      itemBuilder: (context, index) {
+                        final billboard = billboards[index];
+                        return _BillboardSlide(billboard: billboard);
+                      },
+                    ),
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      right: 16,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          billboards.length,
+                          (i) => Container(
+                            width: 8,
+                            height: 8,
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: bannerIndex == i
+                                  ? Colors.white
+                                  : Colors.white.withValues(alpha: 0.4),
                             ),
                           ),
                         ),
-                      ],
-                    );
-                  },
-                ),
-                Positioned(
-                  top: 40,
-                  left: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'PHERK-COFFEE-STORE',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
                       ),
                     ),
-                  ),
+                    const Positioned(
+                      top: 40,
+                      left: 16,
+                      child: _StoreChip(),
+                    ),
+                  ],
                 ),
-              ],
+              );
+            },
+            loading: () => const SizedBox(
+              height: 240,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (_, __) => _PlaceholderBanner(
+              onRetry: () => ref.refresh(billboardProvider),
             ),
           ),
           const SizedBox(height: 16),
@@ -240,6 +233,135 @@ class _ActionCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _BillboardSlide extends StatelessWidget {
+  final Billboard billboard;
+  const _BillboardSlide({required this.billboard});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.network(
+          billboard.image,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey[300],
+              alignment: Alignment.center,
+              child: const Icon(Icons.image_not_supported),
+            );
+          },
+        ),
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.0),
+                  Colors.black.withValues(alpha: 0.5),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 16,
+          right: 16,
+          bottom: 20,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                billboard.title,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              if (billboard.link.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  billboard.link,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.white70,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StoreChip extends StatelessWidget {
+  const _StoreChip();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.blue,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: const Text(
+        'PHERK-COFFEE-STORE',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+class _PlaceholderBanner extends StatelessWidget {
+  final VoidCallback onRetry;
+  const _PlaceholderBanner({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 240,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              color: Colors.grey[200],
+              alignment: Alignment.center,
+              child: const Icon(Icons.image, size: 48, color: Colors.grey),
+            ),
+          ),
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ),
+          const Positioned(
+            top: 40,
+            left: 16,
+            child: _StoreChip(),
+          ),
+        ],
       ),
     );
   }
