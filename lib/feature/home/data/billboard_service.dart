@@ -18,4 +18,3 @@ class BillboardService {
         .toList();
   }
 }
-
