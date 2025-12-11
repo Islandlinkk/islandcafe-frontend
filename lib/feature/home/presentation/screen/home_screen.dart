@@ -7,7 +7,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: const SafeArea(child: HomeWidget()),
+      body: const SafeArea(child: HomeContent()),
       bottomSheet: const _CartBar(),
     );
   }

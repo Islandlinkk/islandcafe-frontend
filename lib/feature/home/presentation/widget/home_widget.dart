@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island_cafe/feature/home/data/provider/billboard_provider.dart';
 import 'package:island_cafe/feature/home/data/model/billboard_model.dart';
 
-class HomeWidget extends ConsumerStatefulWidget {
-  const HomeWidget({super.key});
+class HomeContent extends ConsumerStatefulWidget {
+  const HomeContent({super.key});
 
   @override
-  ConsumerState<HomeWidget> createState() => _HomeWidgetState();
+  ConsumerState<HomeContent> createState() => _HomeContentState();
 }
 
-class _HomeWidgetState extends ConsumerState<HomeWidget> {
+class _HomeContentState extends ConsumerState<HomeContent> {
   int bannerIndex = 0;
 
   @override
