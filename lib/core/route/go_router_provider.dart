@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island_cafe/core/route/route_name.dart';
+import 'package:island_cafe/feature/announcement/presentation/screen/announcement_detail_screen.dart';
+import 'package:island_cafe/feature/announcement/presentation/screen/announcement_screen.dart';
 import 'package:island_cafe/feature/history/presentation/screen/history_screen.dart';
 import 'package:island_cafe/feature/home/presentation/screen/home_screen.dart';
 import 'package:island_cafe/feature/menu/presentation/screen/menu_screen.dart';
@@ -37,6 +39,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const ProfileScreen(),
           ),
         ],
+      ),
+            GoRoute(
+        path: "/announcements",
+        name: announcementRoute,
+        builder: (context, state) => const AnnouncementScreen(),
+      ),
+      GoRoute(
+        path: "/announcementDetail",
+        name: announcementDetailRoute,
+        builder: (context, state) => const AnnouncementDetailScreen(),
       ),
     ],
   );

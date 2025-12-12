@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:island_cafe/feature/announcement/data/provider/announcement_provider.dart';
+import 'package:island_cafe/feature/announcement/presentation/widget/announcement_card.dart';
 import 'package:island_cafe/feature/home/data/provider/billboard_provider.dart';
 import 'package:island_cafe/feature/home/data/model/billboard_model.dart';
 
@@ -15,7 +18,8 @@ class _HomeContentState extends ConsumerState<HomeContent> {
 
   @override
   Widget build(BuildContext context) {
-    final billboardsAsync = ref.watch(billboardProvider);
+    final billboardsAsync = ref.watch(billboardHompageProvider);
+    final announcementAsync = ref.watch(announcementHomepageProvider);
     final hour = DateTime.now().hour;
     final greeting = hour < 12
         ? 'Good Morning'
@@ -73,7 +77,6 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                         ),
                       ),
                     ),
-                    const Positioned(top: 40, left: 16, child: _StoreChip()),
                   ],
                 ),
               );
@@ -103,20 +106,46 @@ class _HomeContentState extends ConsumerState<HomeContent> {
               children: [
                 Expanded(
                   child: _ActionCard(
-                    color: Colors.blue,
+                    color: Colors.black87,
                     icon: Icons.local_cafe,
                     title: 'Pickup',
-                    onTap: () {},
+                    onTap: () {
+                      context.pushNamed('/menu');
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
 
                 Expanded(
                   child: _ActionCard(
-                    color: Colors.blue,
+                    color: Colors.black87,
                     icon: Icons.local_shipping,
                     title: 'Delivery',
-                    onTap: () {},
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text(
+                            'Coming Soon',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          content: const Text(
+                            'Delivery service is coming soon!',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: const Text('OK'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -134,42 +163,53 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                TextButton(onPressed: () {}, child: const Text('See All')),
+                TextButton(
+                  onPressed: () {
+                    context.pushNamed('/announcements');
+                  },
+                  child: const Text('See All'),
+                ),
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Stack(
+            child: announcementAsync.when(
+              data: (announcement) {
+                if (announcement.isEmpty) {
+                  return const Text('No announcements available.');
+                }
+                return Column(
+                  children: [
+                    for (var ann in announcement)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: AnnouncementCard(
+                          id: ann.id,
+                          type: ann.type,
+                          title: ann.title,
+                          content: ann.content,
+                          image: ann.image,
+                        ),
+                      ),
+                  ],
+                );
+              },
+              error: (_, __) => Column(
                 children: [
-                  AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Image.network(
-                      'https://picsum.photos/seed/coffee/1200/675',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Positioned(
-                    left: 16,
-                    bottom: 16,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'New menu available',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
+                  const Text('Failed to load announcements.'),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () => ref.refresh(announcementProvider),
+                    child: const Text('Retry'),
                   ),
                 ],
+              ),
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CircularProgressIndicator(),
+                ),
               ),
             ),
           ),
@@ -196,36 +236,90 @@ class _ActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Ink(
-        height: 120,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        height: 140,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: Colors.white),
-              ),
-              const Spacer(),
-              Text(
-                title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [color, color.withValues(alpha: 0.8)],
           ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            // Decorative circles
+            Positioned(
+              right: -20,
+              top: -20,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+            Positioned(
+              left: -10,
+              bottom: -10,
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
+              ),
+            ),
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.brown.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 28),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -299,25 +393,6 @@ class _BillboardSlide extends StatelessWidget {
   }
 }
 
-class _StoreChip extends StatelessWidget {
-  const _StoreChip();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.blue,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: const Text(
-        'PHERK-COFFEE-STORE',
-        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-    );
-  }
-}
-
 class _PlaceholderBanner extends StatelessWidget {
   final VoidCallback onRetry;
   const _PlaceholderBanner({required this.onRetry});
@@ -344,7 +419,6 @@ class _PlaceholderBanner extends StatelessWidget {
               label: const Text('Retry'),
             ),
           ),
-          const Positioned(top: 40, left: 16, child: _StoreChip()),
         ],
       ),
     );

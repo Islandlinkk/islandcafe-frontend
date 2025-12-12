@@ -8,7 +8,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: const SafeArea(child: HomeContent()),
-      bottomSheet: const _CartBar(),
+      // bottomSheet: const _CartBar(),
     );
   }
 }
@@ -32,9 +32,6 @@ class _CartBar extends StatelessWidget {
 
 
           ),
-
-
-
         ),
       ),
     );
