@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "923919509100",
+    "project_id": "islandcoffeeapp-62b47",
+    "storage_bucket": "islandcoffeeapp-62b47.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:923919509100:android:bdebc8e01b68f22f681a49",
+        "android_client_info": {
+          "package_name": "com.example.islandlink_frontend"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "923919509100-3i33hj5l3rlafi6jmohaq8c2bhn3ngt4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.islandlink_frontend",
+            "certificate_hash": "e73559d8ef9caf6c10ea0b26daab59f44856014e"
+          }
+        },
+        {
+          "client_id": "923919509100-fd2lm0nrckhtnlso4l50714iknhego9u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDAJcqGgl0HFRH92dK74zGlBfk6MBfc5Q8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "923919509100-fd2lm0nrckhtnlso4l50714iknhego9u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "923919509100-sm7uujmpfmlvajhbaru6ksc2okk3krrh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.islandlinkFrontend"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

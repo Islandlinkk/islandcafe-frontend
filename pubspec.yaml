@@ -45,6 +45,10 @@ dependencies:
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
   intl: ^0.20.2
+  firebase_core: ^4.3.0
+  firebase_auth: ^6.1.1
+  google_sign_in: ^7.2.0
+  cloud_firestore: ^6.1.1
 
 dev_dependencies:
   flutter_test:
