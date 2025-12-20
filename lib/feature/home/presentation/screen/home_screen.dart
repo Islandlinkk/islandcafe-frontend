@@ -13,27 +13,27 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _CartBar extends StatelessWidget {
-  const _CartBar();
+// class _CartBar extends StatelessWidget {
+//   const _CartBar();
 
-  @override
-  Widget build(BuildContext context) {
-    final surface = Theme.of(context).colorScheme.surface;
-    return SafeArea(
-      top: false,
+//   @override
+//   Widget build(BuildContext context) {
+//     final surface = Theme.of(context).colorScheme.surface;
+//     return SafeArea(
+//       top: false,
 
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Container(
-          height: 56,
-          decoration: BoxDecoration(
-            color: surface,
-            borderRadius: BorderRadius.circular(16),
+//       child: Padding(
+//         padding: const EdgeInsets.all(16),
+//         child: Container(
+//           height: 56,
+//           decoration: BoxDecoration(
+//             color: surface,
+//             borderRadius: BorderRadius.circular(16),
 
 
-          ),
-        ),
-      ),
-    );
-  }
-}
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
