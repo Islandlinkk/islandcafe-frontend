@@ -63,10 +63,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '923919509100',
     projectId: 'islandcoffeeapp-62b47',
     storageBucket: 'islandcoffeeapp-62b47.firebasestorage.app',
-    androidClientId:
-        '923919509100-3i33hj5l3rlafi6jmohaq8c2bhn3ngt4.apps.googleusercontent.com',
-    iosClientId:
-        '923919509100-sm7uujmpfmlvajhbaru6ksc2okk3krrh.apps.googleusercontent.com',
+    androidClientId: '923919509100-3i33hj5l3rlafi6jmohaq8c2bhn3ngt4.apps.googleusercontent.com',
+    iosClientId: '923919509100-sm7uujmpfmlvajhbaru6ksc2okk3krrh.apps.googleusercontent.com',
     iosBundleId: 'com.example.islandlinkFrontend',
   );
+
 }
