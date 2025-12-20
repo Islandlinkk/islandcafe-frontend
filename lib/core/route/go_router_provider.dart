@@ -7,24 +7,26 @@ import 'package:island_cafe/feature/history/presentation/screen/history_screen.d
 import 'package:island_cafe/feature/home/presentation/screen/home_screen.dart';
 import 'package:island_cafe/feature/menu/presentation/screen/menu_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/profile_screen.dart';
+import 'package:island_cafe/feature/profile/presentation/screen/settings_screen.dart';
+import 'package:island_cafe/feature/profile/presentation/screen/favorites_screen.dart';
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: homeRoute,
     routes: [
-      //Bottom navigation routes
+      // Bottom navigation routes
       ShellRoute(
         builder: (context, state, child) =>
             RootBottomnavigationScreen(child: child),
         routes: [
           GoRoute(
-            path: "/home",
+            path: '/home',
             name: homeRoute,
             builder: (context, state) => const HomeScreen(),
           ),
           GoRoute(
-            path: "/menu",
+            path: '/menu',
             name: menuRoute,
             builder: (context, state) => const MenuScreen(),
           ),
@@ -40,15 +42,25 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-            GoRoute(
-        path: "/announcements",
+      GoRoute(
+        path: '/announcements',
         name: announcementRoute,
         builder: (context, state) => const AnnouncementScreen(),
       ),
       GoRoute(
-        path: "/announcementDetail",
+        path: '/announcementDetail',
         name: announcementDetailRoute,
         builder: (context, state) => const AnnouncementDetailScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: settingsRoute,
+        builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/favorites',
+        name: favoritesRoute,
+        builder: (context, state) => const FavoritesScreen(),
       ),
     ],
   );
