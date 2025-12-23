@@ -15,6 +15,8 @@ import 'package:island_cafe/feature/menu/presentation/screen/menu_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/profile_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/settings_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/favorites_screen.dart';
+// Ensure this import points to where you placed your LoadingScreen
+import 'package:island_cafe/feature/theme/loading_screen.dart'; 
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -24,13 +26,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final user = authState.value;
   final isProfileComplete = profileState.value ?? false;
 
+  final isLoading = authState.isLoading || profileState.isLoading;
+
   return GoRouter(
-    initialLocation: '/home', // <--- Ensures app starts at Home
+    initialLocation: '/home',
     debugLogDiagnostics: true,
     redirect: (context, state) async {
-      final isLoading = authState.isLoading || profileState.isLoading;
+      // 0. LOADING CHECK
       if (isLoading) return null;
-      
+
       final path = state.uri.path;
 
       // Define auth paths
@@ -40,15 +44,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isCompletingProfile = path == '/user-info';
       final isRecoveringPassword = path == '/forgot-password';
 
-      // 1. GUEST MODE: If user is NOT logged in
+      // 1. GUEST MODE
       if (user == null) {
-        // If the user is currently on an auth screen, let them stay there
         if (isLoggingIn || isSigningUp || isRecoveringPassword) {
-          return null; 
+          return null;
         }
-        
-        // If they are on any other screen (like /home), let them stay there.
-        // We do NOT return '/login' here, allowing the app to open Home first.
         return null; 
       }
 
@@ -75,83 +75,93 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       return null;
     },
-
     routes: [
-      // --- AUTH ROUTES (Added these so navigation works) ---
-      GoRoute(
-        path: '/login',
-        name: loginRoute,
-        builder: (context, state) => const LoginPage(),
-      ),
-      GoRoute(
-        path: '/signup',
-        name: signUpRoute,
-        builder: (context, state) => const SignUpScreen(),
-      ),
-      GoRoute(
-        path: '/verify-email',
-        name: verifyEmailRoute,
-        builder: (context, state) => const VerifyEmailPage(),
-      ),
-      GoRoute(
-        path: '/user-info',
-        name: userInfoRoute,
-        builder: (context, state) => const UserInfoScreen(),
-      ),
-      GoRoute(
-        path: '/forgot-password',
-        name: 'forgot-password', 
-        builder: (context, state) => const ForgotPasswordScreen(),
-      ),
-
-      // --- BOTTOM NAVIGATION ROUTES ---
+      // --- GLOBAL LOADER SHELL ---
       ShellRoute(
-        builder: (context, state, child) =>
-            RootBottomnavigationScreen(child: child),
+        builder: (context, state, child) {
+          if (isLoading) {
+            return const LoadingScreen();
+          }
+          return child;
+        },
         routes: [
+          // --- AUTH ROUTES ---
           GoRoute(
-            path: "/home",
-            name: homeRoute,
-            builder: (context, state) => const HomeScreen(),
+            path: '/login',
+            name: loginRoute,
+            builder: (context, state) => const LoginPage(),
           ),
           GoRoute(
-            path: "/menu",
-            name: menuRoute,
-            builder: (context, state) => const MenuScreen(),
+            path: '/signup',
+            name: signUpRoute,
+            builder: (context, state) => const SignUpScreen(),
           ),
           GoRoute(
-            path: '/history',
-            name: 'history',
-            builder: (context, state) => const HistoryScreen(),
+            path: '/verify-email',
+            name: verifyEmailRoute,
+            builder: (context, state) => const VerifyEmailPage(),
           ),
           GoRoute(
-            path: '/profile',
-            name: 'profile',
-            builder: (context, state) => const ProfileScreen(),
+            path: '/user-info',
+            name: userInfoRoute,
+            builder: (context, state) => const UserInfoScreen(),
+          ),
+          GoRoute(
+            path: '/forgot-password',
+            name: 'forgot-password',
+            builder: (context, state) => const ForgotPasswordScreen(),
+          ),
+
+          // --- BOTTOM NAVIGATION ROUTES ---
+          ShellRoute(
+            builder: (context, state, child) =>
+                RootBottomnavigationScreen(child: child),
+            routes: [
+              GoRoute(
+                path: "/home",
+                name: homeRoute,
+                builder: (context, state) => const HomeScreen(),
+              ),
+              GoRoute(
+                path: "/menu",
+                name: menuRoute,
+                builder: (context, state) => const MenuScreen(),
+              ),
+              GoRoute(
+                path: '/history',
+                name: 'history',
+                builder: (context, state) => const HistoryScreen(),
+              ),
+              GoRoute(
+                path: '/profile',
+                name: 'profile',
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+
+          // --- OTHER ROUTES ---
+          GoRoute(
+            path: '/announcements',
+            name: announcementRoute,
+            builder: (context, state) => const AnnouncementScreen(),
+          ),
+          GoRoute(
+            path: '/announcementDetail',
+            name: announcementDetailRoute,
+            builder: (context, state) => const AnnouncementDetailScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: settingsRoute,
+            builder: (context, state) => const SettingsScreen(),
+          ),
+          GoRoute(
+            path: '/favorites',
+            name: favoritesRoute,
+            builder: (context, state) => const FavoritesScreen(),
           ),
         ],
-      ),
-
-      // --- OTHER ROUTES ---
-      GoRoute(
-        path: '/announcements',
-        name: announcementRoute,
-        builder: (context, state) => const AnnouncementScreen(),
-      ),
-      GoRoute(
-        path: '/announcementDetail',
-        name: announcementDetailRoute,
-        builder: (context, state) => const AnnouncementDetailScreen(),
-      ),
-      GoRoute(
-        path: '/settings',
-        name: settingsRoute,
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: '/favorites',
-        name: favoritesRoute,
-        builder: (context, state) => const FavoritesScreen(),
       ),
     ],
   );

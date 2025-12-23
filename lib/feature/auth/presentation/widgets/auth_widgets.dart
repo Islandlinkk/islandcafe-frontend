@@ -36,11 +36,7 @@ class CoffeeAuthLayout extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (showLogo) ...[
-                  const Icon(
-                    Icons.coffee,
-                    size: 64,
-                    color: CoffeeColors.primary,
-                  ),
+                  const Icon(Icons.coffee, size: 64, color: CoffeeColors.primary),
                   const SizedBox(height: 24),
                 ],
                 Container(
@@ -50,7 +46,7 @@ class CoffeeAuthLayout extends StatelessWidget {
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: CoffeeColors.primary.withOpacity(0.1),
+                        color: CoffeeColors.primary,
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -123,10 +119,7 @@ class CoffeeTextField extends StatelessWidget {
           prefixIcon: Icon(icon, color: CoffeeColors.accent),
           filled: true,
           fillColor: Colors.grey[50],
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 20,
-          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(color: Colors.grey.shade200),
@@ -168,26 +161,15 @@ class CoffeeButton extends StatelessWidget {
           backgroundColor: CoffeeColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         child: isLoading
             ? const SizedBox(
                 height: 24,
                 width: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
               )
-            : Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+            : Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -197,11 +179,7 @@ class SocialButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
 
-  const SocialButton({
-    super.key,
-    required this.onPressed,
-    this.isLoading = false,
-  });
+  const SocialButton({super.key, required this.onPressed, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {

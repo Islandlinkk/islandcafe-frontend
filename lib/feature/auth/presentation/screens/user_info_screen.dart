@@ -1,9 +1,9 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island_cafe/feature/auth/data/providers/auth_provider.dart';
 import 'package:island_cafe/feature/auth/presentation/widgets/auth_widgets.dart';
 import 'package:island_cafe/feature/auth/services/auth_service.dart';
+import 'package:island_cafe/feature/auth/services/validate_service.dart';
 
 class UserInfoScreen extends ConsumerStatefulWidget {
   const UserInfoScreen({super.key});
@@ -31,7 +31,7 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
     setState(() => _loading = true);
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = AuthService.currentUser;
       if (user == null) return;
 
       await AuthService.saveUserDetails(
@@ -39,13 +39,13 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
       );
-
       ref.invalidate(isProfileCompleteProvider);
+      
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error saving info: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
         setState(() => _loading = false);
       }
     }
@@ -66,18 +66,14 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
               controller: _nameController,
               label: 'Your Name',
               icon: Icons.person_outline,
-              validator: (value) => value == null || value.isEmpty
-                  ? 'Please enter your name'
-                  : null,
+              validator: ValidationService.validateName,
             ),
             CoffeeTextField(
               controller: _phoneController,
               label: 'Phone Number',
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
-              validator: (value) => value == null || value.isEmpty
-                  ? 'Please enter phone number'
-                  : null,
+              validator: ValidationService.validatePhone,
             ),
             const SizedBox(height: 24),
             CoffeeButton(
