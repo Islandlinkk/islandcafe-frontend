@@ -1,116 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:island_cafe/feature/menu/data/menu_data.dart';
-import 'package:island_cafe/feature/menu/presentation/widget/category_item.dart';
-import 'package:island_cafe/feature/menu/presentation/widget/menu_item_card.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import 'package:island_cafe/feature/menu/presentation/screen/delivery_screen.dart';
+import 'package:island_cafe/feature/menu/presentation/screen/pickup_screen.dart';
 
-class MenuScreen extends ConsumerStatefulWidget {
+// OrderType enum
+enum OrderType { pickup, delivery }
+
+// Provider to manage order type
+final orderTypeProvider = StateProvider<OrderType>((ref) => OrderType.pickup);
+
+// Main Menu Screen that switches between Pickup and Delivery
+class MenuScreen extends ConsumerWidget {
   const MenuScreen({super.key});
 
   @override
-  ConsumerState<MenuScreen> createState() => _MenuScreenState();
-}
-
-class _MenuScreenState extends ConsumerState<MenuScreen> {
-  String selectedCategoryId = MenuData.categories.first.id;
-  String selectedOrderType = 'Pickup'; // 'Pickup' or 'Delivery'
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final blueColor = Colors.blue;
-    final selectedItems = MenuData.getItemsByCategory(selectedCategoryId);
-    final selectedCategory = MenuData.categories.firstWhere(
-      (cat) => cat.id == selectedCategoryId,
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderType = ref.watch(orderTypeProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
-            // Top Bar
-            _buildTopBar(context, blueColor),
-            // Location Selector
-            _buildLocationSelector(context, blueColor),
-            // Main Content
-            Expanded(
-              child: Row(
-                children: [
-                  // Categories Sidebar
-                  Container(
-                    width: 140,
+            // Header with toggle
+            _buildHeader(context, ref),
 
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      border: Border(
-                        right: BorderSide(color: Colors.grey[300]!),
-                      ),
-                    ),
-                    child: ListView.builder(
-                      itemCount: MenuData.categories.length,
-                      itemBuilder: (context, index) {
-                        final category = MenuData.categories[index];
-                        return CategoryItem(
-                          category: category,
-                          isSelected: category.id == selectedCategoryId,
-                          onTap: () {
-                            setState(() {
-                              selectedCategoryId = category.id;
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  // Menu Items
-                  Expanded(
-                    child: ListView(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
-                      children: [
-                        // Category Header
-                        Row(
-                          children: [
-                            Icon(
-                              selectedCategory.icon,
-                              color: blueColor,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              selectedCategory.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        // Menu Items List
-                        ...selectedItems.map(
-                          (item) => MenuItemCard(
-                            item: item,
-                            onTap: () {
-                              // Handle item tap - could navigate to detail screen
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            // Show different UI based on selection
+            Expanded(
+              child: orderType == OrderType.pickup
+                  ? const PickupMenuView()
+                  : const DeliveryMenuView(),
             ),
           ],
         ),
@@ -118,73 +38,109 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     );
   }
 
-  Widget _buildTopBar(BuildContext context, Color blueColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[200]!),
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
+  Widget _buildHeader(BuildContext context, WidgetRef ref) {
+    final orderType = ref.watch(orderTypeProvider);
+    final blueColor = Colors.blue;
+
+    return Column(
+      children: [
+        // Title and Search
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              const SizedBox(width: 48),
               Text(
                 'MENU',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+            ],
+          ),
+        ),
+
+        // Location and Order Type Toggle
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Location Selector (changes based on order type)
+            Container(
+              width: 130,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    orderType == OrderType.pickup ? 'TOUL KORK' : 'TOUL KORK',
+                    style: TextStyle(
+                      color: blueColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
                     ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Spacer(),
+                  Icon(Icons.keyboard_arrow_down, color: blueColor, size: 20),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: () {
-                  // Handle search
-                },
+            ),
+
+            // Pickup/Delivery Toggle
+            Container(
+              width: 140,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Pickup/Delivery Toggle
-          Row(
-            children: [
-              Expanded(
-                child: _buildOrderTypeButton(
-                  context,
-                  'Pickup',
-                  selectedOrderType == 'Pickup',
-                  blueColor,
-                ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _buildOrderTypeButton(
+                      context,
+                      ref,
+                      'Pickup',
+                      orderType == OrderType.pickup,
+                      blueColor,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildOrderTypeButton(
+                      context,
+                      ref,
+                      'Delivery',
+                      orderType == OrderType.delivery,
+                      blueColor,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildOrderTypeButton(
-                  context,
-                  'Delivery',
-                  selectedOrderType == 'Delivery',
-                  blueColor,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
   Widget _buildOrderTypeButton(
     BuildContext context,
+    WidgetRef ref,
     String label,
     bool isSelected,
     Color blueColor,
   ) {
     return InkWell(
       onTap: () {
-        setState(() {
-          selectedOrderType = label;
-        });
+        final newType = label == 'Pickup'
+            ? OrderType.pickup
+            : OrderType.delivery;
+        ref.read(orderTypeProvider.notifier).state = newType;
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -202,44 +158,10 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
           style: TextStyle(
             color: isSelected ? blueColor : Colors.grey[600],
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 12,
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildLocationSelector(BuildContext context, Color blueColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[200]!),
-        ),
-      ),
-      // child: Row(
-      //   children: [
-      //     Text(
-      //       'TOUL KORK',
-      //       style: TextStyle(
-      //         color: blueColor,
-      //         fontWeight: FontWeight.w600,
-      //       ),
-      //     ),
-      //     const SizedBox(width: 4),
-      //     Icon(
-      //       Icons.add,
-      //       color: blueColor,
-      //       size: 20,
-      //     ),
-      //     const Spacer(),
-      //     Icon(
-      //       Icons.keyboard_arrow_down,
-      //       color: blueColor,
-      //       size: 20,
-      //     ),
-      //   ],
-      // ),
     );
   }
 }

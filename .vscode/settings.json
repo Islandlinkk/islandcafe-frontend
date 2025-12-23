@@ -1,6 +1,13 @@
 {
+<<<<<<< HEAD
     "cmake.ignoreCMakeListsMissing": true,
     "cSpell.words": [
         "Bottomnavigation"
     ]
 }
+=======
+  "editor.foldingImportsByDefault": false,
+  "editor.folding": true,
+  "editor.foldingHighlight": true
+}
+>>>>>>> feature/menu

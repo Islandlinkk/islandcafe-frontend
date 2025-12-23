@@ -10,10 +10,6 @@ class FavoritesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<MenuItem> favorites = MenuData.menuItems
-        .where((it) => it.name == 'Coconut Cream Latte')
-        .toList();
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -47,25 +43,10 @@ class FavoritesScreen extends StatelessWidget {
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         itemBuilder: (context, index) {
-          final item = favorites[index];
-          return Container(
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: MenuItemCard(
-              item: item,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${item.name} selected')),
-                );
-              },
-            ),
-          );
+          return Text('No favorites added yet.');
         },
         separatorBuilder: (_, __) => const SizedBox(height: 12),
-        itemCount: favorites.length,
+        itemCount: 1,
       ),
       bottomNavigationBar: SafeArea(
         child: Container(
