@@ -6,6 +6,7 @@ import 'package:island_cafe/feature/announcement/presentation/screen/announcemen
 import 'package:island_cafe/feature/history/presentation/screen/history_screen.dart';
 import 'package:island_cafe/feature/home/presentation/screen/home_screen.dart';
 import 'package:island_cafe/feature/menu/presentation/screen/menu_screen.dart';
+import 'package:island_cafe/feature/product/presentation/screen/product_detail_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/profile_screen.dart';
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
 
@@ -40,7 +41,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-            GoRoute(
+      GoRoute(
         path: "/announcements",
         name: announcementRoute,
         builder: (context, state) => const AnnouncementScreen(),
@@ -49,6 +50,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: "/announcementDetail",
         name: announcementDetailRoute,
         builder: (context, state) => const AnnouncementDetailScreen(),
+      ),
+      GoRoute(
+        path: "/productDetail",
+        name: productDetailRoute,
+        builder: (context, state) => const ProductDetailScreen(),
       ),
     ],
   );

@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:island_cafe/feature/menu/data/model/menu_item.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:island_cafe/feature/product/data/model/product_model.dart';
+import 'package:island_cafe/feature/product/data/provider/product_provider.dart';
 
-class MenuItemCard extends StatelessWidget {
-  final MenuItem item;
+class MenuItemCard extends ConsumerWidget {
+  final ProductModel item;
   final VoidCallback? onTap;
 
-  const MenuItemCard({
-    super.key,
-    required this.item,
-    this.onTap,
-  });
+  const MenuItemCard({super.key, required this.item, this.onTap});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        ref.read(selectedProductIdProvider.notifier).state = item.id;
+        context.pushNamed('/productDetail');
+      },
       borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -28,15 +30,15 @@ class MenuItemCard extends StatelessWidget {
                   Text(
                     item.name,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     item.description,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -44,9 +46,9 @@ class MenuItemCard extends StatelessWidget {
                   Text(
                     '\$${item.price.toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
                   ),
                 ],
               ),
@@ -55,7 +57,7 @@ class MenuItemCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                item.imageUrl,
+                item.image,
                 width: 100,
                 height: 100,
                 fit: BoxFit.cover,
@@ -75,4 +77,3 @@ class MenuItemCard extends StatelessWidget {
     );
   }
 }
-
