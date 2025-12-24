@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:island_cafe/core/route/route_name.dart';
+
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -61,19 +63,18 @@ class SettingsScreen extends StatelessWidget {
                 _SettingsTile(
                   icon: Icons.help_outline,
                   title: 'FAQs',
-                  onTap: () {
-                    // TODO: hook up FAQs
-                  },
+                  onTap: () => context.push(FAQsRoute),
+                
                 ),
                 _SettingsTile(
                   icon: Icons.description_outlined,
                   title: 'Terms & Conditions',
-                  onTap: () {},
+                  onTap: () => context.push(TermsAndConditionsRoute),
                 ),
                 _SettingsTile(
                   icon: Icons.info_outline,
                   title: 'About Us',
-                  onTap: () {},
+                  onTap: () => context.push(AboutUsRoute),
                 ),
               ],
             ),

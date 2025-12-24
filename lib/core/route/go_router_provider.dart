@@ -16,6 +16,9 @@ import 'package:island_cafe/feature/product/presentation/screen/product_detail_s
 import 'package:island_cafe/feature/profile/presentation/screen/profile_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/settings_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/favorites_screen.dart';
+import 'package:island_cafe/feature/profile/presentation/screen/FAQs_screen.dart';
+import 'package:island_cafe/feature/profile/presentation/screen/Terms&Conditions_screen.dart';
+import 'package:island_cafe/feature/profile/presentation/screen/AboutUs_screen.dart';
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -159,6 +162,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         name: productDetailRoute,
         builder: (context, state) => const ProductDetailScreen(),
       ),
+      GoRoute(
+        path: '/faqs', 
+        name: FAQsRoute, 
+        builder: (context, state) => const FAQsScreen()
+        ),
+      GoRoute(path: '/terms-and-conditions', 
+      name: TermsAndConditionsRoute,
+      builder: (context, state) => const TermsAndConditionsScreen()
+      ),
+      GoRoute(path: '/about-us', 
+      name: AboutUsRoute, 
+      builder: (context, state) => const AboutUsScreen()),
     ],
   );
 });
