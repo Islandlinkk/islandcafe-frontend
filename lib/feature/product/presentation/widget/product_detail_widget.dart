@@ -113,7 +113,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       icon: _isFavorite
                           ? Icons.favorite
                           : Icons.favorite_border,
-                      color: _isFavorite ? const Color(0xFFFFC107) : null,
+                      color: _isFavorite ? const Color.fromARGB(255, 7, 176, 255) : null,
                       onPressed: () {
                         setState(() => _isFavorite = !_isFavorite);
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -340,7 +340,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: product.status
-                              ? const Color(0xFFFFC107)
+                              ? const Color.fromARGB(255, 7, 176, 255)
                               : Colors.grey,
                           foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -358,8 +358,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: product.status
-                                    ? Colors.black
-                                    : Colors.white,
+                                    ? Colors.white
+                                    : Colors.black,
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -393,7 +393,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           children: [
                             Icon(
                               Icons.shopping_cart,
-                              color: const Color(0xFFFFC107),
+                              color: const Color.fromARGB(255, 7, 176, 255),
                               size: 24,
                             ),
                             const SizedBox(width: 12),
@@ -505,7 +505,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF3CD),
+                color: const Color.fromARGB(255, 205, 251, 255),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
@@ -534,12 +534,12 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFFFF3CD)
+                      ? const Color.fromARGB(255, 205, 251, 255)
                       : Colors.grey[100],
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFFFFC107)
+                        ? const Color.fromARGB(255, 7, 176, 255)
                         : Colors.transparent,
                     width: 2,
                   ),
@@ -598,7 +598,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF3CD),
+                color: const Color.fromARGB(255, 205, 251, 255),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
@@ -626,12 +626,12 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFFFF3CD)
+                      ? const Color.fromARGB(255, 205, 251, 255)
                       : Colors.grey[100],
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFFFFC107)
+                        ? const Color.fromARGB(255, 7, 176, 255)
                         : Colors.transparent,
                     width: 2,
                   ),
@@ -642,7 +642,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       icon,
                       size: 32,
                       color: isSelected
-                          ? const Color(0xFFFFC107)
+                          ? const Color.fromARGB(255, 7, 176, 255)
                           : Colors.grey[400],
                     ),
                     const SizedBox(height: 8),
@@ -699,12 +699,12 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFFFF3CD)
+                      ? const Color.fromARGB(255, 205, 251, 255)
                       : Colors.grey[100],
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFFFFC107)
+                        ? const Color.fromARGB(255, 7, 176, 255)
                         : Colors.transparent,
                     width: 2,
                   ),
@@ -763,12 +763,12 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFFFF3CD)
+                      ? const Color.fromARGB(255, 205, 251, 255)
                       : Colors.grey[100],
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFFFFC107)
+                        ? const Color.fromARGB(255, 7, 176, 255)
                         : Colors.transparent,
                     width: 2,
                   ),
@@ -780,7 +780,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       Icons.coffee_maker,
                       size: 24,
                       color: isSelected
-                          ? const Color(0xFFFFC107)
+                          ? const Color.fromARGB(255, 7, 176, 255)
                           : Colors.grey[400],
                     ),
                     const SizedBox(width: 8),
@@ -925,7 +925,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFC107),
+                      backgroundColor: const Color.fromARGB(255, 7, 176, 255),
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
