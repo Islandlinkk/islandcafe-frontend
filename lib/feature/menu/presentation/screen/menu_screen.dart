@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:island_cafe/feature/menu/presentation/screen/delivery_screen.dart';
 import 'package:island_cafe/feature/menu/presentation/screen/pickup_screen.dart';
+import 'package:island_cafe/feature/product/data/provider/product_provider.dart';
 
 // OrderType enum
 enum OrderType { pickup, delivery }
@@ -57,10 +58,50 @@ class MenuScreen extends ConsumerWidget {
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
-              IconButton(icon: const Icon(Icons.search), onPressed: () {}),
+              IconButton(
+                icon: Icon(ref.watch(isSearchActiveProvider) ? Icons.close : Icons.search),
+                onPressed: () {
+                  final isActive = ref.read(isSearchActiveProvider);
+                  ref.read(isSearchActiveProvider.notifier).state = !isActive;
+                  if (!isActive) {
+                    // Clear search when closing
+                    ref.read(searchQueryProvider.notifier).state = '';
+                  }
+                },
+              ),
             ],
           ),
         ),
+        
+        // Search Bar
+        if (ref.watch(isSearchActiveProvider))
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'Search products...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: ref.watch(searchQueryProvider).isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          ref.read(searchQueryProvider.notifier).state = '';
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                filled: true,
+                fillColor: Colors.grey[50],
+              ),
+              onChanged: (value) {
+                ref.read(searchQueryProvider.notifier).state = value;
+              },
+            ),
+          ),
 
         // Location and Order Type Toggle
         Row(

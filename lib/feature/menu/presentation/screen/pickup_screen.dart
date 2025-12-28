@@ -39,7 +39,11 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
   Widget build(BuildContext context) {
     final blueColor = Colors.blue;
     final categoriesAsync = ref.watch(categoryProvider);
-    final productsAsync = ref.watch(productProvider);
+    final isSearchActive = ref.watch(isSearchActiveProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
+    final productsAsync = isSearchActive 
+        ? ref.watch(filteredProductsProvider)
+        : ref.watch(productProvider);
 
     return categoriesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -69,7 +73,58 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
           error: (error, stack) =>
               Center(child: Text('Error loading products: $error')),
           data: (products) {
-            // Main Content
+            // If searching, show search results without categories
+            if (isSearchActive && searchQuery.isNotEmpty) {
+              if (products.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No products found',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Try a different search term',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Search Results (${products.length})',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    ...products.map(
+                      (item) => MenuItemCard(item: item, onTap: () {}),
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            // Normal category view
             return Row(
               children: [
                 Container(
