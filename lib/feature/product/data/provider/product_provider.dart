@@ -13,6 +13,8 @@ final productProvider = FutureProvider<List<ProductModel>>((ref) async {
 
 final selectedCategoryIdProvider = StateProvider<String>((ref) => '');
 final selectedProductIdProvider = StateProvider<String>((ref) => '');
+final searchQueryProvider = StateProvider<String>((ref) => '');
+final isSearchActiveProvider = StateProvider<bool>((ref) => false);
 
 final productByCategoryProvider = FutureProvider<List<ProductModel>>((ref) async {
   final service = ProductService();
@@ -27,3 +29,19 @@ final productByIdProvider = FutureProvider<ProductModel>((ref) async {
 
   return product;
   });
+
+final filteredProductsProvider = FutureProvider<List<ProductModel>>((ref) async {
+  final products = await ref.watch(productProvider.future);
+  final searchQuery = ref.watch(searchQueryProvider);
+  
+  if (searchQuery.isEmpty) {
+    return products;
+  }
+  
+  final query = searchQuery.toLowerCase();
+  return products.where((product) {
+    final nameMatch = product.name.toLowerCase().contains(query);
+    final descriptionMatch = product.description.toLowerCase().contains(query);
+    return nameMatch || descriptionMatch;
+  }).toList();
+});
