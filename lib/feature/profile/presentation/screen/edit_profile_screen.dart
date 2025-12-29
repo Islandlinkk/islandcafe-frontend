@@ -1,5 +1,6 @@
-import 'dart:io'; // Needed for File
+import 'dart:io'; 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart'; // Add for kIsWeb
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -28,8 +29,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _initialLoad = true;
   Map<String, dynamic>? _originalData;
 
-  // --- NEW: Image Picker Variables ---
-  File? _pickedImage;
+  // --- CHANGED: Use XFile instead of File for cross-platform safety ---
+  XFile? _pickedImage; 
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -72,6 +73,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickImage() async {
     if (!_isEditing) return;
+    
+    // Helper to pick source
+    Future<void> pick(ImageSource source) async {
+      Navigator.of(context).pop(); // Close bottom sheet
+      final XFile? image = await _picker.pickImage(source: source);
+      if (image != null) {
+        setState(() => _pickedImage = image); // Don't convert to File() yet
+      }
+    }
+
     showModalBottomSheet(
       context: context,
       builder: (context) => SafeArea(
@@ -80,26 +91,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ListTile(
               leading: const Icon(Icons.photo_library),
               title: const Text('Gallery'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final XFile? image = await _picker.pickImage(
-                  source: ImageSource.gallery,
-                );
-                if (image != null)
-                  setState(() => _pickedImage = File(image.path));
-              },
+              onTap: () => pick(ImageSource.gallery),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt),
               title: const Text('Camera'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final XFile? image = await _picker.pickImage(
-                  source: ImageSource.camera,
-                );
-                if (image != null)
-                  setState(() => _pickedImage = File(image.path));
-              },
+              onTap: () => pick(ImageSource.camera),
             ),
           ],
         ),
@@ -135,6 +132,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final user = AuthService.currentUser;
       if (user != null) {
+        // 1. Upload Image if picked
         if (_pickedImage != null) {
           final String newPhotoUrl = await AuthService.uploadProfileImage(
             file: _pickedImage!,
@@ -142,16 +140,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           );
           await AuthService.updateUserPhoto(newPhotoUrl);
         }
+
+        // 2. Save Details
         await AuthService.saveUserDetails(
           uid: user.uid,
           name: _nameController.text.trim(),
           phone: _phoneController.text.trim(),
-          birthday: _birthdayController.text.isEmpty
-              ? null
-              : _birthdayController.text,
-          address: _addressController.text.isEmpty
-              ? null
-              : _addressController.text.trim(),
+          birthday: _birthdayController.text.isEmpty ? null : _birthdayController.text,
+          address: _addressController.text.isEmpty ? null : _addressController.text.trim(),
           gender: _selectedGender,
         );
 
@@ -167,13 +163,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  // Helper widget to display image based on platform/source
+  ImageProvider? _getImageProvider(String? currentPhotoUrl) {
+    if (_pickedImage != null) {
+      if (kIsWeb) {
+        return NetworkImage(_pickedImage!.path);
+      } else {
+        return FileImage(File(_pickedImage!.path));
+      }
+    }
+    if (currentPhotoUrl != null) {
+      return NetworkImage(currentPhotoUrl);
+    }
+    return null;
   }
 
   @override
@@ -181,10 +192,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
-          _isEditing ? 'Edit Profile' : 'My Profile',
-          style: const TextStyle(color: Colors.black),
-        ),
+        title: Text(_isEditing ? 'Edit Profile' : 'My Profile', style: const TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -202,8 +210,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: AuthService.getUserDetailsStream(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              _initialLoad) {
+          // ... [Loading Logic] ...
+          if (snapshot.connectionState == ConnectionState.waiting && _initialLoad) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -215,7 +223,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             }
             _initialLoad = false;
           }
+          
           final currentPhotoUrl = AuthService.currentUser?.photoURL;
+          final imageProvider = _getImageProvider(currentPhotoUrl);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -234,28 +244,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             decoration: BoxDecoration(
                               color: Colors.grey[200],
                               shape: BoxShape.circle,
-                              image: _pickedImage != null
+                              image: imageProvider != null
                                   ? DecorationImage(
-                                      image: FileImage(_pickedImage!),
+                                      image: imageProvider,
                                       fit: BoxFit.cover,
                                     )
-                                  : (currentPhotoUrl != null
-                                        ? DecorationImage(
-                                            image: NetworkImage(
-                                              currentPhotoUrl,
-                                            ),
-                                            fit: BoxFit.cover,
-                                          )
-                                        : null),
+                                  : null,
                             ),
-                            child:
-                                (_pickedImage == null &&
-                                    currentPhotoUrl == null)
-                                ? Icon(
-                                    Icons.person,
-                                    size: 50,
-                                    color: Colors.grey[400],
-                                  )
+                            child: imageProvider == null
+                                ? Icon(Icons.person, size: 50, color: Colors.grey[400])
                                 : null,
                           ),
                           if (_isEditing)
@@ -265,14 +262,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: const BoxDecoration(
-                                  color: CoffeeColors.primary,
+                                  color: Color(0xFF6F4E37), // Replaced CoffeeColors.primary
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                                child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
                               ),
                             ),
                         ],
@@ -280,7 +273,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
-
+                  // ... [Rest of your Fields (Name, Phone, etc.) remain unchanged] ...
                   CoffeeTextField(
                     controller: _nameController,
                     label: 'Full Name',
@@ -307,45 +300,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         icon: Icons.cake_outlined,
                         readOnly: !_isEditing,
                         hintText: 'dd/mm/yyyy',
-                        // Display stored date in dd/MM/yyyy format
-                        // (the controller's text is already set in _selectDate with DateFormat('dd/MM/yyyy'))
                       ),
                     ),
                   ),
-                  IgnorePointer(
+                  // ... [Dropdown and Address field remain unchanged] ...
+                   IgnorePointer(
                     ignoring: !_isEditing,
                     child: DropdownButtonFormField<String>(
                       initialValue: _selectedGender,
                       decoration: InputDecoration(
                         labelText: 'Gender',
-                        prefixIcon: Icon(
-                          Icons.people_outline,
-                          color: _isEditing
-                              ? const Color(0xFFA1887F)
-                              : Colors.grey,
-                        ),
+                        prefixIcon: Icon(Icons.people_outline, color: _isEditing ? const Color(0xFFA1887F) : Colors.grey),
                         filled: true,
-                        fillColor: _isEditing
-                            ? Colors.grey[50]
-                            : Colors.grey[100],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
+                        fillColor: _isEditing ? Colors.grey[50] : Colors.grey[100],
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(
-                            color: _isEditing
-                                ? Colors.grey.shade200
-                                : Colors.transparent,
-                          ),
+                          borderSide: BorderSide(color: _isEditing ? Colors.grey.shade200 : Colors.transparent),
                         ),
                       ),
                       items: ['Male', 'Female', 'Other'].map((String val) {
                         return DropdownMenuItem(value: val, child: Text(val));
                       }).toList(),
-                      onChanged: _isEditing
-                          ? (val) => setState(() => _selectedGender = val)
-                          : null,
+                      onChanged: _isEditing ? (val) => setState(() => _selectedGender = val) : null,
                     ),
                   ),
                   const SizedBox(height: 20),

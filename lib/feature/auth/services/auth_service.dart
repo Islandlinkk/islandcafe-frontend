@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AuthService {
   static FirebaseAuth get _auth => FirebaseAuth.instance;
@@ -62,23 +63,28 @@ class AuthService {
     return cred;
   }
 
-  /// Upload Profile Image to Firebase Storage
-  static Future<String> uploadProfileImage({required File file, required String uid}) async {
+  /// Upload Profile Image to Firebase Storage & Update Firestore
+static Future<String> uploadProfileImage({required XFile file, required String uid}) async {
     try {
-      // 1. Create the reference
-      final ref = _storage.ref().child('user_images/$uid.jpg');
+      final ref = _storage.ref().child('user_images').child('$uid.jpg');
       
-      // 2. Define Metadata (Helps Firebase handle the file correctly)
       final metadata = SettableMetadata(
         contentType: 'image/jpeg',
         customMetadata: {'picked-file-path': file.path},
       );
 
-      // 3. Upload and WAIT for the snapshot (Crucial step!)
-      final UploadTask uploadTask = ref.putFile(file, metadata);
-      final TaskSnapshot snapshot = await uploadTask;
+      final UploadTask uploadTask;
 
-      // 4. Get the URL only after the upload is officially complete
+      if (kIsWeb) {
+        // On Web, we must upload raw bytes
+        final bytes = await file.readAsBytes();
+        uploadTask = ref.putData(bytes, metadata);
+      } else {
+        // On Mobile, we can use the File path
+        uploadTask = ref.putFile(File(file.path), metadata);
+      }
+
+      final TaskSnapshot snapshot = await uploadTask;
       final url = await snapshot.ref.getDownloadURL();
       return url;
     } catch (e) {
@@ -91,13 +97,11 @@ class AuthService {
   static Future<void> updateUserPhoto(String photoUrl) async {
     final user = currentUser;
     if (user != null) {
-      // Update Auth Profile
       await user.updatePhotoURL(photoUrl);
-      
-      // Update Firestore
-      await _firestore.collection('users').doc(user.uid).update({
+      await _firestore.collection('users').doc(user.uid).set({
         'photoURL': photoUrl,
-      });
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true)); // Ensure we merge, not overwrite
     }
   }
 
@@ -110,7 +114,6 @@ class AuthService {
     String? gender,
     String? address,
   }) async {
-    // 1. Update Firestore
     await _firestore.collection('users').doc(uid).set({
       'name': name,
       'phone': phone,
@@ -122,7 +125,6 @@ class AuthService {
       'profileComplete': true,
     }, SetOptions(merge: true));
 
-    // 2. Update Auth Profile
     final user = currentUser;
     if (user != null) {
       await user.updateDisplayName(name);
@@ -141,6 +143,7 @@ class AuthService {
     if (user == null) return false;
     try {
       final doc = await _firestore.collection('users').doc(user.uid).get();
+      // Returns true only if document exists AND 'profileComplete' is true
       return doc.exists && (doc.data()?['profileComplete'] == true);
     } catch (e) {
       return false;
@@ -179,8 +182,12 @@ class AuthService {
           return 'The email address is invalid.';
         case 'weak-password':
           return 'The password is too weak.';
+        case 'account-exists-with-different-credential':
+          return 'An account already exists with the same email address.';
         case 'network-request-failed':
           return 'Please check your internet connection.';
+        case 'ERROR_ABORTED_BY_USER':
+          return 'Sign in cancelled.';
         default:
           return 'Error: ${e.message}';
       }

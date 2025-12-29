@@ -74,14 +74,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
               label: 'Email Address',
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
-              validator: ValidationService.validateEmail, hintText: '',
+              validator: ValidationService.validateEmail,
+              hintText: '',
             ),
             CoffeeTextField(
               controller: _passwordController,
               label: 'Create Password',
               icon: Icons.lock_outline,
               obscureText: true,
-              validator: ValidationService.validatePassword, hintText: '',
+              validator: ValidationService.validatePassword,
+              hintText: '',
             ),
             const SizedBox(height: 12),
             CoffeeButton(
@@ -95,7 +97,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Expanded(child: Divider(color: Colors.grey.shade300)),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('OR', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+                  child: Text(
+                    'OR',
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                  ),
                 ),
                 Expanded(child: Divider(color: Colors.grey.shade300)),
               ],
@@ -106,7 +111,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Already a member? ", style: TextStyle(color: Colors.grey[600])),
+                Text(
+                  "Already a member? ",
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
                 GestureDetector(
                   onTap: _loading ? null : () => context.go('/login'),
                   child: const Text(

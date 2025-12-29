@@ -52,7 +52,7 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
     );
     if (picked != null) {
       setState(() {
-        _birthdayController.text = DateFormat('dd/MM/yyyy').format(picked);
+        _birthdayController.text = DateFormat('dd/mm/yyyy').format(picked);
       });
     }
   }
@@ -120,7 +120,7 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
                   controller: _birthdayController,
                   label: 'Birthday (Optional)',
                   icon: Icons.cake_outlined,
-                  hintText: 'dd/MM/yyyy',
+                  hintText: 'dd/mm/yyyy',
                 ),
               ),
             ),

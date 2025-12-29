@@ -18,12 +18,12 @@ import 'package:island_cafe/feature/profile/presentation/screen/profile_screen.d
 import 'package:island_cafe/feature/profile/presentation/screen/settings_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/favorites_screen.dart';
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
-
-// ... (Your other imports remain the same) ...
 import 'package:island_cafe/feature/theme/loading_screen.dart'; 
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ValueNotifier(0);
+  
+  // Listen to both providers to trigger router refresh
   ref.listen(authStateProvider, (_, __) => notifier.notifyListeners());
   ref.listen(isProfileCompleteProvider, (_, __) => notifier.notifyListeners());
 
@@ -36,27 +36,32 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final profileState = ref.read(isProfileCompleteProvider);
 
       final user = authState.value;
-      final isProfileComplete = profileState.value ?? false;
+      // Default to false only if we have data and it is explicitly false
+      final isProfileComplete = profileState.value == true;
+      
+      // Combined Loading State
       final isLoading = authState.isLoading || profileState.isLoading;
 
       // 0. LOADING CHECK:
+      // If we are loading, we return null to stay on the current loading wrapper
       if (isLoading) return null;
 
       final path = state.uri.path;
 
       // Define auth paths
-      final isLoggingIn = path == '/login';
-      final isSigningUp = path == '/signup';
+      final isAuthRoute = path == '/login' || 
+                          path == '/signup' || 
+                          path == '/forgot-password';
       final isVerifyingEmail = path == '/verify-email';
       final isCompletingProfile = path == '/user-info';
-      final isRecoveringPassword = path == '/forgot-password';
 
-      // 1. GUEST MODE
+      // 1. GUEST MODE (User is null)
       if (user == null) {
-        // Allow Login/Signup/Forgot
-        if (isLoggingIn || isSigningUp || isRecoveringPassword) {
-          return null;
-        }
+        // Allow access to Auth routes
+        if (isAuthRoute) return null;
+        
+        // If trying to access protected routes, do nothing (or redirect to welcome if needed)
+        // Since your guest view is inside Profile/Home, we usually allow /home
         return null;
       }
 
@@ -66,18 +71,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      // 3. LOGGED IN: Check Profile Completion
+      // 3. LOGGED IN: Check Profile Completion (Firestore check)
+      // If profile is NOT complete, force them to /user-info
       if (!isProfileComplete) {
         if (!isCompletingProfile) return '/user-info';
         return null;
       }
 
-      // 4. LOGGED IN & VERIFIED: Redirect away from auth pages
-      if (isLoggingIn ||
-          isSigningUp ||
-          isVerifyingEmail ||
-          isCompletingProfile ||
-          isRecoveringPassword) {
+      // 4. FULLY AUTHORIZED: Redirect away from Auth/Setup pages
+      if (isAuthRoute || isVerifyingEmail || isCompletingProfile) {
         return '/home';
       }
 
@@ -132,9 +134,8 @@ class _GlobalLoadingWrapper extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
     final profileState = ref.watch(isProfileCompleteProvider);
 
-    final isLoading = authState.isLoading || profileState.isLoading;
-
-    if (isLoading) {
+    // Show loading screen if either Auth or Profile Status is fetching
+    if (authState.isLoading || profileState.isLoading) {
       return const LoadingScreen();
     }
 
