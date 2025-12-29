@@ -12,3 +12,4 @@ const String loginRoute = '/login';
 const String userInfoRoute = '/user-info';
 const String resetPasswordRoute = '/reset-password';
 const String loadingRoute = '/loading';
+const String editProfileRoute = '/edit-profile';

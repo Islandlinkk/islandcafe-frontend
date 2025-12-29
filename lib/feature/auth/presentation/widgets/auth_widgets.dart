@@ -84,7 +84,6 @@ class CoffeeAuthLayout extends StatelessWidget {
     );
   }
 }
-
 class CoffeeTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
@@ -92,6 +91,7 @@ class CoffeeTextField extends StatelessWidget {
   final bool obscureText;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
+  final bool readOnly; // <--- ADD THIS
 
   const CoffeeTextField({
     super.key,
@@ -101,6 +101,7 @@ class CoffeeTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType,
     this.validator,
+    this.readOnly = false, required String hintText, // <--- ADD THIS DEFAULT
   });
 
   @override
@@ -112,21 +113,26 @@ class CoffeeTextField extends StatelessWidget {
         obscureText: obscureText,
         keyboardType: keyboardType,
         validator: validator,
-        style: const TextStyle(color: CoffeeColors.textDark),
+        readOnly: readOnly, // <--- USE IT HERE
+        style: TextStyle(
+          color: readOnly ? Colors.grey[700] : const Color(0xFF3E2723),
+        ),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: Colors.grey[600]),
-          prefixIcon: Icon(icon, color: CoffeeColors.accent),
+          prefixIcon: Icon(icon, color: readOnly ? Colors.grey : const Color(0xFFA1887F)),
           filled: true,
-          fillColor: Colors.grey[50],
+          fillColor: readOnly ? Colors.grey[100] : Colors.grey[50], // Grey out if readOnly
           contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: Colors.grey.shade200),
+            borderSide: BorderSide(
+              color: readOnly ? Colors.transparent : Colors.grey.shade200,
+            ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: CoffeeColors.primary, width: 2),
+            borderSide: const BorderSide(color: Color(0xFF4E342E), width: 2),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
@@ -138,17 +144,20 @@ class CoffeeTextField extends StatelessWidget {
     );
   }
 }
-
 class CoffeeButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final bool isLoading;
+  final Color? backgroundColor; // Added for Cancel button style
+  final Color? textColor;
 
   const CoffeeButton({
     super.key,
     required this.text,
     required this.onPressed,
     this.isLoading = false,
+    this.backgroundColor,
+    this.textColor,
   });
 
   @override
@@ -158,8 +167,8 @@ class CoffeeButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: CoffeeColors.primary,
-          foregroundColor: Colors.white,
+          backgroundColor: backgroundColor ?? CoffeeColors.primary,
+          foregroundColor: textColor ?? Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),

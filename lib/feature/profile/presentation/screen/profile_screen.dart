@@ -2,9 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island_cafe/core/route/route_name.dart';
-// Make sure to import the new widgets file
 import 'package:island_cafe/feature/profile/presentation/widgets/profile_widgets.dart';
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -69,7 +67,7 @@ class _GuestView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -243,7 +241,9 @@ class _LoggedInView extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 20),
+          ShowSignOutButton(),
+          const SizedBox(height: 12),
           const SocialsSection(),
           const SizedBox(height: 40),
         ],

@@ -43,7 +43,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-      // Navigation handled by Router stream
     } catch (e) {
       _showError(e);
       if (mounted) setState(() => _loading = false);
@@ -75,14 +74,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
               label: 'Email Address',
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
-              validator: ValidationService.validateEmail,
+              validator: ValidationService.validateEmail, hintText: '',
             ),
             CoffeeTextField(
               controller: _passwordController,
               label: 'Create Password',
               icon: Icons.lock_outline,
               obscureText: true,
-              validator: ValidationService.validatePassword,
+              validator: ValidationService.validatePassword, hintText: '',
             ),
             const SizedBox(height: 12),
             CoffeeButton(

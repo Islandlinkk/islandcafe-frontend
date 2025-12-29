@@ -10,7 +10,6 @@ class LoginPage extends StatefulWidget {
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
-
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -36,19 +35,23 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _handleEmailLogin() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _loading = true);
-    try {
-      await AuthService.signInWithEmail(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
-    } catch (e) {
-      _showError(e);
-      if (mounted) setState(() => _loading = false);
+  setState(() => _loading = true);
+  try {
+    // 1. Perform Login
+    await AuthService.signInWithEmail(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
+    if (mounted) {
+      context.go('/home');
     }
+  } catch (e) {
+    _showError(e);
+    if (mounted) setState(() => _loading = false);
   }
+}
 
   Future<void> _handleGoogleLogin() async {
     setState(() => _loading = true);
@@ -75,14 +78,14 @@ class _LoginPageState extends State<LoginPage> {
               label: 'Email Address',
               icon: Icons.alternate_email_rounded,
               keyboardType: TextInputType.emailAddress,
-              validator: ValidationService.validateEmail,
+              validator: ValidationService.validateEmail, hintText: '',
             ),
             CoffeeTextField(
               controller: _passwordController,
               label: 'Password',
               icon: Icons.lock_outline_rounded,
               obscureText: true,
-              validator: (val) => val?.isEmpty == true ? 'Please enter password' : null,
+              validator: (val) => val?.isEmpty == true ? 'Please enter password' : null, hintText: '',
             ),
             Align(
               alignment: Alignment.centerRight,

@@ -70,7 +70,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               label: 'Email Address',
               icon: Icons.alternate_email_rounded,
               keyboardType: TextInputType.emailAddress,
-              validator: ValidationService.validateEmail,
+              validator: ValidationService.validateEmail, hintText: '',
             ),
             const SizedBox(height: 24),
             CoffeeButton(
