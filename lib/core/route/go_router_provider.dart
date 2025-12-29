@@ -18,11 +18,11 @@ import 'package:island_cafe/feature/profile/presentation/screen/profile_screen.d
 import 'package:island_cafe/feature/profile/presentation/screen/settings_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/favorites_screen.dart';
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
-import 'package:island_cafe/feature/theme/loading_screen.dart'; 
+import 'package:island_cafe/feature/theme/loading_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ValueNotifier(0);
-  
+
   // Listen to both providers to trigger router refresh
   ref.listen(authStateProvider, (_, __) => notifier.notifyListeners());
   ref.listen(isProfileCompleteProvider, (_, __) => notifier.notifyListeners());
@@ -34,34 +34,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authState = ref.read(authStateProvider);
       final profileState = ref.read(isProfileCompleteProvider);
-
       final user = authState.value;
-      // Default to false only if we have data and it is explicitly false
       final isProfileComplete = profileState.value == true;
-      
-      // Combined Loading State
       final isLoading = authState.isLoading || profileState.isLoading;
 
       // 0. LOADING CHECK:
-      // If we are loading, we return null to stay on the current loading wrapper
       if (isLoading) return null;
 
       final path = state.uri.path;
 
       // Define auth paths
-      final isAuthRoute = path == '/login' || 
-                          path == '/signup' || 
-                          path == '/forgot-password';
+      final isAuthRoute =
+          path == '/login' || path == '/signup' || path == '/forgot-password';
       final isVerifyingEmail = path == '/verify-email';
       final isCompletingProfile = path == '/user-info';
 
       // 1. GUEST MODE (User is null)
       if (user == null) {
-        // Allow access to Auth routes
         if (isAuthRoute) return null;
-        
-        // If trying to access protected routes, do nothing (or redirect to welcome if needed)
-        // Since your guest view is inside Profile/Home, we usually allow /home
         return null;
       }
 
@@ -72,7 +62,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
 
       // 3. LOGGED IN: Check Profile Completion (Firestore check)
-      // If profile is NOT complete, force them to /user-info
       if (!isProfileComplete) {
         if (!isCompletingProfile) return '/user-info';
         return null;
@@ -93,29 +82,86 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
         routes: [
           // --- AUTH ROUTES ---
-          GoRoute(path: '/login', name: loginRoute, builder: (context, state) => const LoginPage()),
-          GoRoute(path: '/signup', name: signUpRoute, builder: (context, state) => const SignUpScreen()),
-          GoRoute(path: '/verify-email', name: verifyEmailRoute, builder: (context, state) => const VerifyEmailPage()),
-          GoRoute(path: '/user-info', name: userInfoRoute, builder: (context, state) => const UserInfoScreen()),
-          GoRoute(path: '/forgot-password', name: 'forgot-password', builder: (context, state) => const ForgotPasswordScreen()),
-          GoRoute(path: '/edit-profile', name: 'edit-profile', builder: (context, state) => const EditProfileScreen()),
+          GoRoute(
+            path: '/login',
+            name: loginRoute,
+            builder: (context, state) => const LoginPage(),
+          ),
+          GoRoute(
+            path: '/signup',
+            name: signUpRoute,
+            builder: (context, state) => const SignUpScreen(),
+          ),
+          GoRoute(
+            path: '/verify-email',
+            name: verifyEmailRoute,
+            builder: (context, state) => const VerifyEmailPage(),
+          ),
+          GoRoute(
+            path: '/user-info',
+            name: userInfoRoute,
+            builder: (context, state) => const UserInfoScreen(),
+          ),
+          GoRoute(
+            path: '/forgot-password',
+            name: 'forgot-password',
+            builder: (context, state) => const ForgotPasswordScreen(),
+          ),
+          GoRoute(
+            path: '/edit-profile',
+            name: 'edit-profile',
+            builder: (context, state) => const EditProfileScreen(),
+          ),
 
           // --- BOTTOM NAVIGATION ROUTES ---
           ShellRoute(
-            builder: (context, state, child) => RootBottomnavigationScreen(child: child),
+            builder: (context, state, child) =>
+                RootBottomnavigationScreen(child: child),
             routes: [
-              GoRoute(path: "/home", name: homeRoute, builder: (context, state) => const HomeScreen()),
-              GoRoute(path: "/menu", name: menuRoute, builder: (context, state) => const MenuScreen()),
-              GoRoute(path: '/history', name: 'history', builder: (context, state) => const HistoryScreen()),
-              GoRoute(path: '/profile', name: 'profile', builder: (context, state) => const ProfileScreen()),
+              GoRoute(
+                path: "/home",
+                name: homeRoute,
+                builder: (context, state) => const HomeScreen(),
+              ),
+              GoRoute(
+                path: "/menu",
+                name: menuRoute,
+                builder: (context, state) => const MenuScreen(),
+              ),
+              GoRoute(
+                path: '/history',
+                name: 'history',
+                builder: (context, state) => const HistoryScreen(),
+              ),
+              GoRoute(
+                path: '/profile',
+                name: 'profile',
+                builder: (context, state) => const ProfileScreen(),
+              ),
             ],
           ),
 
           // --- OTHER ROUTES ---
-          GoRoute(path: '/announcements', name: announcementRoute, builder: (context, state) => const AnnouncementScreen()),
-          GoRoute(path: '/announcementDetail', name: announcementDetailRoute, builder: (context, state) => const AnnouncementDetailScreen()),
-          GoRoute(path: '/settings', name: settingsRoute, builder: (context, state) => const SettingsScreen()),
-          GoRoute(path: '/favorites', name: favoritesRoute, builder: (context, state) => const FavoritesScreen()),
+          GoRoute(
+            path: '/announcements',
+            name: announcementRoute,
+            builder: (context, state) => const AnnouncementScreen(),
+          ),
+          GoRoute(
+            path: '/announcementDetail',
+            name: announcementDetailRoute,
+            builder: (context, state) => const AnnouncementDetailScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: settingsRoute,
+            builder: (context, state) => const SettingsScreen(),
+          ),
+          GoRoute(
+            path: '/favorites',
+            name: favoritesRoute,
+            builder: (context, state) => const FavoritesScreen(),
+          ),
         ],
       ),
     ],
@@ -133,8 +179,6 @@ class _GlobalLoadingWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
     final profileState = ref.watch(isProfileCompleteProvider);
-
-    // Show loading screen if either Auth or Profile Status is fetching
     if (authState.isLoading || profileState.isLoading) {
       return const LoadingScreen();
     }

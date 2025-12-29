@@ -52,7 +52,7 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
     );
     if (picked != null) {
       setState(() {
-        _birthdayController.text = DateFormat('dd/mm/yyyy').format(picked);
+        _birthdayController.text = DateFormat('dd/MM/yyyy').format(picked);
       });
     }
   }
@@ -69,7 +69,7 @@ class _UserInfoScreenState extends ConsumerState<UserInfoScreen> {
       await AuthService.saveUserDetails(
         uid: user.uid,
         name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
+        phone: _phoneController.text.replaceAll(' ', '').trim(),
         birthday: _birthdayController.text.isEmpty ? null : _birthdayController.text.trim(),
         address: _addressController.text.isEmpty ? null : _addressController.text.trim(),
         gender: _selectedGender,

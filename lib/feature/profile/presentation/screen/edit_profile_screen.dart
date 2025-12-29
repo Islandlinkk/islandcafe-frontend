@@ -109,7 +109,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     DateTime initial = DateTime.now();
     if (_birthdayController.text.isNotEmpty) {
       try {
-        initial = DateFormat('dd/mm/yyyy').parse(_birthdayController.text);
+        // CHANGED: 'mm' -> 'MM'
+        initial = DateFormat('dd/MM/yyyy').parse(_birthdayController.text);
       } catch (_) {}
     }
     final DateTime? picked = await showDatePicker(
@@ -120,7 +121,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
     if (picked != null) {
       setState(() {
-        _birthdayController.text = DateFormat('dd/mm/yyyy').format(picked);
+        // CHANGED: 'mm' -> 'MM'
+        _birthdayController.text = DateFormat('dd/MM/yyyy').format(picked);
       });
     }
   }
@@ -145,12 +147,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         await AuthService.saveUserDetails(
           uid: user.uid,
           name: _nameController.text.trim(),
-          phone: _phoneController.text.trim(),
+          // CHANGED: Remove spaces before saving
+          phone: _phoneController.text.replaceAll(' ', '').trim(),
           birthday: _birthdayController.text.isEmpty ? null : _birthdayController.text,
           address: _addressController.text.isEmpty ? null : _addressController.text.trim(),
           gender: _selectedGender,
         );
-
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Profile Updated Successfully')),
