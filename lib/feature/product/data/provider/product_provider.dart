@@ -1,4 +1,3 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:island_cafe/feature/product/data/model/product_model.dart';
@@ -7,7 +6,9 @@ import 'package:island_cafe/feature/product/service/product_service.dart';
 final productProvider = FutureProvider<List<ProductModel>>((ref) async {
   final service = ProductService();
   final products = await service.fetchProducts();
-  final activeProducts = products.where((product)=>product.status==true).toList();
+  final activeProducts = products
+      .where((product) => product.status == true)
+      .toList();
   return activeProducts;
 });
 
@@ -16,28 +17,53 @@ final selectedProductIdProvider = StateProvider<String>((ref) => '');
 final searchQueryProvider = StateProvider<String>((ref) => '');
 final isSearchActiveProvider = StateProvider<bool>((ref) => false);
 
-final productByCategoryProvider = FutureProvider<List<ProductModel>>((ref) async {
+final productByCategoryProvider = FutureProvider<List<ProductModel>>((
+  ref,
+) async {
   final service = ProductService();
   final products = await service.fetchProducts();
-  final activeProducts = products.where((product)=>product.status==true).toList();
-  return activeProducts.where((product)=>product.categoryId==ref.watch(selectedCategoryIdProvider)).toList();
+  final activeProducts = products
+      .where((product) => product.status == true)
+      .toList();
+  return activeProducts
+      .where(
+        (product) =>
+            product.categoryId == ref.watch(selectedCategoryIdProvider),
+      )
+      .toList();
 });
+
+final relatedProductsProvider =
+    FutureProvider.family<List<ProductModel>, String>((ref, categoryId) async {
+      final service = ProductService();
+      final products = await service.fetchProducts();
+      final activeProducts = products
+          .where((product) => product.status == true)
+          .toList();
+      return activeProducts
+          .where((product) => product.categoryId == categoryId)
+          .toList();
+    });
 
 final productByIdProvider = FutureProvider<ProductModel>((ref) async {
   final service = ProductService();
-  final product = await service.fetchProductsByProductId(ref.watch(selectedProductIdProvider));
+  final product = await service.fetchProductsByProductId(
+    ref.watch(selectedProductIdProvider),
+  );
 
   return product;
-  });
+});
 
-final filteredProductsProvider = FutureProvider<List<ProductModel>>((ref) async {
+final filteredProductsProvider = FutureProvider<List<ProductModel>>((
+  ref,
+) async {
   final products = await ref.watch(productProvider.future);
   final searchQuery = ref.watch(searchQueryProvider);
-  
+
   if (searchQuery.isEmpty) {
     return products;
   }
-  
+
   final query = searchQuery.toLowerCase();
   return products.where((product) {
     final nameMatch = product.name.toLowerCase().contains(query);

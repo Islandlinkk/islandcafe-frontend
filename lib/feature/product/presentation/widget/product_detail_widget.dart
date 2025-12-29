@@ -9,6 +9,7 @@ import 'package:island_cafe/feature/product/data/provider/product_provider.dart'
 import 'package:island_cafe/feature/product/data/provider/size_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/sugar_provider.dart';
 import 'package:island_cafe/feature/product/presentation/widget/cart_item_widget.dart';
+import 'package:island_cafe/feature/product/presentation/widget/related_product_widget.dart';
 
 class ProductDetailWidget extends ConsumerStatefulWidget {
   const ProductDetailWidget({super.key});
@@ -54,6 +55,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
   @override
   Widget build(BuildContext context) {
     final productAsyncValue = ref.watch(productByIdProvider);
+    final relatedProductsAsyncValue = ref.watch(
+      relatedProductsProvider(productAsyncValue.asData?.value.categoryId ?? ''),
+    );
     final sizesAsyncValue = ref.watch(
       sizesProvider(productAsyncValue.asData?.value.id ?? ''),
     );
@@ -70,6 +74,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     // Check if all data is loaded
     final isLoading =
         productAsyncValue.isLoading ||
+        relatedProductsAsyncValue.isLoading ||
         sizesAsyncValue.isLoading ||
         sugarsAsyncValue.isLoading ||
         icesAsyncValue.isLoading ||
@@ -280,8 +285,78 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                             loading: () => const SizedBox(),
                             error: (_, __) => const SizedBox(),
                           ),
+                          // Related Products Section
+                          relatedProductsAsyncValue.when(
+                            data: (relatedProducts) {
+                              if (relatedProducts.isEmpty) {
+                                return const SizedBox();
+                              }
 
-                          const SizedBox(height: 100),
+                              // Filter out the current product
+                              final filteredProducts = relatedProducts
+                                  .where((p) => p.id != product.id)
+                                  .toList();
+
+                              if (filteredProducts.isEmpty) {
+                                return const SizedBox();
+                              }
+
+                              return Container(
+                                margin: const EdgeInsets.only(top: 32),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 0,
+                                      ),
+                                      child: Text(
+                                        'You May Also Like',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    SizedBox(
+                                      height: 150,
+                                      child: ListView.builder(
+                                        scrollDirection: Axis.horizontal,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 0,
+                                        ),
+                                        itemCount: filteredProducts.length,
+                                        itemBuilder: (context, index) {
+                                          final relatedProduct =
+                                              filteredProducts[index];
+                                          return GestureDetector(
+                                            onTap: () {
+                                                 ref.read(selectedProductIdProvider.notifier).state=relatedProduct.id;
+                                              Navigator.pushReplacementNamed(
+                                                context,
+                                                '/product-detail',
+                                              );
+                                            },
+                                            child: RelatedProductWidget(
+                                              productName: relatedProduct.name,
+                                              productImage:
+                                                  relatedProduct.image,
+                                              productPrice:
+                                                  relatedProduct.price,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
+                              );
+                            },
+                            loading: () => const SizedBox(),
+                            error: (_, __) => const SizedBox(),
+                          ),
                         ],
                       ),
                     ),
@@ -482,6 +557,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                     );
                   },
                 ),
+                SizedBox(height: 16),
               ],
             ),
           ),
