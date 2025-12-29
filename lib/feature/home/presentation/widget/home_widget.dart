@@ -20,6 +20,7 @@ class _HomeContentState extends ConsumerState<HomeContent> {
   Widget build(BuildContext context) {
     final billboardsAsync = ref.watch(billboardHompageProvider);
     final announcementAsync = ref.watch(announcementHomepageProvider);
+    final isLoading = billboardsAsync.isLoading || announcementAsync.isLoading;
     final hour = DateTime.now().hour;
     final greeting = hour < 12
         ? 'Good Morning'
@@ -81,10 +82,7 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                 ),
               );
             },
-            loading: () => const SizedBox(
-              height: 240,
-              child: Center(child: CircularProgressIndicator()),
-            ),
+            loading: () => const _BillboardSkeleton(),
             error: (_, __) => _PlaceholderBanner(
               onRetry: () => ref.refresh(billboardProvider),
             ),
@@ -205,12 +203,7 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                   ),
                 ],
               ),
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(),
-                ),
-              ),
+              loading: () => const _AnnouncementSkeleton(),
             ),
           ),
           const SizedBox(height: 100),
@@ -313,7 +306,6 @@ class _ActionCard extends StatelessWidget {
                           letterSpacing: 0.3,
                         ),
                       ),
-
                     ],
                   ),
                 ],
@@ -420,6 +412,135 @@ class _PlaceholderBanner extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BillboardSkeleton extends StatelessWidget {
+  const _BillboardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 240,
+      decoration: BoxDecoration(
+        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.grey[300]!,
+                    Colors.grey[200]!,
+                    Colors.grey[300]!,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 40,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 24,
+                  width: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 16,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AnnouncementSkeleton extends StatelessWidget {
+  const _AnnouncementSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: List.generate(
+        3,
+        (index) => Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  height: 20,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 16,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  height: 16,
+                  width: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

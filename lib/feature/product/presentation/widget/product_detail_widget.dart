@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island_cafe/feature/cart/data/model/cart_model.dart';
+import 'package:island_cafe/feature/cart/data/provider/cart_notifier.dart';
+import 'package:island_cafe/feature/cart/data/provider/cart_total_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/extraShot_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/ice_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/product_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/size_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/sugar_provider.dart';
+import 'package:island_cafe/feature/product/presentation/widget/cart_item_widget.dart';
 
 class ProductDetailWidget extends ConsumerStatefulWidget {
   const ProductDetailWidget({super.key});
@@ -62,6 +66,53 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     final extraShotAsyncValue = ref.watch(
       extraShotsProvider(productAsyncValue.asData?.value.id ?? ''),
     );
+
+    // Check if all data is loaded
+    final isLoading =
+        productAsyncValue.isLoading ||
+        sizesAsyncValue.isLoading ||
+        sugarsAsyncValue.isLoading ||
+        icesAsyncValue.isLoading ||
+        extraShotAsyncValue.isLoading;
+
+    // Set default selections only when data is loaded
+    if (!isLoading) {
+      if (sizesAsyncValue.asData?.value.isNotEmpty == true &&
+          _selectedSizeId == null) {
+        Future.microtask(() {
+          setState(() {
+            _selectedSizeId = sizesAsyncValue.asData!.value.first.id;
+          });
+        });
+      }
+      if (sugarsAsyncValue.asData?.value.isNotEmpty == true &&
+          _selectedSugarId == null) {
+        Future.microtask(() {
+          setState(() {
+            _selectedSugarId = sugarsAsyncValue.asData!.value[1].id;
+          });
+        });
+      }
+      if (icesAsyncValue.asData?.value.isNotEmpty == true &&
+          _selectedIceId == null) {
+        Future.microtask(() {
+          setState(() {
+            _selectedIceId = icesAsyncValue.asData!.value[1].id;
+          });
+        });
+      }
+    }
+
+    // Show loading screen until all data is loaded
+    if (isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.grey,
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFFFFC107)),
+        ),
+      );
+    }
+
     return productAsyncValue.when(
       data: (product) => Scaffold(
         backgroundColor: Colors.grey[50],
@@ -201,7 +252,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
 
                           // Sugar Level Selection
                           sugarsAsyncValue.when(
-                            data: (sugars) => _buildSugarSection(sugars),
+                            data: (sugars) => sugars.isNotEmpty
+                                ? _buildSugarSection(sugars)
+                                : const SizedBox(),
                             loading: () => const SizedBox(),
                             error: (_, __) => const SizedBox(),
                           ),
@@ -210,7 +263,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
 
                           // Ice Level Selection
                           icesAsyncValue.when(
-                            data: (ices) => _buildIceSection(ices),
+                            data: (ices) => ices.isNotEmpty
+                                ? _buildIceSection(ices)
+                                : const SizedBox(),
                             loading: () => const SizedBox(),
                             error: (_, __) => const SizedBox(),
                           ),
@@ -268,9 +323,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                         ),
                       ),
                       Text(
-                        product.discount != null && product.discount! > 0
-                            ? "\$${((product.price * (1 - product.discount! / 100)) * _quantity).toStringAsFixed(2)}"
-                            : "\$${(product.price * _quantity).toStringAsFixed(2)}",
+                        "\$${_calculateCurrentPrice(product, sizesAsyncValue, extraShotAsyncValue).toStringAsFixed(2)}",
                         style: TextStyle(
                           color: Colors.black54,
                           fontWeight: FontWeight.w600,
@@ -318,25 +371,13 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: product.status
-                            ? () {
-                                final totalPrice =
-                                    product.discount != null &&
-                                        product.discount! > 0
-                                    ? (product.price *
-                                              (1 - product.discount! / 100)) *
-                                          _quantity
-                                    : product.price * _quantity;
-
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '$_quantity x ${product.name} added to cart - \$${totalPrice.toStringAsFixed(2)}',
-                                    ),
-                                    backgroundColor: Colors.blue,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
+                            ? () => _addToCart(
+                                product,
+                                sizesAsyncValue,
+                                sugarsAsyncValue,
+                                icesAsyncValue,
+                                extraShotAsyncValue,
+                              )
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: product.status
@@ -370,64 +411,76 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                   ],
                 ),
 
-                const SizedBox(height: 16),
-
                 // View Cart Section
-                GestureDetector(
-                  onTap: () {
-                    _showCartBottomSheet(context);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Consumer(
+                  builder: (context, ref, child) {
+                    final cart = ref.watch(cartProvider);
+                    final cartTotal = ref.watch(cartTotalProvider);
+
+                    if (cart.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+
+                    return Column(
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.shopping_cart,
-                              color: const Color(0xFFFFC107),
-                              size: 24,
+                        const SizedBox(height: 16),
+                        GestureDetector(
+                          onTap: () => _showCartBottomSheet(context),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
                             ),
-                            const SizedBox(width: 12),
-                            const Text(
-                              'View Cart (1 item)',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            const Text(
-                              '\$2.07',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black54,
-                              ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.shopping_cart,
+                                      color: Color(0xFFFFC107),
+                                      size: 24,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      'View Cart (${cart.length} ${cart.length == 1 ? "item" : "items"})',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '\$${cartTotal.toStringAsFixed(2)}',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.chevron_right,
+                                      color: Colors.grey[400],
+                                      size: 24,
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              Icons.chevron_right,
-                              color: Colors.grey[400],
-                              size: 24,
-                            ),
-                          ],
+                          ),
                         ),
                       ],
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -465,6 +518,50 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
         ),
       ),
     );
+  }
+
+  double _calculateCurrentPrice(
+    dynamic product,
+    AsyncValue<dynamic> sizesAsyncValue,
+    AsyncValue<dynamic> extraShotAsyncValue,
+  ) {
+    double price = product.price;
+
+    // Add size price modifier
+    if (_selectedSizeId != null && sizesAsyncValue.hasValue) {
+      try {
+        final selectedSize = sizesAsyncValue.asData?.value.firstWhere(
+          (s) => s.id == _selectedSizeId,
+        );
+        if (selectedSize != null) {
+          price += selectedSize.priceModifier ?? 0;
+        }
+      } catch (e) {
+        // Size not found, continue with base price
+      }
+    }
+
+    // Add extra shot price modifier
+    if (_selectedExtraShotId != null && extraShotAsyncValue.hasValue) {
+      try {
+        final selectedExtraShot = extraShotAsyncValue.asData?.value.firstWhere(
+          (e) => e.id == _selectedExtraShotId,
+        );
+        if (selectedExtraShot != null) {
+          price += selectedExtraShot.priceModifier ?? 0;
+        }
+      } catch (e) {
+        // Extra shot not found, continue without it
+      }
+    }
+
+    // Apply discount
+    if (product.discount != null && product.discount! > 0) {
+      price -= price * (product.discount! / 100);
+    }
+
+    // Multiply by quantity
+    return price * _quantity;
   }
 
   Widget _buildIconButton({
@@ -677,9 +774,25 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Ice Level',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Ice Level',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3CD),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                '1 Required',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -817,238 +930,275 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     );
   }
 
+  void _addToCart(
+    dynamic product,
+    AsyncValue<dynamic> sizesAsyncValue,
+    AsyncValue<dynamic> sugarsAsyncValue,
+    AsyncValue<dynamic> icesAsyncValue,
+    AsyncValue<dynamic> extraShotAsyncValue,
+  ) {
+    // Validation
+    if (_selectedSizeId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a size'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // Get selected options
+    final selectedSize = sizesAsyncValue.asData?.value.firstWhere(
+      (s) => s.id == _selectedSizeId,
+    );
+
+    final selectedSugar =
+        _selectedSugarId != null &&
+            sugarsAsyncValue.asData?.value.isNotEmpty == true
+        ? sugarsAsyncValue.asData?.value.firstWhere(
+            (s) => s.id == _selectedSugarId,
+          )
+        : null;
+
+    final selectedIce =
+        _selectedIceId != null &&
+            icesAsyncValue.asData?.value.isNotEmpty == true
+        ? icesAsyncValue.asData?.value.firstWhere((i) => i.id == _selectedIceId)
+        : null;
+
+    final selectedExtraShot =
+        _selectedExtraShotId != null &&
+            extraShotAsyncValue.asData?.value.isNotEmpty == true
+        ? extraShotAsyncValue.asData?.value.firstWhere(
+            (e) => e.id == _selectedExtraShotId,
+          )
+        : null;
+
+    // Create cart item
+    final cartItem = CartModel(
+      productId: product.id,
+      productName: product.name,
+      image: product.image,
+      basePrice: product.price,
+      discount: product.discount,
+      quantity: _quantity,
+      size: CartOption(
+        id: selectedSize.id,
+        name: selectedSize.sizeName,
+        price: selectedSize.priceModifier,
+      ),
+      sugar: selectedSugar != null
+          ? CartOption(id: selectedSugar.id, name: selectedSugar.name)
+          : null,
+      ice: selectedIce != null
+          ? CartOption(id: selectedIce.id, name: selectedIce.name)
+          : null,
+      extraShot: selectedExtraShot != null
+          ? CartOption(
+              id: selectedExtraShot.id,
+              name: selectedExtraShot.name,
+              price: selectedExtraShot.priceModifier,
+            )
+          : null,
+    );
+
+    // Add to cart
+    ref.read(cartProvider.notifier).addToCart(cartItem);
+
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$_quantity x ${product.name} added to cart'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    // Reset selections and quantity
+    setState(() {
+      _quantity = 1;
+      _selectedSizeId = null;
+      _selectedSugarId = null;
+      _selectedIceId = null;
+      _selectedExtraShotId = null;
+    });
+  }
+
   void _showCartBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 1,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
-        ),
-        child: Column(
-          children: [
-            // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
+      builder: (context) => Consumer(
+        builder: (context, ref, child) {
+          final cart = ref.watch(cartProvider);
+          final cartTotal = ref.watch(cartTotalProvider);
+
+          return Container(
+            height: MediaQuery.of(context).size.height * 1,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
             ),
-
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Cart',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            child: Column(
+              children: [
+                // Handle bar
+                Container(
+                  margin: const EdgeInsets.only(top: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
+                ),
 
-            const Divider(height: 1),
-
-            // Cart Items
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(20),
-                children: [
-                  _buildCartItem(
-                    'Coconut Cream Latte',
-                    'L, Normal Sweet, Normal Ice',
-                    1,
-                    2.07,
-                  ),
-                ],
-              ),
-            ),
-
-            // Bottom Section
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, -3),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Row(
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Total',
-                        style: TextStyle(
-                          fontSize: 18,
+                      Text(
+                        'Cart (${cart.length})',
+                        style: const TextStyle(
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const Text(
-                        '\$2.07',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Proceeding to checkout'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFC107),
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      minimumSize: const Size(double.infinity, 50),
-                    ),
-                    child: const Text(
-                      'CHECKOUT',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+                ),
 
-  Widget _buildCartItem(
-    String name,
-    String options,
-    int quantity,
-    double price,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.coffee, size: 30, color: Colors.grey),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  options,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
+                const Divider(height: 1),
+
+                // Cart Items
+                Expanded(
+                  child: cart.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove, size: 16),
-                                onPressed: () {},
-                                padding: const EdgeInsets.all(4),
-                                constraints: const BoxConstraints(),
+                              Icon(
+                                Icons.shopping_cart_outlined,
+                                size: 80,
+                                color: Colors.grey[300],
                               ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
+                              const SizedBox(height: 16),
+                              Text(
+                                'Your cart is empty',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[500],
                                 ),
-                                child: Text(
-                                  '$quantity',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add, size: 16),
-                                onPressed: () {},
-                                padding: const EdgeInsets.all(4),
-                                constraints: const BoxConstraints(),
                               ),
                             ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(20),
+                          itemCount: cart.length,
+                          itemBuilder: (context, index) {
+                            final item = cart[index];
+                            final options = [
+                              item.size.name,
+                              if (item.sugar != null) item.sugar!.name,
+                              if (item.ice != null) item.ice!.name,
+                              if (item.extraShot != null) item.extraShot!.name,
+                            ].join(', ');
+
+                            return CartItemWidget(
+                              name: item.productName,
+                              options: options,
+                              quantity: item.quantity,
+                              price: item.totalPrice,
+                              image: item.image,
+                              index: index,
+                            );
+                          },
+                        ),
+                ),
+
+                // Bottom Section
+                if (cart.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, -3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Total',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '\$${cartTotal.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Proceeding to checkout'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFC107),
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            minimumSize: const Size(double.infinity, 50),
+                          ),
+                          child: const Text(
+                            'CHECKOUT',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    Text(
-                      '\$${price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
               ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
