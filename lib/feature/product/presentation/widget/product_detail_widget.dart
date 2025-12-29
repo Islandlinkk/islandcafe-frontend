@@ -5,6 +5,8 @@ import 'package:island_cafe/feature/product/data/provider/ice_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/product_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/size_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/sugar_provider.dart';
+import 'package:island_cafe/feature/auth/data/providers/auth_provider.dart';
+import 'package:island_cafe/feature/profile/presentation/data/provider/favorite_provider.dart';
 
 class ProductDetailWidget extends ConsumerStatefulWidget {
   const ProductDetailWidget({super.key});
@@ -15,7 +17,6 @@ class ProductDetailWidget extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
-  bool _isFavorite = false;
   int _quantity = 1;
   final ScrollController _scrollController = ScrollController();
   bool _showAppBar = false;
@@ -109,23 +110,77 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       )
                     else
                       const Spacer(),
-                    _buildIconButton(
-                      icon: _isFavorite
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      color: _isFavorite ? const Color.fromARGB(255, 7, 176, 255) : null,
-                      onPressed: () {
-                        setState(() => _isFavorite = !_isFavorite);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              _isFavorite
-                                  ? 'Added to favorites'
-                                  : 'Removed from favorites',
-                            ),
-                            duration: const Duration(seconds: 1),
-                            behavior: SnackBarBehavior.floating,
-                          ),
+                    // Favorite button now uses the global favorites provider so
+                    // changes are reflected across the app (including FavoritesScreen)
+                    Builder(
+                      builder: (context) {
+                        final user = ref.watch(authStateProvider).value;
+                        final userId = user?.uid ?? '';
+
+                        // Derive favorite state from the provider instead of local state
+                        final isFav = user != null
+                            ? ref.watch(favoritesProvider(userId)).items.any((
+                                item,
+                              ) {
+                                if (item is! Map) return false;
+                                if (item.containsKey('product')) {
+                                  final p = item['product'];
+                                  return (p['id'] ?? p['_id'] ?? '')
+                                          .toString() ==
+                                      product.id;
+                                }
+                                return (item['id'] ?? item['_id'] ?? '')
+                                        .toString() ==
+                                    product.id;
+                              })
+                            : false;
+
+                        return _buildIconButton(
+                          icon: isFav ? Icons.favorite : Icons.favorite_border,
+                          color: isFav
+                              ? const Color.fromARGB(255, 7, 176, 255)
+                              : null,
+                          onPressed: () {
+                            if (user == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Please log in to manage favorites',
+                                  ),
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Build a minimal map representation of the product
+                            final productMap = {
+                              'id': product.id,
+                              '_id': product.id,
+                              'name': product.name,
+                              'image': product.image,
+                              'price': product.price,
+                              'description': product.description,
+                            };
+
+                            // Toggle via notifier (optimistic + persistence handled there)
+                            ref
+                                .read(favoritesProvider(userId).notifier)
+                                .toggleFavorite(productMap);
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  !isFav
+                                      ? 'Added to favorites'
+                                      : 'Removed from favorites',
+                                ),
+                                duration: const Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
                         );
                       },
                     ),
