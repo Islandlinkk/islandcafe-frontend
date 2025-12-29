@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island_cafe/feature/announcement/data/provider/announcement_provider.dart';
 import 'package:island_cafe/feature/announcement/presentation/widget/announcement_card.dart';
+import 'package:island_cafe/feature/auth/data/providers/auth_provider.dart';
 import 'package:island_cafe/feature/home/data/provider/billboard_provider.dart';
 import 'package:island_cafe/feature/home/data/model/billboard_model.dart';
 
@@ -18,8 +19,16 @@ class _HomeContentState extends ConsumerState<HomeContent> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Watch the Auth Provider
+    final authState = ref.watch(authStateProvider);
+    final user = authState.value;
+    
+    // 2. Get the Display Name (use 'Coffee Lover' as fallback like in Profile)
+    final displayName = user?.displayName ?? 'Coffee Lover';
+
     final billboardsAsync = ref.watch(billboardHompageProvider);
     final announcementAsync = ref.watch(announcementHomepageProvider);
+    
     final hour = DateTime.now().hour;
     final greeting = hour < 12
         ? 'Good Morning'
@@ -28,7 +37,6 @@ class _HomeContentState extends ConsumerState<HomeContent> {
         : 'Good Evening';
 
     final pageController = PageController(viewportFraction: 1);
-
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +98,8 @@ class _HomeContentState extends ConsumerState<HomeContent> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              '$greeting, Ah Jm!',
+              // 3. Update the Text string to include the name
+              '$greeting, $displayName', 
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
