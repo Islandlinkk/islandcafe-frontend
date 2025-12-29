@@ -9,37 +9,56 @@ class VerifyEmailPage extends StatefulWidget {
   State<VerifyEmailPage> createState() => _VerifyEmailPageState();
 }
 
-class _VerifyEmailPageState extends State<VerifyEmailPage> {
+class _VerifyEmailPageState extends State<VerifyEmailPage> with WidgetsBindingObserver {
   bool _loading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkEmailVerified();
+    }
+  }
+
+  Future<void> _checkEmailVerified() async {
+    await AuthService.reloadCurrentUser();
+    final user = AuthService.currentUser;
+    
+    if (user != null && user.emailVerified && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email verified successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
   Future<void> _resend() async {
-    await _performAction(
-      AuthService.resendEmailVerification,
-      'Verification email sent',
-    );
-  }
-
-  Future<void> _refresh() async {
-    await _performAction(AuthService.reloadCurrentUser, 'Status refreshed');
-  }
-
-  Future<void> _performAction(
-    Future<void> Function() action,
-    String successMsg,
-  ) async {
     setState(() => _loading = true);
     try {
-      await action();
+      await AuthService.resendEmailVerification();
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(successMsg)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Verification email sent')),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AuthService.getExceptionMessage(e))),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -67,12 +86,10 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
           ),
           const SizedBox(height: 12),
           OutlinedButton(
-            onPressed: _loading ? null : _refresh,
+            onPressed: _checkEmailVerified,
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               side: const BorderSide(color: CoffeeColors.primary),
               foregroundColor: CoffeeColors.primary,
             ),

@@ -20,7 +20,6 @@ class _HomeContentState extends ConsumerState<HomeContent> {
   Widget build(BuildContext context) {
     final billboardsAsync = ref.watch(billboardHompageProvider);
     final announcementAsync = ref.watch(announcementHomepageProvider);
-    final isLoading = billboardsAsync.isLoading || announcementAsync.isLoading;
     final hour = DateTime.now().hour;
     final greeting = hour < 12
         ? 'Good Morning'

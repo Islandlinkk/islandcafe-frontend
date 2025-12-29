@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:island_cafe/feature/cart/data/model/cart_model.dart';
 import 'package:island_cafe/feature/cart/data/provider/cart_notifier.dart';
 import 'package:island_cafe/feature/cart/data/provider/cart_total_provider.dart';
@@ -10,6 +11,7 @@ import 'package:island_cafe/feature/product/data/provider/size_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/sugar_provider.dart';
 import 'package:island_cafe/feature/product/presentation/widget/cart_item_widget.dart';
 import 'package:island_cafe/feature/product/presentation/widget/related_product_widget.dart';
+import 'package:island_cafe/feature/theme/loading_screen.dart';
 
 class ProductDetailWidget extends ConsumerStatefulWidget {
   const ProductDetailWidget({super.key});
@@ -110,12 +112,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
 
     // Show loading screen until all data is loaded
     if (isLoading) {
-      return const Scaffold(
-        backgroundColor: Colors.grey,
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFFFFC107)),
-        ),
-      );
+     return LoadingScreen();
     }
 
     return productAsyncValue.when(
@@ -131,7 +128,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
               boxShadow: _showAppBar
                   ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black,
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -333,9 +330,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                           return GestureDetector(
                                             onTap: () {
                                                  ref.read(selectedProductIdProvider.notifier).state=relatedProduct.id;
-                                              Navigator.pushReplacementNamed(
-                                                context,
-                                                '/product-detail',
+                                              context.pushNamed(
+                                                '/productDetail'
                                               );
                                             },
                                             child: RelatedProductWidget(

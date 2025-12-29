@@ -2,9 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-// --- SECTIONS & LAYOUT ---
-
 class SectionLabel extends StatelessWidget {
   final String text;
   const SectionLabel({super.key, required this.text});
@@ -22,7 +19,6 @@ class SectionLabel extends StatelessWidget {
     );
   }
 }
-
 class CardGrid extends StatelessWidget {
   final List<CardItem> items;
   final Color surface;
@@ -41,9 +37,8 @@ class CardGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // FIX 1: Use .floorToDouble() to prevent sub-pixel jitter during scroll
         final itemWidth = ((constraints.maxWidth - 12) / 2).floorToDouble();
-        
+
         return Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -97,7 +92,6 @@ class ShortcutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: width,
-      // FIX 2: Use Material widget for stable rendering and correct splash effects
       child: Material(
         color: surface,
         shape: RoundedRectangleBorder(
@@ -136,9 +130,6 @@ class ShortcutCard extends StatelessWidget {
     );
   }
 }
-
-// --- SOCIALS ---
-
 class SocialsSection extends StatelessWidget {
   const SocialsSection({super.key});
 
@@ -200,12 +191,63 @@ class SocialIcon extends StatelessWidget {
     );
   }
 }
-
-// --- PROFILE HERO (Specific to User) ---
-
 class ProfileHero extends StatelessWidget {
   final User user;
   const ProfileHero({super.key, required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Center(
+          child: Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.blue[600],
+              shape: BoxShape.circle,
+              image: user.photoURL != null
+                  ? DecorationImage(
+                      image: NetworkImage(user.photoURL!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: user.photoURL == null
+                ? const Icon(Icons.person, size: 40, color: Colors.white)
+                : null,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Center(
+          child: Text(
+            user.displayName ?? 'Coffee Lover',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Center(
+          child: TextButton(
+            onPressed: () => context.push('/edit-profile'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey[700],
+              backgroundColor: Colors.grey[100],
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: const Text('View Profile'),
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+}
+
+class ShowSignOutButton extends StatelessWidget {
+  const ShowSignOutButton({super.key});
 
   Future<void> _confirmSignOut(BuildContext context) async {
     final shouldLogout = await showDialog<bool>(
@@ -235,43 +277,6 @@ class ProfileHero extends StatelessWidget {
     return Column(
       children: [
         Center(
-          child: Container(
-            width: 96,
-            height: 96,
-            decoration: BoxDecoration(
-              color: Colors.blue[600],
-              shape: BoxShape.circle,
-              image: user.photoURL != null
-                  ? DecorationImage(
-                      image: NetworkImage(user.photoURL!),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: user.photoURL == null
-                ? const Icon(Icons.person, size: 44, color: Colors.white)
-                : null,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Center(
-          child: Text(
-            user.displayName ?? 'Coffee Lover',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-          ),
-        ),
-        if (user.email != null)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                user.email!,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
-            ),
-          ),
-        const SizedBox(height: 6),
-        Center(
           child: TextButton.icon(
             onPressed: () => _confirmSignOut(context),
             icon: const Icon(Icons.logout, size: 18),
@@ -279,13 +284,10 @@ class ProfileHero extends StatelessWidget {
             style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
           ),
         ),
-        const SizedBox(height: 20),
       ],
     );
   }
 }
-
-// --- MODALS ---
 
 void showPlatformModal(BuildContext context) {
   showModalBottomSheet(
