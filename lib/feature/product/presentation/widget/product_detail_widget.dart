@@ -11,7 +11,6 @@ import 'package:island_cafe/feature/product/data/provider/size_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/sugar_provider.dart';
 import 'package:island_cafe/feature/product/presentation/widget/cart_item_widget.dart';
 import 'package:island_cafe/feature/product/presentation/widget/related_product_widget.dart';
-import 'package:island_cafe/feature/theme/loading_screen.dart';
 
 class ProductDetailWidget extends ConsumerStatefulWidget {
   const ProductDetailWidget({super.key});
@@ -56,6 +55,11 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Get Dynamic Theme Data
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     final productAsyncValue = ref.watch(productByIdProvider);
     final relatedProductsAsyncValue = ref.watch(
       relatedProductsProvider(productAsyncValue.asData?.value.categoryId ?? ''),
@@ -87,48 +91,61 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
       if (sizesAsyncValue.asData?.value.isNotEmpty == true &&
           _selectedSizeId == null) {
         Future.microtask(() {
-          setState(() {
-            _selectedSizeId = sizesAsyncValue.asData!.value.first.id;
-          });
+          if (mounted) {
+            setState(() {
+              _selectedSizeId = sizesAsyncValue.asData!.value.first.id;
+            });
+          }
         });
       }
       if (sugarsAsyncValue.asData?.value.isNotEmpty == true &&
           _selectedSugarId == null) {
         Future.microtask(() {
-          setState(() {
-            _selectedSugarId = sugarsAsyncValue.asData!.value[1].id;
-          });
+          if (mounted) {
+            setState(() {
+              _selectedSugarId = sugarsAsyncValue.asData!.value.length > 1
+                  ? sugarsAsyncValue.asData!.value[1].id
+                  : sugarsAsyncValue.asData!.value.first.id;
+            });
+          }
         });
       }
       if (icesAsyncValue.asData?.value.isNotEmpty == true &&
           _selectedIceId == null) {
         Future.microtask(() {
-          setState(() {
-            _selectedIceId = icesAsyncValue.asData!.value[1].id;
-          });
+          if (mounted) {
+            setState(() {
+              _selectedIceId = icesAsyncValue.asData!.value.length > 1
+                  ? icesAsyncValue.asData!.value[1].id
+                  : icesAsyncValue.asData!.value.first.id;
+            });
+          }
         });
       }
     }
 
     // Show loading screen until all data is loaded
     if (isLoading) {
-      return LoadingScreen();
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor, // Fix: Dynamic BG
+        body: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     return productAsyncValue.when(
       data: (product) => Scaffold(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: theme.scaffoldBackgroundColor, // Fix: Dynamic BG
         extendBodyBehindAppBar: true,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: _showAppBar ? Colors.white : Colors.transparent,
+              color: _showAppBar ? theme.appBarTheme.backgroundColor ?? colors.surface : Colors.transparent,
               boxShadow: _showAppBar
                   ? [
                       BoxShadow(
-                        color: Colors.black,
+                        color: Colors.black.withOpacity(0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -144,6 +161,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 child: Row(
                   children: [
                     _buildIconButton(
+                      context,
                       icon: Icons.arrow_back,
                       onPressed: () => Navigator.of(context).pop(),
                     ),
@@ -152,9 +170,10 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                         child: Text(
                           product.name,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            color: colors.onSurface, // Fix: Dynamic text
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -163,10 +182,12 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                     else
                       const Spacer(),
                     _buildIconButton(
+                      context,
                       icon: _isFavorite
                           ? Icons.favorite
                           : Icons.favorite_border,
-                      color: _isFavorite ? const Color(0xFFFFC107) : null,
+                      // Fix: Use Primary Color for favorite
+                      color: _isFavorite ? colors.primary : colors.onSurface,
                       onPressed: () {
                         setState(() => _isFavorite = !_isFavorite);
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -208,10 +229,13 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 Container(
-                                  color: Colors.grey[300],
-                                  child: const Icon(
+                                  height: 300,
+                                  width: double.infinity,
+                                  color: colors.surfaceContainerHighest, // Fix: Dynamic
+                                  child: Icon(
                                     Icons.image_not_supported,
                                     size: 80,
+                                    color: colors.onSurfaceVariant, // Fix: Dynamic
                                   ),
                                 ),
                           ),
@@ -226,11 +250,11 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.red,
+                                color: colors.error, // Fix: Error color
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withOpacity(0.2),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -238,8 +262,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                               ),
                               child: Text(
                                 'SAVE ${product.discount}%',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: colors.onError,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 0.5,
@@ -259,9 +283,10 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           // Product Name
                           Text(
                             product.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
+                              color: colors.onSurface, // Fix: Dynamic
                             ),
                           ),
 
@@ -276,16 +301,16 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     decoration: TextDecoration.lineThrough,
-                                    color: Colors.grey[500],
+                                    color: colors.onSurfaceVariant, // Fix: Dynamic
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
                                   '\$${(product.price - (product.price * product.discount! / 100)).toStringAsFixed(2)}',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.red,
+                                    color: colors.error, // Discounted Price
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -295,7 +320,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.red[50],
+                                    color: colors.errorContainer,
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
@@ -303,7 +328,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.red[700],
+                                      color: colors.onErrorContainer,
                                     ),
                                   ),
                                 ),
@@ -312,10 +337,10 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           else
                             Text(
                               '\$${product.price.toStringAsFixed(2)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFFFFC107),
+                                color: colors.primary, // Fix: Primary Color
                               ),
                             ),
 
@@ -325,7 +350,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           Text(
                             product.description,
                             style: TextStyle(
-                              color: Colors.black54,
+                              color: colors.onSurfaceVariant, // Fix: Dynamic
                               fontSize: 14,
                               height: 1.5,
                             ),
@@ -336,7 +361,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           // Size Selection
                           sizesAsyncValue.when(
                             data: (sizes) =>
-                                _buildSizeSection(sizes, product.discount),
+                                _buildSizeSection(context, sizes, product.discount),
                             loading: () => const SizedBox(),
                             error: (_, __) => const SizedBox(),
                           ),
@@ -346,7 +371,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           // Sugar Level Selection
                           sugarsAsyncValue.when(
                             data: (sugars) => sugars.isNotEmpty
-                                ? _buildSugarSection(sugars)
+                                ? _buildSugarSection(context, sugars)
                                 : const SizedBox(),
                             loading: () => const SizedBox(),
                             error: (_, __) => const SizedBox(),
@@ -357,7 +382,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           // Ice Level Selection
                           icesAsyncValue.when(
                             data: (ices) => ices.isNotEmpty
-                                ? _buildIceSection(ices)
+                                ? _buildIceSection(context, ices)
                                 : const SizedBox(),
                             loading: () => const SizedBox(),
                             error: (_, __) => const SizedBox(),
@@ -368,41 +393,34 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           // Extra Shot Selection
                           extraShotAsyncValue.when(
                             data: (extraShots) => extraShots.isNotEmpty
-                                ? _buildExtraShotSection(extraShots)
+                                ? _buildExtraShotSection(context, extraShots)
                                 : const SizedBox(),
                             loading: () => const SizedBox(),
                             error: (_, __) => const SizedBox(),
                           ),
-                          // Related Products Section
+                          
+                          // Related Products
                           relatedProductsAsyncValue.when(
                             data: (relatedProducts) {
-                              if (relatedProducts.isEmpty) {
-                                return const SizedBox();
-                              }
-
-                              // Filter out the current product
+                              if (relatedProducts.isEmpty) return const SizedBox();
                               final filteredProducts = relatedProducts
                                   .where((p) => p.id != product.id)
                                   .toList();
-
-                              if (filteredProducts.isEmpty) {
-                                return const SizedBox();
-                              }
+                              if (filteredProducts.isEmpty) return const SizedBox();
 
                               return Container(
                                 margin: const EdgeInsets.only(top: 32),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Padding(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 0,
-                                      ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 0),
                                       child: Text(
                                         'You May Also Like',
                                         style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
+                                          color: colors.onSurface,
                                         ),
                                       ),
                                     ),
@@ -411,32 +429,18 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                       height: 150,
                                       child: ListView.builder(
                                         scrollDirection: Axis.horizontal,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 0,
-                                        ),
                                         itemCount: filteredProducts.length,
                                         itemBuilder: (context, index) {
-                                          final relatedProduct =
-                                              filteredProducts[index];
+                                          final relatedProduct = filteredProducts[index];
                                           return GestureDetector(
                                             onTap: () {
-                                              ref
-                                                  .read(
-                                                    selectedProductIdProvider
-                                                        .notifier,
-                                                  )
-                                                  .state = relatedProduct
-                                                  .id;
-                                              context.pushReplacementNamed(
-                                                '/productDetail',
-                                              );
+                                              ref.read(selectedProductIdProvider.notifier).state = relatedProduct.id;
+                                              context.pushReplacementNamed('/productDetail');
                                             },
                                             child: RelatedProductWidget(
                                               productName: relatedProduct.name,
-                                              productImage:
-                                                  relatedProduct.image,
-                                              productPrice:
-                                                  relatedProduct.price,
+                                              productImage: relatedProduct.image,
+                                              productPrice: relatedProduct.price,
                                             ),
                                           );
                                         },
@@ -465,15 +469,16 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.cardColor, // Fix: Dynamic Background
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.3),
+                  color: Colors.black.withOpacity(0.05),
                   spreadRadius: 1,
                   blurRadius: 10,
                   offset: const Offset(0, -3),
                 ),
               ],
+              border: Border(top: BorderSide(color: theme.dividerColor)),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -488,12 +493,13 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 18,
+                          color: colors.onSurface, // Fix: Dynamic
                         ),
                       ),
                       Text(
                         "\$${_calculateCurrentPrice(product, sizesAsyncValue, extraShotAsyncValue).toStringAsFixed(2)}",
                         style: TextStyle(
-                          color: Colors.black54,
+                          color: colors.primary, // Fix: Use Primary
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
@@ -509,29 +515,21 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.remove, size: 20),
+                          icon: Icon(Icons.remove, size: 20, color: colors.onSurface),
                           onPressed: _quantity > 1
-                              ? () {
-                                  setState(() {
-                                    _quantity--;
-                                  });
-                                }
+                              ? () => setState(() => _quantity--)
                               : null,
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: Text(
                             '$_quantity',
-                            style: const TextStyle(fontSize: 16),
+                            style: TextStyle(fontSize: 16, color: colors.onSurface),
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.add, size: 20),
-                          onPressed: () {
-                            setState(() {
-                              _quantity++;
-                            });
-                          },
+                          icon: Icon(Icons.add, size: 20, color: colors.onSurface),
+                          onPressed: () => setState(() => _quantity++),
                         ),
                       ],
                     ),
@@ -548,15 +546,16 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                               )
                             : null,
                         style: ElevatedButton.styleFrom(
+                          // Fix: Dynamic Button Color
                           backgroundColor: product.status
-                              ? const Color(0xFFFFC107)
-                              : Colors.grey,
-                          foregroundColor: Colors.black,
+                              ? colors.primary
+                              : colors.surfaceContainerHighest,
+                          foregroundColor: colors.onPrimary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          disabledBackgroundColor: Colors.grey[400],
+                          disabledBackgroundColor: colors.surfaceContainerHighest,
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -567,8 +566,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: product.status
-                                    ? Colors.black
-                                    : Colors.white,
+                                    ? colors.onPrimary
+                                    : colors.onSurfaceVariant,
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -600,7 +599,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                               vertical: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
+                              // Fix: Dynamic Cart Preview Background
+                              color: colors.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -608,18 +608,18 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.shopping_cart,
-                                      color: Color(0xFFFFC107),
+                                      color: colors.primary, // Fix: Primary
                                       size: 24,
                                     ),
                                     const SizedBox(width: 12),
                                     Text(
                                       'View Cart (${cart.length} ${cart.length == 1 ? "item" : "items"})',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.black87,
+                                        color: colors.onSurface, // Fix: Dynamic
                                       ),
                                     ),
                                   ],
@@ -628,16 +628,16 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                   children: [
                                     Text(
                                       '\$${cartTotal.toStringAsFixed(2)}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.black54,
+                                        color: colors.onSurfaceVariant,
                                       ),
                                     ),
                                     const SizedBox(width: 4),
                                     Icon(
                                       Icons.chevron_right,
-                                      color: Colors.grey[400],
+                                      color: colors.onSurfaceVariant,
                                       size: 24,
                                     ),
                                   ],
@@ -650,28 +650,28 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                     );
                   },
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
               ],
             ),
           ),
         ),
       ),
-      loading: () => const Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator(color: Colors.blue)),
+      loading: () => Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor, // Fix: Dynamic
+        body: Center(child: CircularProgressIndicator(color: colors.primary)),
       ),
       error: (error, stackTrace) => Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: theme.scaffoldBackgroundColor, // Fix: Dynamic
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.error_outline, size: 64, color: Colors.red),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Error loading product',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: colors.onSurface,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -679,7 +679,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
               const SizedBox(height: 8),
               Text(
                 error.toString(),
-                style: TextStyle(color: Colors.grey[400]),
+                style: TextStyle(color: colors.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -697,7 +697,6 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     double price = product.price;
     double extraShotPrice = 0;
 
-    // Add size price modifier
     if (_selectedSizeId != null && sizesAsyncValue.hasValue) {
       try {
         final selectedSize = sizesAsyncValue.asData?.value.firstWhere(
@@ -707,16 +706,14 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
           price += selectedSize.priceModifier ?? 0;
         }
       } catch (e) {
-        // Size not found, continue with base price
+        // ignore
       }
     }
 
-    // Apply discount to base price + size modifier (before adding extra shot)
     if (product.discount != null && product.discount! > 0) {
       price -= price * (product.discount! / 100);
     }
 
-    // Add extra shot price modifier (NOT discounted)
     if (_selectedExtraShotId != null && extraShotAsyncValue.hasValue) {
       try {
         final selectedExtraShot = extraShotAsyncValue.asData?.value.firstWhere(
@@ -726,22 +723,23 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
           extraShotPrice = selectedExtraShot.priceModifier ?? 0;
         }
       } catch (e) {
-        // Extra shot not found, continue without it
+        // ignore
       }
     }
 
-    // Multiply by quantity
     return (price + extraShotPrice) * _quantity;
   }
 
-  Widget _buildIconButton({
+  Widget _buildIconButton(
+    BuildContext context, {
     required IconData icon,
     required VoidCallback onPressed,
     Color? color,
   }) {
+    final colors = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: colors.surface.withOpacity(0.9), // Dynamic Surface
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
@@ -752,32 +750,42 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
         ],
       ),
       child: IconButton(
-        icon: Icon(icon, color: color ?? Colors.grey[800]),
+        icon: Icon(icon, color: color ?? colors.onSurface),
         onPressed: onPressed,
       ),
     );
   }
 
-  Widget _buildSizeSection(List sizes, int? discount) {
+  // --- REUSABLE SELECTION WIDGETS (FIXED COLORS) ---
+
+  Widget _buildSizeSection(BuildContext context, List sizes, int? discount) {
+    final colors = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Size',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: colors.onSurface),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF3CD),
+                // Fix: Dynamic Badge (Primary with low opacity)
+                color: colors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
+              child: Text(
                 '1 Required',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: colors.primary),
               ),
             ),
           ],
@@ -795,25 +803,20 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 : originalPrice;
 
             return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedSizeId = size.id;
-                });
-              },
+              onTap: () => setState(() => _selectedSizeId = size.id),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 16,
                 ),
                 decoration: BoxDecoration(
+                  // Fix: Dynamic Selection Background
                   color: isSelected
-                      ? const Color(0xFFFFF3CD)
-                      : Colors.grey[100],
+                      ? colors.primary.withOpacity(0.1)
+                      : colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFFFFC107)
-                        : Colors.transparent,
+                    color: isSelected ? colors.primary : Colors.transparent,
                     width: 2,
                   ),
                 ),
@@ -824,12 +827,14 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       size.sizeName == "large"
                           ? "L"
                           : size.sizeName == "medium"
-                          ? "M"
-                          : "S",
+                              ? "M"
+                              : "S",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.black : Colors.grey[600],
+                        color: isSelected
+                            ? colors.primary
+                            : colors.onSurface, // Fix Text Color
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -841,7 +846,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                             style: TextStyle(
                               fontSize: 11,
                               decoration: TextDecoration.lineThrough,
-                              color: Colors.grey[500],
+                              color: colors.onSurfaceVariant,
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -850,9 +855,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? Colors.red[700]
-                                  : Colors.red[600],
+                              color: colors.error,
                             ),
                           ),
                         ],
@@ -862,7 +865,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                         '\$${originalPrice.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 14,
-                          color: isSelected ? Colors.black87 : Colors.grey[600],
+                          color: isSelected
+                              ? colors.onSurface
+                              : colors.onSurfaceVariant,
                         ),
                       ),
                   ],
@@ -875,7 +880,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     );
   }
 
-  Widget _buildSugarSection(List sugars) {
+  Widget _buildSugarSection(BuildContext context, List sugars) {
+    final colors = Theme.of(context).colorScheme;
     final sugarIcons = {
       'No Sweet': Icons.block,
       'Less Sweet': Icons.grain,
@@ -889,19 +895,25 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Sugar Level',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: colors.onSurface),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF3CD),
+                color: colors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
+              child: Text(
                 '1 Required',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: colors.primary),
               ),
             ),
           ],
@@ -914,23 +926,17 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
             final isSelected = _selectedSugarId == sugar.id;
             final icon = sugarIcons[sugar.name] ?? Icons.water_drop;
             return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedSugarId = sugar.id;
-                });
-              },
+              onTap: () => setState(() => _selectedSugarId = sugar.id),
               child: Container(
                 width: 80,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFFFF3CD)
-                      : Colors.grey[100],
+                      ? colors.primary.withOpacity(0.1)
+                      : colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFFFFC107)
-                        : Colors.transparent,
+                    color: isSelected ? colors.primary : Colors.transparent,
                     width: 2,
                   ),
                 ),
@@ -940,8 +946,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       icon,
                       size: 32,
                       color: isSelected
-                          ? const Color(0xFFFFC107)
-                          : Colors.grey[400],
+                          ? colors.primary
+                          : colors.onSurfaceVariant,
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -950,7 +956,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: isSelected ? Colors.black : Colors.grey[600],
+                        color: isSelected
+                            ? colors.onSurface
+                            : colors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -963,7 +971,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     );
   }
 
-  Widget _buildIceSection(List ices) {
+  Widget _buildIceSection(BuildContext context, List ices) {
+    final colors = Theme.of(context).colorScheme;
     final iceIcons = {
       'Less Ice': Icons.ac_unit_outlined,
       'No Ice': Icons.block,
@@ -978,19 +987,25 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Ice Level',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: colors.onSurface),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFF3CD),
+                color: colors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
+              child: Text(
                 '1 Required',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: colors.primary),
               ),
             ),
           ],
@@ -1003,23 +1018,17 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
             final isSelected = _selectedIceId == ice.id;
             final icon = iceIcons[ice.name] ?? Icons.ac_unit;
             return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedIceId = ice.id;
-                });
-              },
+              onTap: () => setState(() => _selectedIceId = ice.id),
               child: Container(
                 width: 80,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFFFF3CD)
-                      : Colors.grey[100],
+                      ? colors.primary.withOpacity(0.1)
+                      : colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFFFFC107)
-                        : Colors.transparent,
+                    color: isSelected ? colors.primary : Colors.transparent,
                     width: 2,
                   ),
                 ),
@@ -1028,7 +1037,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                     Icon(
                       icon,
                       size: 32,
-                      color: isSelected ? Colors.blue : Colors.grey[400],
+                      color: isSelected ? colors.primary : colors.onSurfaceVariant,
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -1037,7 +1046,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: isSelected ? Colors.black : Colors.grey[600],
+                        color: isSelected ? colors.onSurface : colors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -1050,13 +1059,17 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     );
   }
 
-  Widget _buildExtraShotSection(List extraShots) {
+  Widget _buildExtraShotSection(BuildContext context, List extraShots) {
+    final colors = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Extra Shot',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colors.onSurface),
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -1077,13 +1090,11 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFFFFF3CD)
-                      : Colors.grey[100],
+                      ? colors.primary.withOpacity(0.1)
+                      : colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isSelected
-                        ? const Color(0xFFFFC107)
-                        : Colors.transparent,
+                    color: isSelected ? colors.primary : Colors.transparent,
                     width: 2,
                   ),
                 ),
@@ -1093,9 +1104,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                     Icon(
                       Icons.coffee_maker,
                       size: 24,
-                      color: isSelected
-                          ? const Color(0xFFFFC107)
-                          : Colors.grey[400],
+                      color: isSelected ? colors.primary : colors.onSurfaceVariant,
                     ),
                     const SizedBox(width: 8),
                     Column(
@@ -1106,7 +1115,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: isSelected ? Colors.black : Colors.grey[600],
+                            color: isSelected
+                                ? colors.onSurface
+                                : colors.onSurfaceVariant,
                           ),
                         ),
                         if (extraShot.priceModifier > 0)
@@ -1115,8 +1126,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                             style: TextStyle(
                               fontSize: 12,
                               color: isSelected
-                                  ? Colors.black87
-                                  : Colors.grey[500],
+                                  ? colors.onSurface
+                                  : colors.onSurfaceVariant,
                             ),
                           ),
                       ],
@@ -1138,19 +1149,17 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     AsyncValue<dynamic> icesAsyncValue,
     AsyncValue<dynamic> extraShotAsyncValue,
   ) {
-    // Validation
     if (_selectedSizeId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a size'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('Please select a size'),
+          backgroundColor: Theme.of(context).colorScheme.error,
           behavior: SnackBarBehavior.floating,
         ),
       );
       return;
     }
 
-    // Get selected options
     final selectedSize = sizesAsyncValue.asData?.value.firstWhere(
       (s) => s.id == _selectedSizeId,
     );
@@ -1177,7 +1186,6 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
           )
         : null;
 
-    // Create cart item
     final cartItem = CartModel(
       productId: product.id,
       productName: product.name,
@@ -1205,10 +1213,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
           : null,
     );
 
-    // Add to cart
     ref.read(cartProvider.notifier).addToCart(cartItem);
 
-    // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$_quantity x ${product.name} added to cart'),
@@ -1217,7 +1223,6 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
       ),
     );
 
-    // Reset selections and quantity
     setState(() {
       _quantity = 1;
       _selectedSizeId = null;
@@ -1228,6 +1233,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
   }
 
   void _showCartBottomSheet(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1238,28 +1246,26 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
           final cartTotal = ref.watch(cartTotalProvider);
 
           return Container(
-            height: MediaQuery.of(context).size.height * 1,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
+            height: MediaQuery.of(context).size.height * 0.9,
+            decoration: BoxDecoration(
+              color: theme.cardColor, // Fix: Dynamic Background
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
               ),
             ),
             child: Column(
               children: [
-                // Handle bar
                 Container(
                   margin: const EdgeInsets.only(top: 12),
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: theme.dividerColor,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
 
-                // Header
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Row(
@@ -1267,22 +1273,22 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                     children: [
                       Text(
                         'Cart (${cart.length})',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
+                          color: colors.onSurface,
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close),
+                        icon: Icon(Icons.close, color: colors.onSurface),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                 ),
 
-                const Divider(height: 1),
+                Divider(height: 1, color: theme.dividerColor),
 
-                // Cart Items
                 Expanded(
                   child: cart.isEmpty
                       ? Center(
@@ -1292,14 +1298,14 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                               Icon(
                                 Icons.shopping_cart_outlined,
                                 size: 80,
-                                color: Colors.grey[300],
+                                color: colors.surfaceContainerHighest,
                               ),
                               const SizedBox(height: 16),
                               Text(
                                 'Your cart is empty',
                                 style: TextStyle(
                                   fontSize: 18,
-                                  color: Colors.grey[500],
+                                  color: colors.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -1329,15 +1335,14 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                         ),
                 ),
 
-                // Bottom Section
                 if (cart.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.cardColor, // Fix: Dynamic Background
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Colors.black.withOpacity(0.05),
                           blurRadius: 10,
                           offset: const Offset(0, -3),
                         ),
@@ -1348,18 +1353,20 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'Total',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
+                                color: colors.onSurface,
                               ),
                             ),
                             Text(
                               '\$${cartTotal.toStringAsFixed(2)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
+                                color: colors.primary,
                               ),
                             ),
                           ],
@@ -1376,8 +1383,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFFC107),
-                            foregroundColor: Colors.black,
+                            backgroundColor: colors.primary,
+                            foregroundColor: colors.onPrimary,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),

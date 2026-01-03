@@ -15,20 +15,30 @@ class RelatedProductWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 1. Get Dynamic Theme Data
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Container(
       width: 280,
       margin: const EdgeInsets.only(right: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor, // Fix: Dynamic Background (Dark Grey in Dark Mode)
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        // Fix: Hide shadow in Dark Mode (use border instead for cleaner look)
+        boxShadow: isDarkMode 
+            ? [] 
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+        // Optional: Add subtle border in dark mode
+        border: isDarkMode ? Border.all(color: theme.dividerColor) : null,
       ),
       child: Row(
         children: [
@@ -39,10 +49,10 @@ class RelatedProductWidget extends ConsumerWidget {
               children: [
                 Text(
                   productName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: colors.onSurface, // Fix: Dynamic Text
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -50,10 +60,10 @@ class RelatedProductWidget extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(
                   '\$${productPrice.toStringAsFixed(2)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: Colors.black54,
+                    color: colors.onSurfaceVariant, // Fix: Dynamic Subtitle
                   ),
                 ),
               ],
@@ -71,10 +81,15 @@ class RelatedProductWidget extends ConsumerWidget {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  // Fix: Dynamic Placeholder Background
+                  color: colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.coffee, size: 40, color: Colors.grey),
+                child: Icon(
+                  Icons.coffee, 
+                  size: 40, 
+                  color: colors.onSurfaceVariant, // Fix: Dynamic Icon
+                ),
               ),
             ),
           ),
