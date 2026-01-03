@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island_cafe/core/route/route_name.dart';
-import 'package:island_cafe/feature/menu/data/menu_data.dart';
-import 'package:island_cafe/feature/menu/data/model/menu_item.dart';
-import 'package:island_cafe/feature/menu/presentation/widget/menu_item_card.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
