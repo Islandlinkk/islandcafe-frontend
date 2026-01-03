@@ -1,11 +1,14 @@
-// GENERATED CODE - Hive Type Adapters
-// This file provides Hive adapters for cart persistence
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 part of 'cart_model.dart';
 
+// **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
+
 class CartOptionAdapter extends TypeAdapter<CartOption> {
   @override
-  final int typeId = 0;
+  final typeId = 0;
 
   @override
   CartOption read(BinaryReader reader) {
@@ -16,7 +19,7 @@ class CartOptionAdapter extends TypeAdapter<CartOption> {
     return CartOption(
       id: fields[0] as String,
       name: fields[1] as String,
-      price: fields[2] as double?,
+      price: (fields[2] as num?)?.toDouble(),
     );
   }
 
@@ -45,7 +48,7 @@ class CartOptionAdapter extends TypeAdapter<CartOption> {
 
 class CartModelAdapter extends TypeAdapter<CartModel> {
   @override
-  final int typeId = 1;
+  final typeId = 1;
 
   @override
   CartModel read(BinaryReader reader) {
@@ -57,13 +60,13 @@ class CartModelAdapter extends TypeAdapter<CartModel> {
       productId: fields[0] as String,
       productName: fields[1] as String,
       image: fields[2] as String,
-      basePrice: fields[3] as double,
-      quantity: fields[4] as int,
+      basePrice: (fields[3] as num).toDouble(),
+      quantity: (fields[4] as num).toInt(),
       size: fields[5] as CartOption,
       sugar: fields[6] as CartOption?,
       ice: fields[7] as CartOption?,
       extraShot: fields[8] as CartOption?,
-      discount: fields[9] as int?,
+      discount: (fields[9] as num?)?.toInt(),
       note: fields[10] as String?,
     );
   }

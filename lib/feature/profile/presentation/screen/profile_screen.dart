@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island_cafe/core/route/route_name.dart';
 import 'package:island_cafe/feature/profile/presentation/widgets/profile_widgets.dart';
+
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -197,7 +199,7 @@ class _LoggedInView extends StatelessWidget {
               CardItem(
                 icon: Icons.confirmation_number_outlined,
                 label: 'Vouchers',
-                onTap: () {},
+                onTap: () => context.push(voucherRoute),
               ),
             ],
           ),

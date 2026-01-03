@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:island_cafe/feature/cart/data/model/cart_model.dart';
 
 typedef CartState = List<CartModel>;
