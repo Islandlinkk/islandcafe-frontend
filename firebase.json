@@ -1,1 +1,25 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"islandcoffeeapp-62b47","appId":"1:923919509100:android:bdebc8e01b68f22f681a49","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"islandcoffeeapp-62b47","configurations":{"android":"1:923919509100:android:bdebc8e01b68f22f681a49","ios":"1:923919509100:ios:4e2cad3be7d1dc64681a49"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "islandcoffeeapp-62b47",
+          "appId": "1:923919509100:android:bdebc8e01b68f22f681a49",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "islandcoffeeapp-62b47",
+          "configurations": {
+            "android": "1:923919509100:android:bdebc8e01b68f22f681a49",
+            "ios": "1:923919509100:ios:4e2cad3be7d1dc64681a49"
+          }
+        }
+      }
+    }
+  }
+}
