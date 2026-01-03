@@ -4,19 +4,21 @@ import 'package:go_router/go_router.dart';
 import 'package:island_cafe/core/route/route_name.dart';
 import 'package:island_cafe/feature/profile/presentation/widgets/profile_widgets.dart';
 
-
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // 1. Get Theme Data
+    final theme = Theme.of(context);
+
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            backgroundColor: Colors.white,
-            body: Center(child: CircularProgressIndicator()),
+          return Scaffold(
+            backgroundColor: theme.scaffoldBackgroundColor, // Dynamic
+            body: const Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -24,23 +26,26 @@ class ProfileScreen extends StatelessWidget {
         final isLoggedIn = user != null;
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: theme.scaffoldBackgroundColor, // Dynamic
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: theme.appBarTheme.backgroundColor, // Dynamic
             elevation: 0,
-            title: const Text(
+            title: Text(
               'Profile',
-              style: TextStyle(
-                color: Colors.black,
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
+                color: theme.appBarTheme.foregroundColor, // Dynamic Text
               ),
             ),
             centerTitle: true,
             actions: [
               IconButton(
                 onPressed: () => context.push(settingsRoute),
-                icon: const Icon(Icons.settings_outlined, color: Colors.black),
+                icon: Icon(
+                  Icons.settings_outlined, 
+                  color: theme.appBarTheme.foregroundColor, // Dynamic Icon
+                ),
               ),
               const SizedBox(width: 8),
             ],
@@ -60,6 +65,9 @@ class _GuestView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       child: Column(
@@ -69,22 +77,23 @@ class _GuestView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.blue,
+              // Use Primary with opacity for the bubble background
+              color: primaryColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.local_cafe_rounded,
               size: 64,
-              color: Colors.blue[700],
+              color: primaryColor, // Brand Color
             ),
           ),
           const SizedBox(height: 32),
-          const Text(
+          Text(
             'Join the Club!',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: theme.colorScheme.onSurface, // Adapts to Dark Mode
             ),
           ),
           const SizedBox(height: 12),
@@ -93,7 +102,7 @@ class _GuestView extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey[600],
+              color: theme.colorScheme.onSurfaceVariant, // Readable Grey
               height: 1.5,
             ),
           ),
@@ -104,7 +113,7 @@ class _GuestView extends StatelessWidget {
             child: FilledButton(
               onPressed: () => context.push('/login'),
               style: FilledButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: primaryColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -122,11 +131,11 @@ class _GuestView extends StatelessWidget {
             child: OutlinedButton(
               onPressed: () => context.push('/signup'),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.blue, width: 1.5),
+                side: BorderSide(color: primaryColor, width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                foregroundColor: Colors.blue,
+                foregroundColor: primaryColor,
               ),
               child: const Text(
                 'Create Account',
@@ -137,10 +146,12 @@ class _GuestView extends StatelessWidget {
           const SizedBox(height: 60),
           const SectionLabel(text: 'SUPPORT'),
           const SizedBox(height: 12),
+          
+          // Pass Dynamic Colors to your CardGrid
           CardGrid(
-            surface: Colors.grey[100]!,
-            border: Colors.grey[300]!,
-            iconColor: Colors.grey[600]!,
+            surface: theme.cardColor,
+            border: theme.dividerColor,
+            iconColor: theme.colorScheme.onSurfaceVariant,
             items: [
               CardItem(
                 icon: Icons.person_outline,
@@ -169,9 +180,12 @@ class _LoggedInView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surface = Colors.grey[100]!;
-    final border = Colors.grey[300]!;
-    final iconColor = Colors.grey[600]!;
+    final theme = Theme.of(context);
+    
+    // Define the dynamic styles once
+    final surface = theme.cardColor;
+    final border = theme.dividerColor;
+    final iconColor = theme.colorScheme.onSurfaceVariant;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),

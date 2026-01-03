@@ -37,7 +37,7 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
 
   @override
   Widget build(BuildContext context) {
-    final blueColor = Colors.blue;
+    final blueColor = Theme.of(context).colorScheme.primary;
     final categoriesAsync = ref.watch(categoryProvider);
     final isSearchActive = ref.watch(isSearchActiveProvider);
     final searchQuery = ref.watch(searchQueryProvider);
@@ -80,14 +80,14 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+                      Icon(Icons.search_off, size: 64, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
                       const SizedBox(height: 16),
                       Text(
                         'No products found',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: Colors.grey[600],
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -95,7 +95,7 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                         'Try a different search term',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[500],
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                         ),
                       ),
                     ],
@@ -130,8 +130,8 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                 Container(
                   width: 120,
                   decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    border: Border(right: BorderSide(color: Colors.grey[300]!)),
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    border: Border(right: BorderSide(color: Theme.of(context).dividerColor)),
                   ),
                   child: ListView.builder(
                     itemCount: categories.length,

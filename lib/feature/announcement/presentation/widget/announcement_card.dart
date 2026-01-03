@@ -21,24 +21,35 @@ class AnnouncementCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 1. Get Dynamic Theme Data
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor, // Dynamic Background
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        // 2. Hide shadow in Dark Mode (use border instead if needed), show in Light Mode
+        boxShadow: isDarkMode 
+            ? [] 
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+        // Optional: Add a thin border in dark mode to separate card from background
+        border: isDarkMode ? Border.all(color: theme.dividerColor) : null,
       ),
       child: InkWell(
         onTap: () => {
           ref.read(selectedAnnouncementId.notifier).state = id,
           context.pushNamed('/announcementDetail'),
         },
+        borderRadius: BorderRadius.circular(16), // Fix ripple effect clipping
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -54,9 +65,13 @@ class AnnouncementCard extends ConsumerWidget {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     height: 200,
-                    color: Colors.grey[300],
+                    // 3. Dynamic Placeholder Color
+                    color: colorScheme.surfaceContainerHighest,
                     alignment: Alignment.center,
-                    child: const Icon(Icons.image_not_supported),
+                    child: Icon(
+                      Icons.image_not_supported, 
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   );
                 },
               ),
@@ -68,15 +83,17 @@ class AnnouncementCard extends ConsumerWidget {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface, // Dynamic Title Color
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     content,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.black.withOpacity(0.7),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      // 4. Dynamic Description Color (Grey in Light, Light Grey in Dark)
+                      color: colorScheme.onSurfaceVariant,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,

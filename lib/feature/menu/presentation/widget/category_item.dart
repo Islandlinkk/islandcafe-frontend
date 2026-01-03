@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:island_cafe/feature/product/data/model/category_model.dart';
+import 'package:island_cafe/feature/theme/app_theme.dart'; // Import AppTheme
 
 class CategoryItem extends StatelessWidget {
   final CategoryModel category;
@@ -15,7 +16,12 @@ class CategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final blueColor = Colors.blue;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    
+    // 1. GET YOUR NEW DYNAMIC COLOR
+    // It will be Grey[600] in Light Mode, and Grey[300] in Dark Mode automatically
+    final categoryColor = Theme.of(context).extension<AppColors>()?.categoryColor ?? 
+        Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
 
     return InkWell(
       onTap: onTap,
@@ -23,11 +29,11 @@ class CategoryItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? blueColor.withValues(alpha: 0.1)
+              ? primaryColor.withValues(alpha: 0.1)
               : Colors.transparent,
           border: Border(
             left: BorderSide(
-              color: isSelected ? blueColor : Colors.transparent,
+              color: isSelected ? primaryColor : Colors.transparent,
               width: 3,
             ),
           ),
@@ -46,14 +52,16 @@ class CategoryItem extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Icon(
                         Icons.category,
-                        color: isSelected ? blueColor : Colors.grey[600],
+                        // 2. Use it here
+                        color: isSelected ? primaryColor : categoryColor,
                         size: 20,
                       ),
                     ),
                   )
                 : Icon(
                     Icons.category,
-                    color: isSelected ? blueColor : Colors.grey[600],
+                    // 3. Use it here
+                    color: isSelected ? primaryColor : categoryColor,
                     size: 20,
                   ),
             const SizedBox(height: 8),
@@ -61,7 +69,8 @@ class CategoryItem extends StatelessWidget {
               category.name,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isSelected ? blueColor : Colors.grey[600],
+                // 4. Use it here
+                color: isSelected ? primaryColor : categoryColor,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 fontSize: 10,
               ),

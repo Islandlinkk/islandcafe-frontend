@@ -11,18 +11,19 @@ class FavoritesScreen extends StatelessWidget {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          color: Colors.black,
+          color: Theme.of(context).colorScheme.onSurface,
           onPressed: () => context.go(profileRoute),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
           'FAVORITES',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.5,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         actions: [
@@ -36,7 +37,7 @@ class FavoritesScreen extends StatelessWidget {
           ),
         ],
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         itemBuilder: (context, index) {

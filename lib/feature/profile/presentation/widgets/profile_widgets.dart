@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 class SectionLabel extends StatelessWidget {
   final String text;
   const SectionLabel({super.key, required this.text});
@@ -13,12 +14,14 @@ class SectionLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w700,
-        color: Colors.grey[600],
+        // Use dynamic color for text
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         letterSpacing: 0.3,
       ),
     );
   }
 }
+
 class CardGrid extends StatelessWidget {
   final List<CardItem> items;
   final Color surface;
@@ -90,6 +93,8 @@ class ShortcutCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textStyle = Theme.of(context).textTheme.bodyMedium;
+
     return SizedBox(
       width: width,
       child: Material(
@@ -116,7 +121,7 @@ class ShortcutCard extends StatelessWidget {
                 Flexible(
                   child: Text(
                     item.label,
-                    style: const TextStyle(
+                    style: textStyle?.copyWith(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -130,17 +135,24 @@ class ShortcutCard extends StatelessWidget {
     );
   }
 }
+
 class SocialsSection extends StatelessWidget {
   const SocialsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bg = theme.colorScheme.surfaceContainerHighest; // Dynamic light grey
+
     return Column(
       children: [
-        const Center(
+        Center(
           child: Text(
             'Stay connected!',
-            style: TextStyle(fontWeight: FontWeight.w600),
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -149,26 +161,17 @@ class SocialsSection extends StatelessWidget {
           children: [
             GestureDetector(
               onTap: () => launchUrl(Uri.parse('https://www.facebook.com/')),
-              child: const SocialIcon(
-                icon: Icons.facebook,
-                background: Color(0xFFEEEEEE),
-              ),
+              child: SocialIcon(icon: Icons.facebook, background: bg),
             ),
             const SizedBox(width: 16),
             GestureDetector(
               onTap: () => launchUrl(Uri.parse('https://www.tiktok.com/')),
-              child: const SocialIcon(
-                icon: Icons.tiktok,
-                background: Color(0xFFEEEEEE),
-              ),
+              child: SocialIcon(icon: Icons.tiktok, background: bg),
             ),
             const SizedBox(width: 16),
             GestureDetector(
               onTap: () => launchUrl(Uri.parse('https://t.me/')),
-              child: const SocialIcon(
-                icon: Icons.telegram,
-                background: Color(0xFFEEEEEE),
-              ),
+              child: SocialIcon(icon: Icons.telegram, background: bg),
             ),
           ],
         ),
@@ -187,16 +190,43 @@ class SocialIcon extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(color: background, shape: BoxShape.circle),
-      child: Icon(icon, color: Colors.grey[700], size: 22),
+      // Icon color adapts to the background
+      child: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
     );
   }
 }
+
+// ==========================================
+// UPDATED PROFILE HERO (Your Button Fix)
+// ==========================================
 class ProfileHero extends StatelessWidget {
   final User user;
   const ProfileHero({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    // 1. DYNAMIC BUTTON STYLES
+    final buttonColor = isDarkMode 
+        ? theme.colorScheme.primary // Orange/Brown in Dark Mode
+        : Colors.white;             // White in Light Mode
+
+    final buttonTextColor = isDarkMode 
+        ? theme.colorScheme.onPrimary // White text on Orange
+        : Colors.black;               // Black text on White
+
+    final buttonShadow = isDarkMode
+        ? <BoxShadow>[] // No shadow for flat dark mode look
+        : [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ];
+
     return Column(
       children: [
         Center(
@@ -204,7 +234,7 @@ class ProfileHero extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: Colors.blue[600],
+              color: theme.colorScheme.primaryContainer,
               shape: BoxShape.circle,
               image: user.photoURL != null
                   ? DecorationImage(
@@ -214,7 +244,7 @@ class ProfileHero extends StatelessWidget {
                   : null,
             ),
             child: user.photoURL == null
-                ? const Icon(Icons.person, size: 40, color: Colors.white)
+                ? Icon(Icons.person, size: 40, color: theme.colorScheme.onPrimaryContainer)
                 : null,
           ),
         ),
@@ -222,22 +252,41 @@ class ProfileHero extends StatelessWidget {
         Center(
           child: Text(
             user.displayName ?? 'Coffee Lover',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            style: TextStyle(
+              fontSize: 18, 
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12), // Slightly more space
+        
+        // 2. THE NEW BUTTON
         Center(
-          child: TextButton(
-            onPressed: () => context.push('/edit-profile'),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey[700],
-              backgroundColor: Colors.grey[100],
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: buttonColor,
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: buttonShadow,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(30),
+                onTap: () => context.push('/edit-profile'),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                  child: Text(
+                    'View Profile',
+                    style: TextStyle(
+                      color: buttonTextColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
               ),
             ),
-            child: const Text('View Profile'),
           ),
         ),
         const SizedBox(height: 20),
@@ -253,6 +302,7 @@ class ShowSignOutButton extends StatelessWidget {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
+        backgroundColor: Theme.of(c).cardColor, // Dynamic Dialog Background
         title: const Text('Sign Out'),
         content: const Text('Are you sure you want to sign out?'),
         actions: [
@@ -303,10 +353,12 @@ class PlatformSelectionModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor, // Dynamic Background
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -316,7 +368,7 @@ class PlatformSelectionModal extends StatelessWidget {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: theme.dividerColor,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -324,13 +376,17 @@ class PlatformSelectionModal extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                const Text(
+                Text(
                   'Select Platform',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    fontSize: 18, 
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: Icon(Icons.close, color: theme.colorScheme.onSurface),
                   onPressed: () => Navigator.of(context).pop(),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -389,23 +445,29 @@ class PlatformOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return InkWell(
       onTap: () => onTap(),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardColor, // Dynamic Card Color
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: theme.dividerColor),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 24, color: Colors.grey[700]),
+            Icon(icon, size: 24, color: theme.colorScheme.onSurfaceVariant),
             const SizedBox(width: 16),
             Text(
               label,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 16, 
+                fontWeight: FontWeight.w500,
+                color: theme.colorScheme.onSurface,
+              ),
             ),
           ],
         ),

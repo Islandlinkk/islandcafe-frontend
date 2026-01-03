@@ -30,23 +30,23 @@ class RootBottomnavigationScreen extends ConsumerWidget {
         onDestinationSelected: onTap,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.home, color: Colors.grey),
-            selectedIcon: Icon(Icons.home, color: Colors.blue),
+            icon: Icon(Icons.home),
+            selectedIcon: Icon(Icons.home),
             label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.menu, color: Colors.grey),
-            selectedIcon: Icon(Icons.menu, color: Colors.blue),
+            icon: Icon(Icons.menu),
+            selectedIcon: Icon(Icons.menu),
             label: 'Menu',
           ),
           NavigationDestination(
-            icon: Icon(Icons.history, color: Colors.grey),
-            selectedIcon: Icon(Icons.history, color: Colors.blue),
+            icon: Icon(Icons.history),
+            selectedIcon: Icon(Icons.history),
             label: 'History',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person, color: Colors.grey),
-            selectedIcon: Icon(Icons.person, color: Colors.blue),
+            icon: Icon(Icons.person),
+            selectedIcon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],

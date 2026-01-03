@@ -1,31 +1,40 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-class SettingsScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:island_cafe/feature/theme/theme_notifier.dart';
+
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final surface = Colors.grey[100]!;
-    final divider = Colors.grey[300]!;
-
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 1. Listen to the current theme
+    final currentTheme = ref.watch(themeProvider);
+    
+    // Get colors from the theme (Dynamic!)
+    final surface = Theme.of(context).cardColor;
+    final divider = Theme.of(context).dividerColor;
+    
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          color: Colors.black,
+          // Use semantic color, not hardcoded black
+          color: Theme.of(context).colorScheme.onSurface,
           onPressed: () => context.pop(),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        title: Text(
           'SETTINGS',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.5,
+            color: Theme.of(context).appBarTheme.foregroundColor,
           ),
         ),
       ),
@@ -40,20 +49,27 @@ class SettingsScreen extends StatelessWidget {
                 _SettingsTile(
                   icon: Icons.palette_outlined,
                   title: 'Appearance',
-                  onTap: () {},
+                  // 2. Show the current mode name (e.g., "System")
+                  trailing: Text(
+                    currentTheme.name.capitalize(), 
+                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                  ),
+                  // 3. Open the selector
+                  onTap: () => _showAppearanceSheet(context, ref, currentTheme),
                 ),
                 _SettingsTile(
                   icon: Icons.language_outlined,
                   title: 'Language',
-                  trailing: const Text(
+                  trailing: Text(
                     'English',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                   ),
                   onTap: () {},
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            // ... (Rest of your code remains the same: FAQs, Share, etc.)
+             const SizedBox(height: 20),
             _SettingsCard(
               surface: surface,
               divider: divider,
@@ -61,9 +77,7 @@ class SettingsScreen extends StatelessWidget {
                 _SettingsTile(
                   icon: Icons.help_outline,
                   title: 'FAQs',
-                  onTap: () {
-                    // TODO: hook up FAQs
-                  },
+                  onTap: () {},
                 ),
                 _SettingsTile(
                   icon: Icons.description_outlined,
@@ -91,8 +105,97 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
+
+  // --- THE BOTTOM SHEET ---
+  void _showAppearanceSheet(BuildContext context, WidgetRef ref, ThemeMode currentMode) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              const Text(
+                'Choose Appearance',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              _ThemeOption(
+                label: 'System Default',
+                mode: ThemeMode.system,
+                isSelected: currentMode == ThemeMode.system,
+                onTap: (mode) {
+                  ref.read(themeProvider.notifier).setTheme(mode);
+                  context.pop();
+                },
+              ),
+              _ThemeOption(
+                label: 'Light Mode',
+                mode: ThemeMode.light,
+                isSelected: currentMode == ThemeMode.light,
+                onTap: (mode) {
+                  ref.read(themeProvider.notifier).setTheme(mode);
+                  context.pop();
+                },
+              ),
+              _ThemeOption(
+                label: 'Dark Mode',
+                mode: ThemeMode.dark,
+                isSelected: currentMode == ThemeMode.dark,
+                onTap: (mode) {
+                  ref.read(themeProvider.notifier).setTheme(mode);
+                  context.pop();
+                },
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
+// --- HELPER WIDGET FOR OPTIONS ---
+class _ThemeOption extends StatelessWidget {
+  final String label;
+  final ThemeMode mode;
+  final bool isSelected;
+  final Function(ThemeMode) onTap;
+
+  const _ThemeOption({
+    required this.label,
+    required this.mode,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(label),
+      trailing: isSelected 
+          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary) 
+          : Icon(Icons.circle_outlined, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+      onTap: () => onTap(mode),
+    );
+  }
+}
+
+// Helper to make "system" -> "System"
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1)}";
+  }
+}
+
+// --- KEEP YOUR EXISTING _SettingsCard AND _SettingsTile CLASSES BELOW ---
+// (Paste your original _SettingsCard and _SettingsTile classes here)
+// (But update _SettingsTile to read color from context if you want it to support dark mode text properly)
 class _SettingsCard extends StatelessWidget {
   final List<Widget> children;
   final Color surface;
@@ -153,18 +256,18 @@ class _SettingsTile extends StatelessWidget {
         child: Row(
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 24, color: Colors.grey[700]),
+              Icon(icon, size: 24, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
               const SizedBox(width: 16),
             ],
             Expanded(child: Text(title, style: titleStyle)),
             if (trailing != null) ...[
               DefaultTextStyle(
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                 child: trailing!,
               ),
               const SizedBox(width: 8),
             ],
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
           ],
         ),
       ),

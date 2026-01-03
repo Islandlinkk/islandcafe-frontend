@@ -26,7 +26,7 @@ class CoffeeAuthLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CoffeeColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -36,17 +36,17 @@ class CoffeeAuthLayout extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (showLogo) ...[
-                  const Icon(Icons.coffee, size: 64, color: CoffeeColors.primary),
+                  Icon(Icons.coffee, size: 64, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(height: 24),
                 ],
                 Container(
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
-                    color: CoffeeColors.surface,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: CoffeeColors.primary,
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -58,10 +58,10 @@ class CoffeeAuthLayout extends StatelessWidget {
                       Text(
                         title,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: CoffeeColors.textDark,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontFamily: 'serif',
                         ),
                       ),
@@ -69,7 +69,7 @@ class CoffeeAuthLayout extends StatelessWidget {
                       Text(
                         subtitle,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                       ),
                       const SizedBox(height: 32),
                       child,
@@ -115,28 +115,28 @@ class CoffeeTextField extends StatelessWidget {
         validator: validator,
         readOnly: readOnly, // <--- USE IT HERE
         style: TextStyle(
-          color: readOnly ? Colors.grey[700] : const Color(0xFF3E2723),
+          color: readOnly ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6) : Theme.of(context).colorScheme.onSurface,
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Colors.grey[600]),
-          prefixIcon: Icon(icon, color: readOnly ? Colors.grey : const Color(0xFFA1887F)),
+          labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+          prefixIcon: Icon(icon, color: readOnly ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6) : Theme.of(context).colorScheme.primary),
           filled: true,
-          fillColor: readOnly ? Colors.grey[100] : Colors.grey[50], // Grey out if readOnly
+          fillColor: readOnly ? Theme.of(context).colorScheme.surface.withOpacity(0.5) : Theme.of(context).colorScheme.surface,
           contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(
-              color: readOnly ? Colors.transparent : Colors.grey.shade200,
+              color: readOnly ? Colors.transparent : Theme.of(context).colorScheme.outline,
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Color(0xFF4E342E), width: 2),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: Colors.redAccent),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
           ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
         ),
@@ -167,16 +167,16 @@ class CoffeeButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? CoffeeColors.primary,
-          foregroundColor: textColor ?? Colors.white,
+          backgroundColor: backgroundColor ?? Theme.of(context).colorScheme.primary,
+          foregroundColor: textColor ?? Theme.of(context).colorScheme.onPrimary,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         child: isLoading
-            ? const SizedBox(
+            ? SizedBox(
                 height: 24,
                 width: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onPrimary, strokeWidth: 2),
               )
             : Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
@@ -198,9 +198,9 @@ class SocialButton extends StatelessWidget {
       label: const Text('Continue with Google'),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 14),
-        side: BorderSide(color: Colors.grey.shade300),
+        side: BorderSide(color: Theme.of(context).dividerColor),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        foregroundColor: CoffeeColors.textDark,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
