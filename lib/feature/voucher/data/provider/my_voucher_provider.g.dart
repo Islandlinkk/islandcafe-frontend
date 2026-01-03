@@ -41,7 +41,7 @@ final class MyVouchersProvider
   }
 }
 
-String _$myVouchersHash() => r'f9f087885b711a7a8a5289a1d4c2cdeccd46f099';
+String _$myVouchersHash() => r'fa94acae59352efc684d70be0cd8787598eb3ea3';
 
 abstract class _$MyVouchers extends $Notifier<List<VoucherModel>> {
   List<VoucherModel> build();

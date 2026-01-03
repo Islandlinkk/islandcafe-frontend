@@ -9,46 +9,6 @@ part of 'voucher_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(dio)
-const dioProvider = DioProvider._();
-
-final class DioProvider extends $FunctionalProvider<Dio, Dio, Dio>
-    with $Provider<Dio> {
-  const DioProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'dioProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$dioHash();
-
-  @$internal
-  @override
-  $ProviderElement<Dio> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  Dio create(Ref ref) {
-    return dio(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Dio value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<Dio>(value),
-    );
-  }
-}
-
-String _$dioHash() => r'a03da399b44b3740dc4fcfc6716203041d66ff01';
-
 @ProviderFor(voucherService)
 const voucherServiceProvider = VoucherServiceProvider._();
 
@@ -88,7 +48,7 @@ final class VoucherServiceProvider
   }
 }
 
-String _$voucherServiceHash() => r'ebbcdef1fbf09307b492fd0113f4f897dbdebbe2';
+String _$voucherServiceHash() => r'b5b02f521c2dfa9407380fc00f644954def141cf';
 
 @ProviderFor(vouchers)
 const vouchersProvider = VouchersProvider._();
@@ -129,4 +89,4 @@ final class VouchersProvider
   }
 }
 
-String _$vouchersHash() => r'651f6cecce7f3bcddfee8f2f28ff743b07c499ae';
+String _$vouchersHash() => r'ba6a48357f8fb498d20c07c667c3b5fcd3fc8578';
