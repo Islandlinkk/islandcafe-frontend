@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:island_cafe/feature/cart/data/model/cart_model.dart';
 
 typedef CartState = List<CartModel>;
@@ -16,10 +17,28 @@ bool _isSameItem(CartModel a, CartModel b) {
 }
 
 class CartNotifier extends Notifier<CartState> {
-  @override
-  CartState build() => [];
+  static const String _boxName = 'cart_box';
+  Box<CartModel>? _cartBox;
 
-  void addToCart(CartModel newItem) {
+  @override
+  CartState build() {
+    _initializeBox();
+    return [];
+  }
+
+  Future<void> _initializeBox() async {
+    _cartBox = await Hive.openBox<CartModel>(_boxName);
+    state = _cartBox!.values.toList();
+  }
+
+  Future<void> _saveToBox() async {
+    if (_cartBox != null) {
+      await _cartBox!.clear();
+      await _cartBox!.addAll(state);
+    }
+  }
+
+  Future<void> addToCart(CartModel newItem) async {
     final index = state.indexWhere((item) => _isSameItem(item, newItem));
 
     if (index >= 0) {
@@ -47,19 +66,22 @@ class CartNotifier extends Notifier<CartState> {
     } else {
       state = [...state, newItem];
     }
+    await _saveToBox();
   }
 
-  void removeItem(int index) {
+  Future<void> removeItem(int index) async {
     state = [...state]..removeAt(index);
+    await _saveToBox();
   }
 
-  void clearCart() {
+  Future<void> clearCart() async {
     state = [];
+    await _saveToBox();
   }
 
-  void updateQuantity(int index, int newQuantity) {
+  Future<void> updateQuantity(int index, int newQuantity) async {
     if (newQuantity <= 0) {
-      removeItem(index);
+      await removeItem(index);
       return;
     }
 
@@ -83,5 +105,6 @@ class CartNotifier extends Notifier<CartState> {
       updatedItem,
       ...state.sublist(index + 1),
     ];
+    await _saveToBox();
   }
 }

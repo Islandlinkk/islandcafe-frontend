@@ -112,7 +112,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
 
     // Show loading screen until all data is loaded
     if (isLoading) {
-     return LoadingScreen();
+      return LoadingScreen();
     }
 
     return productAsyncValue.when(
@@ -198,20 +198,56 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Product Image
-                    ClipRRect(
-                      child: Image.network(
-                        product.image,
-                        width: double.infinity,
-                        height: 300,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          color: Colors.grey[300],
-                          child: const Icon(
-                            Icons.image_not_supported,
-                            size: 80,
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          child: Image.network(
+                            product.image,
+                            width: double.infinity,
+                            height: 300,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.image_not_supported,
+                                    size: 80,
+                                  ),
+                                ),
                           ),
                         ),
-                      ),
+                        if (product.discount != null && product.discount! > 0)
+                          Positioned(
+                            top: 16,
+                            right: 16,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                'SAVE ${product.discount}%',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
 
                     // Product Details Section
@@ -229,6 +265,60 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                             ),
                           ),
 
+                          const SizedBox(height: 8),
+
+                          // Price with discount
+                          if (product.discount != null && product.discount! > 0)
+                            Row(
+                              children: [
+                                Text(
+                                  '\$${product.price.toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    decoration: TextDecoration.lineThrough,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  '\$${(product.price - (product.price * product.discount! / 100)).toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red[50],
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'Save ${product.discount}%',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.red[700],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            )
+                          else
+                            Text(
+                              '\$${product.price.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFFFC107),
+                              ),
+                            ),
+
                           const SizedBox(height: 12),
 
                           // Description
@@ -245,7 +335,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
 
                           // Size Selection
                           sizesAsyncValue.when(
-                            data: (sizes) => _buildSizeSection(sizes),
+                            data: (sizes) =>
+                                _buildSizeSection(sizes, product.discount),
                             loading: () => const SizedBox(),
                             error: (_, __) => const SizedBox(),
                           ),
@@ -329,9 +420,15 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                               filteredProducts[index];
                                           return GestureDetector(
                                             onTap: () {
-                                                 ref.read(selectedProductIdProvider.notifier).state=relatedProduct.id;
-                                              context.pushNamed(
-                                                '/productDetail'
+                                              ref
+                                                  .read(
+                                                    selectedProductIdProvider
+                                                        .notifier,
+                                                  )
+                                                  .state = relatedProduct
+                                                  .id;
+                                              context.pushReplacementNamed(
+                                                '/productDetail',
                                               );
                                             },
                                             child: RelatedProductWidget(
@@ -598,6 +695,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     AsyncValue<dynamic> extraShotAsyncValue,
   ) {
     double price = product.price;
+    double extraShotPrice = 0;
 
     // Add size price modifier
     if (_selectedSizeId != null && sizesAsyncValue.hasValue) {
@@ -613,27 +711,27 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
       }
     }
 
-    // Add extra shot price modifier
+    // Apply discount to base price + size modifier (before adding extra shot)
+    if (product.discount != null && product.discount! > 0) {
+      price -= price * (product.discount! / 100);
+    }
+
+    // Add extra shot price modifier (NOT discounted)
     if (_selectedExtraShotId != null && extraShotAsyncValue.hasValue) {
       try {
         final selectedExtraShot = extraShotAsyncValue.asData?.value.firstWhere(
           (e) => e.id == _selectedExtraShotId,
         );
         if (selectedExtraShot != null) {
-          price += selectedExtraShot.priceModifier ?? 0;
+          extraShotPrice = selectedExtraShot.priceModifier ?? 0;
         }
       } catch (e) {
         // Extra shot not found, continue without it
       }
     }
 
-    // Apply discount
-    if (product.discount != null && product.discount! > 0) {
-      price -= price * (product.discount! / 100);
-    }
-
     // Multiply by quantity
-    return price * _quantity;
+    return (price + extraShotPrice) * _quantity;
   }
 
   Widget _buildIconButton({
@@ -660,7 +758,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     );
   }
 
-  Widget _buildSizeSection(List sizes) {
+  Widget _buildSizeSection(List sizes, int? discount) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -690,6 +788,12 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
           runSpacing: 12,
           children: sizes.map((size) {
             final isSelected = _selectedSizeId == size.id;
+            final hasDiscount = discount != null && discount > 0;
+            final originalPrice = size.fullPrice;
+            final discountedPrice = hasDiscount
+                ? originalPrice - (originalPrice * discount / 100)
+                : originalPrice;
+
             return GestureDetector(
               onTap: () {
                 setState(() {
@@ -729,13 +833,38 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '\$${size.fullPrice.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isSelected ? Colors.black87 : Colors.grey[600],
+                    if (hasDiscount)
+                      Column(
+                        children: [
+                          Text(
+                            '\$${originalPrice.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              decoration: TextDecoration.lineThrough,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '\$${discountedPrice.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.red[700]
+                                  : Colors.red[600],
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Text(
+                        '\$${originalPrice.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isSelected ? Colors.black87 : Colors.grey[600],
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),
