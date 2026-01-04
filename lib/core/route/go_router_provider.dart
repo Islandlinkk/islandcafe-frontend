@@ -28,10 +28,14 @@ final routerRefreshTriggerProvider = StateProvider<int>((ref) => 0);
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
+  
   RouterNotifier(this._ref) {
-    _ref.listen(authStateProvider, (_, _) => notifyListeners());
-    _ref.listen(isProfileCompleteProvider, (_, _) => notifyListeners());
-    _ref.listen(routerRefreshTriggerProvider, (_, _) => notifyListeners());
+    // Listen to the auth state changes
+    _ref.listen(authStateProvider, (previous, next) {
+      notifyListeners();
+    });
+
+    // ... other listeners
   }
 }
 
@@ -44,15 +48,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: notifier,
     redirect: (context, state) {
       final String location = state.uri.toString();
+      final path = state.uri.path;
+
+      // 1. Get State
+      final authState = ref.read(authStateProvider);
+      final profileState = ref.read(isProfileCompleteProvider);
+
+      // FIX: Prioritize the Provider value if available to ensure sync
+      final liveUser = AuthService.currentUser;
+      final bool isLoggedIn = liveUser != null || (authState.value != null);
       if (location.startsWith('com.googleusercontent.apps')) {
         return '/login';
       }
-      final authState = ref.read(authStateProvider);
-      final profileState = ref.read(isProfileCompleteProvider);
-      final liveUser = AuthService.currentUser;
-      final isLoggedIn = liveUser != null;
 
-      final path = state.uri.path;
+      // 2. Loading State Logic
+      // PROBLEM AREA: If it's loading, we generally want to stay put (return null).
+      // But if we are ON the login page and actually Logged In (but just waiting on profile),
+      // we might want to let it proceed or show a loading screen.
+      if (authState.isLoading || profileState.isLoading) {
+        return null;
+      }
 
       final isStrictlyProtected =
           path.startsWith('/history') ||
@@ -60,31 +75,31 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           path.startsWith('/settings') ||
           path.startsWith('/edit-profile') ||
           path.startsWith('/checkout') ||
-          path.startsWith('/voucher') ||
-          path == '/profile';
+          path.startsWith('/voucher');
 
       final isAuthRoute =
           path == '/login' || path == '/signup' || path == '/forgot-password';
       final isVerifyRoute = path == '/verify-email';
 
-      // 1. Loading State
-      if (authState.isLoading || profileState.isLoading) return null;
-
-      // 2. UNAUTHENTICATED FLOW (Guest)
+      // 3. UNAUTHENTICATED FLOW (Guest)
       if (!isLoggedIn) {
-        if (isStrictlyProtected) return '/login';
+        if (isStrictlyProtected) {
+          return '/login';
+        }
         return null;
       }
 
-      // 3. AUTHENTICATED FLOW
-      if (!liveUser.emailVerified) {
+      // 4. AUTHENTICATED FLOW
+      final userToCheck = liveUser ?? authState.value;
+
+      if (userToCheck != null && !userToCheck.emailVerified) {
         if (!isVerifyRoute) return '/verify-email';
         return null;
       }
 
       // If logged in and verified, prevent access to auth pages
       if (isAuthRoute || isVerifyRoute) {
-        return context.namedLocation(homeRoute);
+        return '/home';
       }
 
       return null;
@@ -148,7 +163,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
 
-          // ... Other Routes (INSIDE Global Wrapper) ...
+          // ... Other Routes ...
           GoRoute(
             path: '/announcements',
             name: announcementRoute,

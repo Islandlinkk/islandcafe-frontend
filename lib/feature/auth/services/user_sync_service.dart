@@ -29,11 +29,10 @@ class UserSyncService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        print("Failed to sync user: ${response.body}");
-        // Optionally throw an exception or handle error silently
+        return Future.error("Failed to sync user: ${response.body}");
       }
     } catch (e) {
-      print("Error syncing user data: $e");
+      return Future.error("Error syncing user data: $e");
     }
   }
 
@@ -48,10 +47,10 @@ class UserSyncService {
       final response = await http.delete(url);
 
       if (response.statusCode != 200) {
-        print("Failed to delete user from API: ${response.body}");
+        return Future.error("Failed to delete user from API: ${response.body}");
       }
     } catch (e) {
-      print("Error deleting user from API: $e");
+      return Future.error("Error deleting user from API: $e");
     }
   }
 }

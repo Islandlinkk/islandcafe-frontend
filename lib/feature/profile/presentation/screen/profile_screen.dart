@@ -111,7 +111,8 @@ class _GuestView extends StatelessWidget {
             width: double.infinity,
             height: 54,
             child: FilledButton(
-              onPressed: () => context.push('/login'),
+              // CHANGE THIS LINE: from push to go
+              onPressed: () => context.go('/login'), 
               style: FilledButton.styleFrom(
                 backgroundColor: primaryColor,
                 shape: RoundedRectangleBorder(
@@ -124,12 +125,13 @@ class _GuestView extends StatelessWidget {
               ),
             ),
           ),
+
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             height: 54,
             child: OutlinedButton(
-              onPressed: () => context.push('/signup'),
+              onPressed: () => context.go('/signup'),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: primaryColor, width: 1.5),
                 shape: RoundedRectangleBorder(

@@ -66,7 +66,9 @@ Future<void> _handleEmailLogin() async {
 
   @override
   Widget build(BuildContext context) {
-    return CoffeeAuthLayout(
+    return Stack(
+      children: [
+        CoffeeAuthLayout(
       title: 'Welcome Back!',
       subtitle: 'Grab a cup and sign in.',
       child: Form(
@@ -137,6 +139,16 @@ Future<void> _handleEmailLogin() async {
           ],
         ),
       ),
+    ),
+    Positioned(
+          top: 40, // Adjust for safe area
+          left: 10,
+          child: IconButton(
+            onPressed: () => context.go('/profile'),
+            icon: const Icon(Icons.arrow_back_ios_new, color: CoffeeColors.primary),
+          ),
+        ),
+      ],
     );
   }
 }

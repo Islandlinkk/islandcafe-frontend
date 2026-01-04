@@ -139,7 +139,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           top: 40, // Adjust for safe area
           left: 10,
           child: IconButton(
-            onPressed: () => context.go('/login'), // Go back to login
+            onPressed: () => context.go('/login'),
             icon: const Icon(Icons.arrow_back_ios_new, color: CoffeeColors.primary),
           ),
         ),
