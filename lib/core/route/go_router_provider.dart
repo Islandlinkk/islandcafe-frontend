@@ -10,7 +10,6 @@ import 'package:island_cafe/feature/auth/presentation/screens/forgot_password_sc
 import 'package:island_cafe/feature/auth/presentation/screens/login_screen.dart';
 import 'package:island_cafe/feature/auth/presentation/screens/signup_screen.dart';
 import 'package:island_cafe/feature/auth/presentation/screens/verify_email.dart';
-import 'package:island_cafe/feature/auth/services/auth_service.dart';
 import 'package:island_cafe/feature/history/presentation/screen/history_screen.dart';
 import 'package:island_cafe/feature/home/presentation/screen/home_screen.dart';
 import 'package:island_cafe/feature/menu/presentation/screen/menu_screen.dart';
@@ -19,9 +18,10 @@ import 'package:island_cafe/feature/profile/presentation/screen/edit_profile_scr
 import 'package:island_cafe/feature/profile/presentation/screen/profile_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/settings_screen.dart';
 import 'package:island_cafe/feature/profile/presentation/screen/favorites_screen.dart';
+import 'package:island_cafe/feature/voucher/presentation/screen/voucher_screen.dart';
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
 import 'package:island_cafe/feature/theme/loading_screen.dart';
-import 'package:island_cafe/feature/voucher/presentation/screen/voucher_screen.dart';
+import 'package:island_cafe/feature/auth/services/auth_service.dart';
 
 final routerRefreshTriggerProvider = StateProvider<int>((ref) => 0);
 
@@ -84,7 +84,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return _GlobalLoadingWrapper(child: child);
         },
         routes: [
-          // ... Auth Routes ...
           GoRoute(
             path: '/login',
             name: loginRoute,
@@ -110,7 +109,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             name: 'edit-profile',
             builder: (context, state) => const EditProfileScreen(),
           ),
-
           // ... Bottom Nav Routes ...
           ShellRoute(
             builder: (context, state, child) =>
@@ -187,6 +185,7 @@ class _GlobalLoadingWrapper extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
     final profileState = ref.watch(isProfileCompleteProvider);
+
     if (authState.isLoading || profileState.isLoading) {
       return const LoadingScreen();
     }
