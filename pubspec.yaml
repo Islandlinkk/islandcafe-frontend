@@ -14,17 +14,17 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_native_splash: ^2.4.7
   shimmer_animation: ^2.2.2+1
-  
+
   # State Management
   flutter_riverpod: ^3.0.3
   riverpod_annotation: ^3.0.3
 
   # Networking (Standard http)
   http: ^1.6.0
-  
+
   # Navigation
   go_router: ^17.0.0
-  
+
   # Utils
   flutter_dotenv: ^6.0.0
   intl: ^0.20.2
@@ -52,13 +52,13 @@ dev_dependencies:
 
   flutter_lints: ^5.0.0
   build_runner: ^2.4.11
-  
+
   # Generators
   json_serializable: ^6.8.0
   freezed: ^3.2.3
   riverpod_generator: ^3.0.3
-  hive_ce_generator: ^1.10.0 # <--- The CE generator
-  
+  hive_ce_generator: ^1.10.0
+
   # Lints
   custom_lint: ^0.8.0
   riverpod_lint: ^3.0.3
@@ -66,4 +66,4 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - .env
+  - .env
