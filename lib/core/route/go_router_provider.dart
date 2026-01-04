@@ -42,6 +42,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     debugLogDiagnostics: true,
     refreshListenable: notifier,
     redirect: (context, state) {
+      final String location = state.uri.toString();
+
+      // --- FIX START ---
+      // When iOS redirects back from Google, it uses a custom scheme URL.
+      // GoRouter tries to match this URL to a page and fails.
+      // We return '/login' to stay on the current screen while the plugin handles the token.
+      if (location.contains('google') && location.contains('oauth')) {
+        return '/login'; 
+      }
+      // --- FIX END ---
+
       final authState = ref.read(authStateProvider);
       final profileState = ref.read(isProfileCompleteProvider);
       final liveUser = AuthService.currentUser;
@@ -68,10 +79,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         if (isStrictlyProtected) return '/login';
         return null;
       }
+      
+      // 3. AUTHENTICATED FLOW
       if (!liveUser.emailVerified) {
         if (!isVerifyRoute) return '/verify-email';
         return null;
       }
+      
+      // If logged in and verified, prevent access to auth pages
       if (isAuthRoute || isVerifyRoute) {
         return '/home';
       }
