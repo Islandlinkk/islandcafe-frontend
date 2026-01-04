@@ -143,10 +143,12 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
               color: _showAppBar
                   ? theme.appBarTheme.backgroundColor ?? colors.surface
                   : Colors.transparent,
-              boxShadow: _showAppBar
+              boxShadow: _showAppBar 
                   ? [
                       BoxShadow(
-                        color: Colors.grey.shade500,
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade500,
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),

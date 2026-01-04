@@ -27,13 +27,15 @@ class RelatedProductWidget extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade500,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: isDarkMode
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.grey.shade500,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
         border: isDarkMode ? Border.all(color: theme.dividerColor) : null,
       ),
       child: Row(
