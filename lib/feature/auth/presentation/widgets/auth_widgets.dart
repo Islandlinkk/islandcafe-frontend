@@ -46,7 +46,7 @@ class CoffeeAuthLayout extends StatelessWidget {
                     borderRadius: BorderRadius.circular(28),
                     boxShadow: [
                       BoxShadow(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                        color: Theme.of(context).colorScheme.primary,
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -69,7 +69,7 @@ class CoffeeAuthLayout extends StatelessWidget {
                       Text(
                         subtitle,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                        style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
                       ),
                       const SizedBox(height: 32),
                       child,
@@ -115,14 +115,14 @@ class CoffeeTextField extends StatelessWidget {
         validator: validator,
         readOnly: readOnly, // <--- USE IT HERE
         style: TextStyle(
-          color: readOnly ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6) : Theme.of(context).colorScheme.onSurface,
+          color: readOnly ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.onSurface,
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
-          prefixIcon: Icon(icon, color: readOnly ? Theme.of(context).colorScheme.onSurface.withOpacity(0.6) : Theme.of(context).colorScheme.primary),
+          labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          prefixIcon: Icon(icon, color: readOnly ? Theme.of(context).colorScheme.onSurface : Theme.of(context).colorScheme.primary),
           filled: true,
-          fillColor: readOnly ? Theme.of(context).colorScheme.surface.withOpacity(0.5) : Theme.of(context).colorScheme.surface,
+          fillColor: readOnly ? Theme.of(context).colorScheme.surface : Theme.of(context).colorScheme.surface,
           contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),

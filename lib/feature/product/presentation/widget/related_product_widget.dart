@@ -25,19 +25,15 @@ class RelatedProductWidget extends ConsumerWidget {
       margin: const EdgeInsets.only(right: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardColor, // Fix: Dynamic Background (Dark Grey in Dark Mode)
+        color: colors.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        // Fix: Hide shadow in Dark Mode (use border instead for cleaner look)
-        boxShadow: isDarkMode 
-            ? [] 
-            : [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-        // Optional: Add subtle border in dark mode
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade500,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
         border: isDarkMode ? Border.all(color: theme.dividerColor) : null,
       ),
       child: Row(
@@ -52,7 +48,7 @@ class RelatedProductWidget extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: colors.onSurface, // Fix: Dynamic Text
+                    color: colors.onSurface,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -63,7 +59,7 @@ class RelatedProductWidget extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
-                    color: colors.onSurfaceVariant, // Fix: Dynamic Subtitle
+                    color: colors.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -81,14 +77,13 @@ class RelatedProductWidget extends ConsumerWidget {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  // Fix: Dynamic Placeholder Background
                   color: colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.coffee, 
                   size: 40, 
-                  color: colors.onSurfaceVariant, // Fix: Dynamic Icon
+                  color: colors.onSurfaceVariant,
                 ),
               ),
             ),

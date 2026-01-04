@@ -10,6 +10,7 @@ import 'package:island_cafe/feature/auth/presentation/screens/forgot_password_sc
 import 'package:island_cafe/feature/auth/presentation/screens/login_screen.dart';
 import 'package:island_cafe/feature/auth/presentation/screens/signup_screen.dart';
 import 'package:island_cafe/feature/auth/presentation/screens/verify_email.dart';
+import 'package:island_cafe/feature/checkout/presentation/screen/checkout_screen.dart';
 import 'package:island_cafe/feature/history/presentation/screen/history_screen.dart';
 import 'package:island_cafe/feature/home/presentation/screen/home_screen.dart';
 import 'package:island_cafe/feature/menu/presentation/screen/menu_screen.dart';
@@ -175,6 +176,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: "/productDetail",
             name: productDetailRoute,
             builder: (context, state) => const ProductDetailScreen(),
+          ),
+          GoRoute(
+            path: "/checkout",
+            name: checkoutRoute,
+            builder: (context, state) => const CheckoutScreen(),
           ),
         ],
       ),

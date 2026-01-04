@@ -19,9 +19,8 @@ class CategoryItem extends StatelessWidget {
     final primaryColor = Theme.of(context).colorScheme.primary;
     
     // 1. GET YOUR NEW DYNAMIC COLOR
-    // It will be Grey[600] in Light Mode, and Grey[300] in Dark Mode automatically
     final categoryColor = Theme.of(context).extension<AppColors>()?.categoryColor ?? 
-        Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+        Theme.of(context).colorScheme.onSurface;
 
     return InkWell(
       onTap: onTap,

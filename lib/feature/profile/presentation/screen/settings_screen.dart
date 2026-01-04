@@ -52,7 +52,7 @@ class SettingsScreen extends ConsumerWidget {
                   // 2. Show the current mode name (e.g., "System")
                   trailing: Text(
                     currentTheme.name.capitalize(), 
-                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
                   ),
                   // 3. Open the selector
                   onTap: () => _showAppearanceSheet(context, ref, currentTheme),
@@ -62,7 +62,7 @@ class SettingsScreen extends ConsumerWidget {
                   title: 'Language',
                   trailing: Text(
                     'English',
-                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
                   ),
                   onTap: () {},
                 ),
@@ -180,7 +180,7 @@ class _ThemeOption extends StatelessWidget {
       title: Text(label),
       trailing: isSelected 
           ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary) 
-          : Icon(Icons.circle_outlined, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+          : Icon(Icons.circle_outlined, color: Theme.of(context).colorScheme.onSurface),
       onTap: () => onTap(mode),
     );
   }
@@ -256,18 +256,18 @@ class _SettingsTile extends StatelessWidget {
         child: Row(
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 24, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+              Icon(icon, size: 24, color: Theme.of(context).colorScheme.onSurface),
               const SizedBox(width: 16),
             ],
             Expanded(child: Text(title, style: titleStyle)),
             if (trailing != null) ...[
               DefaultTextStyle(
-                style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
                 child: trailing!,
               ),
               const SizedBox(width: 8),
             ],
-            Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+            Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface),
           ],
         ),
       ),

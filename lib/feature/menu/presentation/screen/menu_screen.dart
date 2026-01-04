@@ -197,7 +197,7 @@ class MenuScreen extends ConsumerWidget {
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? blueColor : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            color: isSelected ? blueColor : Theme.of(context).colorScheme.onSurface,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             fontSize: 12,
           ),

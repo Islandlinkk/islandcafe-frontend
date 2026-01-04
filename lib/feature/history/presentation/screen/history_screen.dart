@@ -199,7 +199,7 @@ class OrderFeedbackCard extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: statusColor,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(

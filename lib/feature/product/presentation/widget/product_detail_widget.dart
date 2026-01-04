@@ -58,7 +58,6 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     // 1. Get Dynamic Theme Data
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final isDarkMode = theme.brightness == Brightness.dark;
 
     final productAsyncValue = ref.watch(productByIdProvider);
     final relatedProductsAsyncValue = ref.watch(
@@ -127,25 +126,27 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     // Show loading screen until all data is loaded
     if (isLoading) {
       return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor, // Fix: Dynamic BG
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return productAsyncValue.when(
       data: (product) => Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor, // Fix: Dynamic BG
+        backgroundColor: theme.scaffoldBackgroundColor,
         extendBodyBehindAppBar: true,
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: _showAppBar ? theme.appBarTheme.backgroundColor ?? colors.surface : Colors.transparent,
+              color: _showAppBar
+                  ? theme.appBarTheme.backgroundColor ?? colors.surface
+                  : Colors.transparent,
               boxShadow: _showAppBar
                   ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.grey.shade500,
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -231,11 +232,13 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                 Container(
                                   height: 300,
                                   width: double.infinity,
-                                  color: colors.surfaceContainerHighest, // Fix: Dynamic
+                                  color: colors
+                                      .surfaceContainerHighest, // Fix: Dynamic
                                   child: Icon(
                                     Icons.image_not_supported,
                                     size: 80,
-                                    color: colors.onSurfaceVariant, // Fix: Dynamic
+                                    color:
+                                        colors.onSurfaceVariant, // Fix: Dynamic
                                   ),
                                 ),
                           ),
@@ -254,7 +257,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
+                                    color: Colors.black,
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -301,7 +304,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     decoration: TextDecoration.lineThrough,
-                                    color: colors.onSurfaceVariant, // Fix: Dynamic
+                                    color:
+                                        colors.onSurfaceVariant, // Fix: Dynamic
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -360,8 +364,11 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
 
                           // Size Selection
                           sizesAsyncValue.when(
-                            data: (sizes) =>
-                                _buildSizeSection(context, sizes, product.discount),
+                            data: (sizes) => _buildSizeSection(
+                              context,
+                              sizes,
+                              product.discount,
+                            ),
                             loading: () => const SizedBox(),
                             error: (_, __) => const SizedBox(),
                           ),
@@ -398,15 +405,19 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                             loading: () => const SizedBox(),
                             error: (_, __) => const SizedBox(),
                           ),
-                          
+
                           // Related Products
                           relatedProductsAsyncValue.when(
                             data: (relatedProducts) {
-                              if (relatedProducts.isEmpty) return const SizedBox();
+                              if (relatedProducts.isEmpty) {
+                                return const SizedBox();
+                              }
                               final filteredProducts = relatedProducts
                                   .where((p) => p.id != product.id)
                                   .toList();
-                              if (filteredProducts.isEmpty) return const SizedBox();
+                              if (filteredProducts.isEmpty) {
+                                return const SizedBox();
+                              }
 
                               return Container(
                                 margin: const EdgeInsets.only(top: 32),
@@ -414,7 +425,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 0),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 0,
+                                      ),
                                       child: Text(
                                         'You May Also Like',
                                         style: TextStyle(
@@ -431,16 +444,27 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                         scrollDirection: Axis.horizontal,
                                         itemCount: filteredProducts.length,
                                         itemBuilder: (context, index) {
-                                          final relatedProduct = filteredProducts[index];
+                                          final relatedProduct =
+                                              filteredProducts[index];
                                           return GestureDetector(
                                             onTap: () {
-                                              ref.read(selectedProductIdProvider.notifier).state = relatedProduct.id;
-                                              context.pushReplacementNamed('/productDetail');
+                                              ref
+                                                  .read(
+                                                    selectedProductIdProvider
+                                                        .notifier,
+                                                  )
+                                                  .state = relatedProduct
+                                                  .id;
+                                              context.pushReplacementNamed(
+                                                '/productDetail',
+                                              );
                                             },
                                             child: RelatedProductWidget(
                                               productName: relatedProduct.name,
-                                              productImage: relatedProduct.image,
-                                              productPrice: relatedProduct.price,
+                                              productImage:
+                                                  relatedProduct.image,
+                                              productPrice:
+                                                  relatedProduct.price,
                                             ),
                                           );
                                         },
@@ -472,7 +496,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
               color: theme.cardColor, // Fix: Dynamic Background
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black,
                   spreadRadius: 1,
                   blurRadius: 10,
                   offset: const Offset(0, -3),
@@ -515,7 +539,11 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.remove, size: 20, color: colors.onSurface),
+                          icon: Icon(
+                            Icons.remove,
+                            size: 20,
+                            color: colors.onSurface,
+                          ),
                           onPressed: _quantity > 1
                               ? () => setState(() => _quantity--)
                               : null,
@@ -524,11 +552,18 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: Text(
                             '$_quantity',
-                            style: TextStyle(fontSize: 16, color: colors.onSurface),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: colors.onSurface,
+                            ),
                           ),
                         ),
                         IconButton(
-                          icon: Icon(Icons.add, size: 20, color: colors.onSurface),
+                          icon: Icon(
+                            Icons.add,
+                            size: 20,
+                            color: colors.onSurface,
+                          ),
                           onPressed: () => setState(() => _quantity++),
                         ),
                       ],
@@ -555,7 +590,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          disabledBackgroundColor: colors.surfaceContainerHighest,
+                          disabledBackgroundColor:
+                              colors.surfaceContainerHighest,
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -739,11 +775,11 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     final colors = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: colors.surface.withOpacity(0.9), // Dynamic Surface
+        color: colors.surface, // Dynamic Surface
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -769,23 +805,24 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
             Text(
               'Size',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: colors.onSurface),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: colors.onSurface,
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                // Fix: Dynamic Badge (Primary with low opacity)
-                color: colors.primary.withOpacity(0.1),
+                color: colors.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '1 Required',
                 style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: colors.primary),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: colors.primary,
+                ),
               ),
             ),
           ],
@@ -812,7 +849,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 decoration: BoxDecoration(
                   // Fix: Dynamic Selection Background
                   color: isSelected
-                      ? colors.primary.withOpacity(0.1)
+                      ? colors.onPrimary
                       : colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
@@ -827,14 +864,14 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       size.sizeName == "large"
                           ? "L"
                           : size.sizeName == "medium"
-                              ? "M"
-                              : "S",
+                          ? "M"
+                          : "S",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: isSelected
                             ? colors.primary
-                            : colors.onSurface, // Fix Text Color
+                            : colors.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -898,22 +935,24 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
             Text(
               'Sugar Level',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: colors.onSurface),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: colors.onSurface,
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: colors.primary.withOpacity(0.1),
+                color: colors.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '1 Required',
                 style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: colors.primary),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: colors.primary,
+                ),
               ),
             ),
           ],
@@ -932,7 +971,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? colors.primary.withOpacity(0.1)
+                      ? colors.onPrimary
                       : colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
@@ -990,22 +1029,24 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
             Text(
               'Ice Level',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: colors.onSurface),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: colors.onSurface,
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: colors.primary.withOpacity(0.1),
+                color: colors.primary,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '1 Required',
                 style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: colors.primary),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: colors.primary,
+                ),
               ),
             ),
           ],
@@ -1024,7 +1065,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? colors.primary.withOpacity(0.1)
+                      ? colors.primary
                       : colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
@@ -1037,7 +1078,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                     Icon(
                       icon,
                       size: 32,
-                      color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                      color: isSelected
+                          ? colors.primary
+                          : colors.onSurfaceVariant,
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -1046,7 +1089,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: isSelected ? colors.onSurface : colors.onSurfaceVariant,
+                        color: isSelected
+                            ? colors.onSurface
+                            : colors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -1067,9 +1112,10 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
         Text(
           'Extra Shot',
           style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colors.onSurface),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: colors.onSurface,
+          ),
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -1090,7 +1136,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 ),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? colors.primary.withOpacity(0.1)
+                      ? colors.onPrimary
                       : colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
@@ -1104,7 +1150,9 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                     Icon(
                       Icons.coffee_maker,
                       size: 24,
-                      color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                      color: isSelected
+                          ? colors.primary
+                          : colors.onSurfaceVariant,
                     ),
                     const SizedBox(width: 8),
                     Column(
@@ -1120,7 +1168,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                 : colors.onSurfaceVariant,
                           ),
                         ),
-                        if (extraShot.priceModifier > 0)
+                        if (extraShot.priceModifier >= 0)
                           Text(
                             '+\$${extraShot.priceModifier.toStringAsFixed(2)}',
                             style: TextStyle(
@@ -1235,7 +1283,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
   void _showCartBottomSheet(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1248,7 +1296,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
           return Container(
             height: MediaQuery.of(context).size.height * 0.9,
             decoration: BoxDecoration(
-              color: theme.cardColor, // Fix: Dynamic Background
+              color: theme.cardColor,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
@@ -1339,10 +1387,10 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: theme.cardColor, // Fix: Dynamic Background
+                      color: theme.cardColor,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black,
                           blurRadius: 10,
                           offset: const Offset(0, -3),
                         ),
@@ -1374,13 +1422,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.pop(context);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Proceeding to checkout'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
+                            context.pushReplacementNamed('/checkout');
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: colors.primary,

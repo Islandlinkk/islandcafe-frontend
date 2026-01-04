@@ -18,11 +18,9 @@ abstract class VoucherModel with _$VoucherModel {
     required String id,
     required String code,
     String? description,
-    required String discountType, // 'FIXED' or 'PERCENTAGE' (API is uppercase)
+    required String discountType,
     @JsonKey(fromJson: _stringToNum) required num discountValue,
-    
-    // MAP 'minOrderTotal' (API) to 'minOrderValue' (App)
-    @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) num? minOrderValue, 
+    @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) num? minOrderValue,
     
     required DateTime startDate,
     required DateTime endDate,
