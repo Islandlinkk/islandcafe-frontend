@@ -29,7 +29,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AuthService.getExceptionMessage(e)),
-        backgroundColor: Theme.of(context).colorScheme.error,
+        backgroundColor: Colors.redAccent,
       ),
     );
   }
@@ -61,75 +61,89 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CoffeeAuthLayout(
-      title: 'Join Island Cafe',
-      subtitle: 'Start your coffee journey today.',
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            CoffeeTextField(
-              controller: _emailController,
-              label: 'Email Address',
-              icon: Icons.email_outlined,
-              keyboardType: TextInputType.emailAddress,
-              validator: ValidationService.validateEmail,
-              hintText: '',
-            ),
-            CoffeeTextField(
-              controller: _passwordController,
-              label: 'Create Password',
-              icon: Icons.lock_outline,
-              obscureText: true,
-              validator: ValidationService.validatePassword,
-              hintText: '',
-            ),
-            const SizedBox(height: 12),
-            CoffeeButton(
-              text: 'Create Account',
-              onPressed: _handleSignUp,
-              isLoading: _loading,
-            ),
-            const SizedBox(height: 24),
-            Row(
+    // 1. Wrap everything in a Stack to overlay the Back Button
+    return Stack(
+      children: [
+        CoffeeAuthLayout(
+          title: 'Join Island Cafe',
+          subtitle: 'Start your coffee journey today.',
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(child: Divider(color: Theme.of(context).dividerColor)),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text(
-                    'OR',
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 12),
-                  ),
+                CoffeeTextField(
+                  controller: _emailController,
+                  label: 'Email Address',
+                  icon: Icons.email_outlined,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: ValidationService.validateEmail,
+                  hintText: '',
                 ),
-                Expanded(child: Divider(color: Theme.of(context).dividerColor)),
-              ],
-            ),
-            const SizedBox(height: 24),
-            SocialButton(onPressed: _handleGoogleAuth, isLoading: _loading),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Already a member? ",
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                CoffeeTextField(
+                  controller: _passwordController,
+                  label: 'Create Password',
+                  icon: Icons.lock_outline,
+                  obscureText: true,
+                  validator: ValidationService.validatePassword,
+                  hintText: '',
                 ),
-                GestureDetector(
-                  onTap: _loading ? null : () => context.go('/login'),
-                  child: Text(
-                    "Sign In",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                const SizedBox(height: 12),
+                CoffeeButton(
+                  text: 'Create Account',
+                  onPressed: _handleSignUp,
+                  isLoading: _loading,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'OR',
+                        style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                      ),
                     ),
-                  ),
+                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SocialButton(onPressed: _handleGoogleAuth, isLoading: _loading),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Already a member? ",
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                    GestureDetector(
+                      onTap: _loading ? null : () => context.go('/login'),
+                      child: const Text(
+                        "Sign In",
+                        style: TextStyle(
+                          color: CoffeeColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
-      ),
+        // 2. Positioned Back Button
+        Positioned(
+          top: 40, // Adjust for safe area
+          left: 10,
+          child: IconButton(
+            onPressed: () => context.go('/login'), // Go back to login
+            icon: const Icon(Icons.arrow_back_ios_new, color: CoffeeColors.primary),
+          ),
+        ),
+      ],
     );
   }
 }

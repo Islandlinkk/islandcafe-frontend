@@ -34,9 +34,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Password reset link sent! Check your email.'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
+            backgroundColor: Colors.green,
           ),
         );
         context.pop();
@@ -46,7 +46,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AuthService.getExceptionMessage(e)),
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: Colors.redAccent,
           ),
         );
       }
@@ -57,47 +57,60 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return CoffeeAuthLayout(
-      title: 'Forgot Password?',
-      subtitle: 'Don\'t worry! Enter the email associated with your account.',
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            CoffeeTextField(
-              controller: _emailController,
-              label: 'Email Address',
-              icon: Icons.alternate_email_rounded,
-              keyboardType: TextInputType.emailAddress,
-              validator: ValidationService.validateEmail, hintText: '',
-            ),
-            const SizedBox(height: 24),
-            CoffeeButton(
-              text: 'Send Reset Link',
-              onPressed: _handleReset,
-              isLoading: _loading,
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return Stack(
+      children: [
+        CoffeeAuthLayout(
+          title: 'Forgot Password?',
+          subtitle: 'Don\'t worry! Enter the email associated with your account.',
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text("Remember your password? ", style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
-                GestureDetector(
-                  onTap: _loading ? null : () => context.pop(),
-                  child: Text(
-                    "Sign In",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                CoffeeTextField(
+                  controller: _emailController,
+                  label: 'Email Address',
+                  icon: Icons.alternate_email_rounded,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: ValidationService.validateEmail, hintText: '',
+                ),
+                const SizedBox(height: 24),
+                CoffeeButton(
+                  text: 'Send Reset Link',
+                  onPressed: _handleReset,
+                  isLoading: _loading,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Remember your password? ", style: TextStyle(color: Colors.grey[600])),
+                    GestureDetector(
+                      onTap: _loading ? null : () => context.pop(),
+                      child: const Text(
+                        "Sign In",
+                        style: TextStyle(
+                          color: CoffeeColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
-      ),
+        // Positioned Back Button
+        Positioned(
+          top: 40,
+          left: 10,
+          child: IconButton(
+            onPressed: () => context.pop(),
+            icon: const Icon(Icons.arrow_back_ios_new, color: CoffeeColors.primary),
+          ),
+        ),
+      ],
     );
   }
 }

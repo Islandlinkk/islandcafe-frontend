@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:island_cafe/core/route/route_name.dart';
 import 'package:island_cafe/feature/announcement/presentation/screen/announcement_detail_screen.dart';
@@ -8,8 +9,8 @@ import 'package:island_cafe/feature/auth/data/providers/auth_provider.dart';
 import 'package:island_cafe/feature/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:island_cafe/feature/auth/presentation/screens/login_screen.dart';
 import 'package:island_cafe/feature/auth/presentation/screens/signup_screen.dart';
-import 'package:island_cafe/feature/auth/presentation/screens/user_info_screen.dart';
 import 'package:island_cafe/feature/auth/presentation/screens/verify_email.dart';
+import 'package:island_cafe/feature/auth/services/auth_service.dart';
 import 'package:island_cafe/feature/history/presentation/screen/history_screen.dart';
 import 'package:island_cafe/feature/home/presentation/screen/home_screen.dart';
 import 'package:island_cafe/feature/menu/presentation/screen/menu_screen.dart';
@@ -20,51 +21,58 @@ import 'package:island_cafe/feature/profile/presentation/screen/settings_screen.
 import 'package:island_cafe/feature/profile/presentation/screen/favorites_screen.dart';
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
 import 'package:island_cafe/feature/theme/loading_screen.dart';
-import 'package:island_cafe/feature/voucher/presentation/screen/voucher_screen.dart'; // Import the new screen
+import 'package:island_cafe/feature/voucher/presentation/screen/voucher_screen.dart';
+
+final routerRefreshTriggerProvider = StateProvider<int>((ref) => 0);
+
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+  RouterNotifier(this._ref) {
+    _ref.listen(authStateProvider, (_, _) => notifyListeners());
+    _ref.listen(isProfileCompleteProvider, (_, _) => notifyListeners());
+    _ref.listen(routerRefreshTriggerProvider, (_, _) => notifyListeners());
+  }
+}
 
 final goRouterProvider = Provider<GoRouter>((ref) {
-  // Use an integer notifier
-  final notifier = ValueNotifier(0);
-
-  ref.listen(authStateProvider, (_, __) => notifier.value++);
-  ref.listen(isProfileCompleteProvider, (_, __) => notifier.value++);
+  final notifier = RouterNotifier(ref);
 
   return GoRouter(
     initialLocation: '/home',
     debugLogDiagnostics: true,
     refreshListenable: notifier,
     redirect: (context, state) {
-      // ... your existing redirect logic ...
       final authState = ref.read(authStateProvider);
       final profileState = ref.read(isProfileCompleteProvider);
-      final user = authState.value;
-      final isProfileComplete = profileState.value == true;
-      final isLoading = authState.isLoading || profileState.isLoading;
-
-      if (isLoading) return null;
+      final liveUser = AuthService.currentUser;
+      final isLoggedIn = liveUser != null;
 
       final path = state.uri.path;
+
+      // Define Restricted Routes
+      final isStrictlyProtected =
+          path.startsWith('/history') ||
+          path.startsWith('/favorites') ||
+          path.startsWith('/settings') ||
+          path.startsWith('/edit-profile');
+
       final isAuthRoute =
           path == '/login' || path == '/signup' || path == '/forgot-password';
-      final isVerifyingEmail = path == '/verify-email';
-      final isCompletingProfile = path == '/user-info';
+      final isVerifyRoute = path == '/verify-email';
 
-      if (user == null) {
-        if (isAuthRoute) return null;
+      // 1. Loading State
+      if (authState.isLoading || profileState.isLoading) return null;
+
+      // 2. UNAUTHENTICATED FLOW (Guest)
+      if (!isLoggedIn) {
+        if (isStrictlyProtected) return '/login';
         return null;
       }
-
-      if (!user.emailVerified) {
-        if (!isVerifyingEmail) return '/verify-email';
+      if (!liveUser.emailVerified) {
+        if (!isVerifyRoute) return '/verify-email';
         return null;
       }
-
-      if (!isProfileComplete) {
-        if (!isCompletingProfile) return '/user-info';
-        return null;
-      }
-
-      if (isAuthRoute || isVerifyingEmail || isCompletingProfile) {
+      if (isAuthRoute || isVerifyRoute) {
         return '/home';
       }
 
@@ -91,11 +99,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: '/verify-email',
             name: verifyEmailRoute,
             builder: (context, state) => const VerifyEmailPage(),
-          ),
-          GoRoute(
-            path: '/user-info',
-            name: userInfoRoute,
-            builder: (context, state) => const UserInfoScreen(),
           ),
           GoRoute(
             path: '/forgot-password',

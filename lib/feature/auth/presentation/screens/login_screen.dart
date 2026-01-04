@@ -28,30 +28,29 @@ class _LoginPageState extends State<LoginPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AuthService.getExceptionMessage(e)),
-        backgroundColor: Theme.of(context).colorScheme.error,
+        backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
-  Future<void> _handleEmailLogin() async {
-  if (!_formKey.currentState!.validate()) return;
+Future<void> _handleEmailLogin() async {
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _loading = true);
-  try {
-    // 1. Perform Login
-    await AuthService.signInWithEmail(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-    if (mounted) {
-      context.go('/home');
+    setState(() => _loading = true);
+    try {
+      // 1. Perform Login
+      await AuthService.signInWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      // SUCCESS: Do NOTHING here. 
+      // The authStateProvider will update -> GoRouter will detect it -> Redirects to /home
+    } catch (e) {
+      _showError(e);
+      if (mounted) setState(() => _loading = false);
     }
-  } catch (e) {
-    _showError(e);
-    if (mounted) setState(() => _loading = false);
   }
-}
 
   Future<void> _handleGoogleLogin() async {
     setState(() => _loading = true);
@@ -91,7 +90,7 @@ class _LoginPageState extends State<LoginPage> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () => context.push('/forgot-password'),
-                child: Text('Forgot Password?', style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                child: const Text('Forgot Password?', style: TextStyle(color: CoffeeColors.primaryLight)),
               ),
             ),
             const SizedBox(height: 12),
@@ -103,12 +102,12 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 24),
             Row(
               children: [
-                Expanded(child: Divider(color: Theme.of(context).dividerColor)),
+                Expanded(child: Divider(color: Colors.grey.shade300)),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('OR', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 12)),
+                  child: Text('OR', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
                 ),
-                Expanded(child: Divider(color: Theme.of(context).dividerColor)),
+                Expanded(child: Divider(color: Colors.grey.shade300)),
               ],
             ),
             const SizedBox(height: 24),
@@ -117,10 +116,10 @@ class _LoginPageState extends State<LoginPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("New here? ", style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
+                Text("New here? ", style: TextStyle(color: Colors.grey[600])),
                 GestureDetector(
                   onTap: _loading ? null : () => context.go('/signup'),
-                  child: Text("Create Account", style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
+                  child: const Text("Create Account"),
                 ),
               ],
             ),

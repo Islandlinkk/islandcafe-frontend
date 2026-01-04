@@ -13,20 +13,38 @@ class AuthService {
   static Stream<User?> get authStateChanges => _auth.userChanges();
   static User? get currentUser => _auth.currentUser;
 
-  /// Register with Email/Password
+/// Register with Email/Password
   static Future<UserCredential> registerWithEmail({
     required String email,
     required String password,
-  }) {
-    return _auth
-        .createUserWithEmailAndPassword(email: email, password: password)
-        .then((cred) async {
-      final user = cred.user;
-      if (user != null && !user.emailVerified) {
+  }) async {
+    final cred = await _auth.createUserWithEmailAndPassword(
+      email: email, 
+      password: password
+    );
+    final user = cred.user;
+
+    if (user != null) {
+      String displayName = email.split('@')[0];
+      if (displayName.isNotEmpty) {
+        displayName = displayName[0].toUpperCase() + displayName.substring(1);
+      }
+      await _firestore.collection('users').doc(user.uid).set({
+        'email': email,
+        'name': displayName, 
+        'phone': '',       
+        'photoURL': '',    
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'profileComplete': true, 
+      });
+      await user.updateDisplayName(displayName); 
+      await user.reload();
+      if (!user.emailVerified) {
         await user.sendEmailVerification();
       }
-      return cred;
-    });
+    }
+    return cred;
   }
 
   /// Sign In with Email/Password
@@ -37,9 +55,10 @@ class AuthService {
     return _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  /// Sign In with Google
+/// Sign In with Google (Updated with Name Fix)
   static Future<UserCredential> signInWithGoogle() async {
     final provider = GoogleAuthProvider()
+      ..addScope('profile')
       ..setCustomParameters({'prompt': 'select_account'});
 
     final UserCredential cred = kIsWeb
@@ -47,16 +66,32 @@ class AuthService {
         : await _auth.signInWithProvider(provider);
 
     final user = cred.user;
+
     if (user != null) {
       final docRef = _firestore.collection('users').doc(user.uid);
       final docSnapshot = await docRef.get();
-
       if (!docSnapshot.exists) {
+        String displayName = user.displayName ?? '';
+        if (displayName.isEmpty && user.email != null) {
+          String emailPrefix = user.email!.split('@')[0];
+          if (emailPrefix.isNotEmpty) {
+            displayName = emailPrefix[0].toUpperCase() + emailPrefix.substring(1);
+          } else {
+            displayName = emailPrefix;
+          }
+        }
+
         await docRef.set({
           'email': user.email,
-          'name': user.displayName ?? '',
+          'name': displayName,
+          'photoURL': user.photoURL ?? '', 
+          'phone': user.phoneNumber ?? '',
           'createdAt': FieldValue.serverTimestamp(),
-          'profileComplete': false,
+          'updatedAt': FieldValue.serverTimestamp(),
+          'profileComplete': true,
+          'birthday': null,
+          'gender': null,
+          'address': null,
         });
       }
     }
@@ -64,10 +99,13 @@ class AuthService {
   }
 
   /// Upload Profile Image to Firebase Storage & Update Firestore
-static Future<String> uploadProfileImage({required XFile file, required String uid}) async {
+  static Future<String> uploadProfileImage({
+    required XFile file,
+    required String uid,
+  }) async {
     try {
       final ref = _storage.ref().child('user_images').child('$uid.jpg');
-      
+
       final metadata = SettableMetadata(
         contentType: 'image/jpeg',
         customMetadata: {'picked-file-path': file.path},
@@ -76,11 +114,9 @@ static Future<String> uploadProfileImage({required XFile file, required String u
       final UploadTask uploadTask;
 
       if (kIsWeb) {
-        // On Web, we must upload raw bytes
         final bytes = await file.readAsBytes();
         uploadTask = ref.putData(bytes, metadata);
       } else {
-        // On Mobile, we can use the File path
         uploadTask = ref.putFile(File(file.path), metadata);
       }
 
@@ -88,7 +124,6 @@ static Future<String> uploadProfileImage({required XFile file, required String u
       final url = await snapshot.ref.getDownloadURL();
       return url;
     } catch (e) {
-      print("Upload Error: $e");
       throw Exception('Image upload failed: $e');
     }
   }
@@ -101,7 +136,7 @@ static Future<String> uploadProfileImage({required XFile file, required String u
       await _firestore.collection('users').doc(user.uid).set({
         'photoURL': photoUrl,
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true)); // Ensure we merge, not overwrite
+      }, SetOptions(merge: true));
     }
   }
 
@@ -143,7 +178,6 @@ static Future<String> uploadProfileImage({required XFile file, required String u
     if (user == null) return false;
     try {
       final doc = await _firestore.collection('users').doc(user.uid).get();
-      // Returns true only if document exists AND 'profileComplete' is true
       return doc.exists && (doc.data()?['profileComplete'] == true);
     } catch (e) {
       return false;
@@ -168,7 +202,7 @@ static Future<String> uploadProfileImage({required XFile file, required String u
   static Future<void> reloadCurrentUser() async {
     await currentUser?.reload();
   }
-  
+
   static String getExceptionMessage(dynamic e) {
     if (e is FirebaseAuthException) {
       switch (e.code) {

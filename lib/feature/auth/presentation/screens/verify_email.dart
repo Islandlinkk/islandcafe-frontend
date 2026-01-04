@@ -1,106 +1,89 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:island_cafe/feature/auth/presentation/widgets/auth_widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:island_cafe/core/route/go_router_provider.dart';
 import 'package:island_cafe/feature/auth/services/auth_service.dart';
-
-class VerifyEmailPage extends StatefulWidget {
+import 'package:island_cafe/feature/auth/presentation/widgets/auth_widgets.dart';
+class VerifyEmailPage extends ConsumerStatefulWidget {
   const VerifyEmailPage({super.key});
 
   @override
-  State<VerifyEmailPage> createState() => _VerifyEmailPageState();
+  ConsumerState<VerifyEmailPage> createState() => _VerifyEmailPageState();
 }
 
-class _VerifyEmailPageState extends State<VerifyEmailPage> with WidgetsBindingObserver {
-  bool _loading = false;
+class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    // Start polling immediately
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      _checkEmailVerified();
+    });
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    // Always clean up timers
+    _timer?.cancel();
     super.dispose();
   }
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _checkEmailVerified();
-    }
-  }
-
   Future<void> _checkEmailVerified() async {
-    await AuthService.reloadCurrentUser();
-    final user = AuthService.currentUser;
-    
-    if (user != null && user.emailVerified && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Email verified successfully!'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );
-    }
-  }
-
-  Future<void> _resend() async {
-    setState(() => _loading = true);
     try {
-      await AuthService.resendEmailVerification();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Verification email sent')),
-        );
+      // 1. Force Firebase Server Update
+      // This pulls the latest data (e.g., emailVerified = true) from the backend
+      await AuthService.reloadCurrentUser();
+      
+      final user = AuthService.currentUser;
+      if (user != null && user.emailVerified) {
+        // Stop checking
+        _timer?.cancel();
+        
+        // 2. RING THE DOORBELL
+        // We increment the trigger provider. 
+        // GoRouter is listening to this, so it will wake up immediately.
+        ref.read(routerRefreshTriggerProvider.notifier).state++;
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AuthService.getExceptionMessage(e))),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      // If network fails during poll, just ignore and try again in 3 seconds
+      debugPrint("Verify Polling Error: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return CoffeeAuthLayout(
-      title: 'Check your Inbox',
-      subtitle: 'We sent a verification link to your email.',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Icon(
-            Icons.mark_email_unread_outlined,
-            size: 80,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
-          const SizedBox(height: 32),
-          CoffeeButton(
-            text: 'Resend Email',
-            onPressed: _resend,
-            isLoading: _loading,
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton(
-            onPressed: _checkEmailVerified,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              side: BorderSide(color: Theme.of(context).colorScheme.primary),
-              foregroundColor: Theme.of(context).colorScheme.primary,
+      title: 'Verifying Email',
+      subtitle: 'We sent a verification link to your email.\nPlease check your inbox and click the link.',
+      child: Center(
+        child: Column(
+          children: [
+            const SizedBox(height: 50),
+            
+            // Simple loading spinner
+            const CircularProgressIndicator(color: CoffeeColors.primary),
+            
+            const SizedBox(height: 30),
+            
+            const Text(
+              "Waiting for confirmation...",
+              style: TextStyle(color: Colors.grey, fontSize: 16),
             ),
-            child: const Text('I verified, Refresh Status'),
-          ),
-          const SizedBox(height: 24),
-          TextButton(
-            onPressed: _loading ? null : AuthService.signOut,
-            child: Text('Sign Out', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
-          ),
-        ],
+            
+            const SizedBox(height: 50),
+            
+            // Cancel button in case user is stuck
+            TextButton(
+              onPressed: () {
+                AuthService.signOut();
+                // The router will automatically detect logout and redirect to login
+              },
+              child: const Text("Cancel / Sign Out", style: TextStyle(color: Colors.redAccent)),
+            ),
+          ],
+        ),
       ),
     );
   }

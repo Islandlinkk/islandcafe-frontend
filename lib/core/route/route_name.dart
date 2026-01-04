@@ -9,7 +9,6 @@ const String favoritesRoute = '/favorites';
 const String signUpRoute = '/signup';
 const String verifyEmailRoute = '/verify-email';
 const String loginRoute = '/login';
-const String userInfoRoute = '/user-info';
 const String productDetailRoute = '/productDetail';
 const String resetPasswordRoute = '/reset-password';
 const String loadingRoute = '/loading';
