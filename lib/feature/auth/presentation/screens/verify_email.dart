@@ -37,9 +37,9 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> with WidgetsBindingOb
     
     if (user != null && user.emailVerified && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text('Email verified successfully!'),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     }
@@ -73,10 +73,10 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> with WidgetsBindingOb
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Icon(
+          Icon(
             Icons.mark_email_unread_outlined,
             size: 80,
-            color: CoffeeColors.accent,
+            color: Theme.of(context).colorScheme.secondary,
           ),
           const SizedBox(height: 32),
           CoffeeButton(
@@ -90,15 +90,15 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> with WidgetsBindingOb
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              side: const BorderSide(color: CoffeeColors.primary),
-              foregroundColor: CoffeeColors.primary,
+              side: BorderSide(color: Theme.of(context).colorScheme.primary),
+              foregroundColor: Theme.of(context).colorScheme.primary,
             ),
             child: const Text('I verified, Refresh Status'),
           ),
           const SizedBox(height: 24),
           TextButton(
             onPressed: _loading ? null : AuthService.signOut,
-            child: const Text('Sign Out', style: TextStyle(color: Colors.grey)),
+            child: Text('Sign Out', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
           ),
         ],
       ),

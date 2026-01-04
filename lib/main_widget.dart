@@ -9,13 +9,25 @@ class MainWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 1. Watch the Router (Navigation)
     final goRouter = ref.watch(goRouterProvider);
-    final themeMode = ref.watch(themeProvider);
+    
+    // 2. Watch the Theme (Appearance)
+    // This provider comes from the generated 'theme_notifier.g.dart' file
+    final themeMode = ref.watch(themeProvider); 
+
     return MaterialApp.router(
+      title: 'Island Cafe',
       debugShowCheckedModeBanner: false,
+      
+      // 3. Connect the Themes
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: themeMode,
+      
+      // 4. Apply the Current Mode (Light/Dark/System)
+      themeMode: themeMode, 
+      
+      // 5. Connect the Router
       routerConfig: goRouter,
     );
   }

@@ -1,14 +1,20 @@
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeMode>((ref) {
-  return ThemeNotifier();
-});
-class ThemeNotifier extends StateNotifier<ThemeMode> {
- ThemeNotifier(): super(ThemeMode.system);
+// 1. This connects to the generated file.
+// IMPORTANT: This will be red/error until you run the generator command.
+part 'theme_notifier.g.dart'; 
 
- void toggleTheme(bool isDark){
-  state = isDark? ThemeMode.dark : ThemeMode.light;
- }
+@riverpod
+class ThemeNotifier extends _$ThemeNotifier {
+  @override
+  ThemeMode build() {
+    // Default to System (uses phone settings)
+    return ThemeMode.system; 
+  }
+
+  // Called by the Settings Screen to change the theme
+  void setTheme(ThemeMode mode) {
+    state = mode;
+  }
 }

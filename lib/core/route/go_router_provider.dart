@@ -20,6 +20,7 @@ import 'package:island_cafe/feature/profile/presentation/screen/settings_screen.
 import 'package:island_cafe/feature/profile/presentation/screen/favorites_screen.dart';
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
 import 'package:island_cafe/feature/theme/loading_screen.dart';
+import 'package:island_cafe/feature/voucher/presentation/screen/voucher_screen.dart'; // Import the new screen
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   // Use an integer notifier
@@ -155,6 +156,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: '/favorites',
             name: favoritesRoute,
             builder: (context, state) => const FavoritesScreen(),
+          ),
+          GoRoute(
+            path: '/voucher',
+            name: voucherRoute,
+            builder: (context, state) => const VoucherScreen(),
           ),
           GoRoute(
             path: "/productDetail",

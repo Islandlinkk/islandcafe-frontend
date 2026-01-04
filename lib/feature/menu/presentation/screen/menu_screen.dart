@@ -20,7 +20,7 @@ class MenuScreen extends ConsumerWidget {
     final orderType = ref.watch(orderTypeProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -41,7 +41,7 @@ class MenuScreen extends ConsumerWidget {
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
     final orderType = ref.watch(orderTypeProvider);
-    final blueColor = Colors.blue;
+    final blueColor = Theme.of(context).colorScheme.primary;
 
     return Column(
       children: [
@@ -92,10 +92,10 @@ class MenuScreen extends ConsumerWidget {
                     : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
+                  borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                 ),
                 filled: true,
-                fillColor: Colors.grey[50],
+                fillColor: Theme.of(context).colorScheme.surface,
               ),
               onChanged: (value) {
                 ref.read(searchQueryProvider.notifier).state = value;
@@ -112,8 +112,8 @@ class MenuScreen extends ConsumerWidget {
               width: 130,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+                color: Theme.of(context).scaffoldBackgroundColor,
+                border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
               ),
               child: Row(
                 children: [
@@ -137,8 +137,8 @@ class MenuScreen extends ConsumerWidget {
               width: 140,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+                color: Theme.of(context).scaffoldBackgroundColor,
+                border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor)),
               ),
               child: Row(
                 children: [
@@ -197,7 +197,7 @@ class MenuScreen extends ConsumerWidget {
           label,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isSelected ? blueColor : Colors.grey[600],
+            color: isSelected ? blueColor : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             fontSize: 12,
           ),

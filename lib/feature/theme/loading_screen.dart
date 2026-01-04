@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:island_cafe/feature/auth/presentation/widgets/auth_widgets.dart';
 
 class LoadingScreen extends StatelessWidget {
   const LoadingScreen({super.key});
@@ -7,35 +6,35 @@ class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CoffeeColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Coffee Icon
-            const Icon(
+            Icon(
               Icons.coffee,
               size: 80,
-              color: CoffeeColors.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: 40),
 
             // Spinner
-            const SizedBox(
+            SizedBox(
               height: 40,
               width: 40,
               child: CircularProgressIndicator(
-                color: CoffeeColors.primary,
+                color: Theme.of(context).colorScheme.primary,
                 strokeWidth: 3,
               ),
             ),
             const SizedBox(height: 24),
 
             // Loading Text
-            const Text(
+            Text(
               'Brewing...',
               style: TextStyle(
-                color: CoffeeColors.textDark,
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,

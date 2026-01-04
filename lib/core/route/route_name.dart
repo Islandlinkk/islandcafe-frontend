@@ -14,3 +14,4 @@ const String productDetailRoute = '/productDetail';
 const String resetPasswordRoute = '/reset-password';
 const String loadingRoute = '/loading';
 const String editProfileRoute = '/edit-profile';
+const String voucherRoute = '/voucher';

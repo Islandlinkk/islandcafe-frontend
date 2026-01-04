@@ -34,9 +34,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('Password reset link sent! Check your email.'),
-            backgroundColor: Colors.green,
+            backgroundColor: Theme.of(context).colorScheme.primary,
           ),
         );
         context.pop();
@@ -46,7 +46,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AuthService.getExceptionMessage(e)),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -82,13 +82,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Remember your password? ", style: TextStyle(color: Colors.grey[600])),
+                Text("Remember your password? ", style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
                 GestureDetector(
                   onTap: _loading ? null : () => context.pop(),
-                  child: const Text(
+                  child: Text(
                     "Sign In",
                     style: TextStyle(
-                      color: CoffeeColors.primary,
+                      color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

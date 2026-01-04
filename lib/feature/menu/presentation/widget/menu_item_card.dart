@@ -12,6 +12,10 @@ class MenuItemCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // 1. Grab theme colors
+    final colors = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return InkWell(
       onTap: () {
         ref.read(selectedProductIdProvider.notifier).state = item.id;
@@ -29,47 +33,101 @@ class MenuItemCard extends ConsumerWidget {
                 children: [
                   Text(
                     item.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
+                      // Automatically becomes White in dark mode
+                      color: colors.onSurface, 
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     item.description,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                    style: textTheme.bodySmall?.copyWith(
+                      // 2. Use 'onSurfaceVariant' instead of Colors.grey[600]
+                      color: colors.onSurfaceVariant, 
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    '\$${item.price.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                  if (item.discount != null && item.discount! > 0)
+                    Row(
+                      children: [
+                        Text(
+                          '\$${item.price.toStringAsFixed(2)}',
+                          style: textTheme.bodySmall?.copyWith(
+                            decoration: TextDecoration.lineThrough,
+                            // 3. Make the old price subtly visible
+                            color: colors.onSurface.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '\$${(item.price - (item.price * item.discount! / 100)).toStringAsFixed(2)}',
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green, // Red is usually fine in dark mode
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Text(
+                      '\$${item.price.toStringAsFixed(2)}',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        // 4. Use primary color (Orange/Blue) instead of hardcoded Blue
+                        color: colors.primary, 
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
             const SizedBox(width: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                item.image,
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    item.image,
                     width: 100,
                     height: 100,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.image_not_supported),
-                  );
-                },
-              ),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 100,
+                        height: 100,
+                        // 5. Placeholder background adapts to dark mode
+                        color: colors.surfaceContainerHighest,
+                        child: Icon(Icons.image_not_supported, color: colors.onSurfaceVariant),
+                      );
+                    },
+                  ),
+                ),
+                if (item.discount != null && item.discount! > 0)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '-${item.discount}%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ],
         ),

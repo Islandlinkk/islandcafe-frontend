@@ -35,4 +35,7 @@ class ApiConfig {
 
   //sugar
   static String get sugar => '$_baseUrl/sugar';
+  // Voucher
+  static String get baseUrl => _baseUrl; 
+  static String get voucher => '$_baseUrl/voucher';
 }
