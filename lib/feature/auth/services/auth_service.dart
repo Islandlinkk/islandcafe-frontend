@@ -13,7 +13,7 @@ class AuthService {
   static Stream<User?> get authStateChanges => _auth.userChanges();
   static User? get currentUser => _auth.currentUser;
 
-/// Register with Email/Password
+  /// Register with Email/Password
   static Future<UserCredential> registerWithEmail({
     required String email,
     required String password,
@@ -55,7 +55,7 @@ class AuthService {
     return _auth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-/// Sign In with Google (Updated with Name Fix)
+  /// Sign In with Google (Updated with Name Fix)
   static Future<UserCredential> signInWithGoogle() async {
     final provider = GoogleAuthProvider()
       ..addScope('profile')
@@ -70,8 +70,11 @@ class AuthService {
     if (user != null) {
       final docRef = _firestore.collection('users').doc(user.uid);
       final docSnapshot = await docRef.get();
+      
       if (!docSnapshot.exists) {
         String displayName = user.displayName ?? '';
+        
+        // Fallback: Use email prefix if name is missing
         if (displayName.isEmpty && user.email != null) {
           String emailPrefix = user.email!.split('@')[0];
           if (emailPrefix.isNotEmpty) {
@@ -172,7 +175,6 @@ class AuthService {
     return _firestore.collection('users').doc(user.uid).snapshots();
   }
 
-  /// Check if Profile is Complete
   static Future<bool> isUserProfileComplete() async {
     final user = currentUser;
     if (user == null) return false;
@@ -188,13 +190,6 @@ class AuthService {
     return _auth.sendPasswordResetEmail(email: email);
   }
 
-  static Future<void> resendEmailVerification() async {
-    final user = currentUser;
-    if (user != null && !user.emailVerified) {
-      await user.sendEmailVerification();
-    }
-  }
-
   static Future<void> signOut() async {
     await _auth.signOut();
   }
@@ -203,29 +198,30 @@ class AuthService {
     await currentUser?.reload();
   }
 
+  // ----------- THEMED ERROR MESSAGES -----------
   static String getExceptionMessage(dynamic e) {
     if (e is FirebaseAuthException) {
       switch (e.code) {
         case 'user-not-found':
-          return 'No user found with this email.';
+          return 'We couldn\'t find an account. Want to join us?';
         case 'wrong-password':
-          return 'Incorrect password.';
+          return 'That password didn\'t match. Try again?';
         case 'email-already-in-use':
-          return 'This email is already registered.';
+          return 'That email is already sipping coffee with us. Try logging in.';
         case 'invalid-email':
-          return 'The email address is invalid.';
+          return 'That email looks incomplete. Please check it.';
         case 'weak-password':
-          return 'The password is too weak.';
+          return 'Your password needs to be a bit stronger.';
         case 'account-exists-with-different-credential':
-          return 'An account already exists with the same email address.';
+          return 'You already have an account with a different login method.';
         case 'network-request-failed':
-          return 'Please check your internet connection.';
+          return 'Connection lost. We can\'t reach the roastery.';
         case 'ERROR_ABORTED_BY_USER':
           return 'Sign in cancelled.';
         default:
-          return 'Error: ${e.message}';
+          return 'Something went wrong: ${e.message}';
       }
     }
-    return e.toString();
+    return 'Oops! Spilled the coffee. Please try again.';
   }
 }

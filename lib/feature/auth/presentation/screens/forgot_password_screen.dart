@@ -34,9 +34,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password reset link sent! Check your email.'),
-            backgroundColor: Colors.green,
+          SnackBar(
+            content: const Text(
+              'Reset link sent! Check your inbox to brew a new password.',
+            ),
+            backgroundColor: Theme.of(context).colorScheme.primary, // Matches your theme
+            behavior: SnackBarBehavior.floating, // Looks better
           ),
         );
         context.pop();
@@ -46,7 +49,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AuthService.getExceptionMessage(e)),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
@@ -61,7 +64,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       children: [
         CoffeeAuthLayout(
           title: 'Forgot Password?',
-          subtitle: 'Don\'t worry! Enter the email associated with your account.',
+          subtitle:
+              'Don\'t worry! Enter the email associated with your account.',
           child: Form(
             key: _formKey,
             child: Column(
@@ -72,7 +76,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   label: 'Email Address',
                   icon: Icons.alternate_email_rounded,
                   keyboardType: TextInputType.emailAddress,
-                  validator: ValidationService.validateEmail, hintText: '',
+                  validator: ValidationService.validateEmail,
+                  hintText: '',
                 ),
                 const SizedBox(height: 24),
                 CoffeeButton(
@@ -84,13 +89,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Remember your password? ", style: TextStyle(color: Colors.grey[600])),
+                    Text(
+                      "Remember your password? ",
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    ),
                     GestureDetector(
                       onTap: _loading ? null : () => context.pop(),
                       child: const Text(
                         "Sign In",
                         style: TextStyle(
-                          color: CoffeeColors.primary,
+                          color: CoffeeColors.surface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -107,7 +115,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           left: 10,
           child: IconButton(
             onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back_ios_new, color: CoffeeColors.primary),
+            icon: const Icon(
+              Icons.arrow_back_ios_new,
+              color: CoffeeColors.primary,
+            ),
           ),
         ),
       ],

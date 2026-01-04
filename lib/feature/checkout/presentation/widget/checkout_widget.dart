@@ -14,10 +14,13 @@ class CheckoutWidget extends ConsumerWidget {
     final cartTotal = ref.watch(cartTotalProvider);
     final selectedPickupTime = ref.watch(selectedPickupTimeProvider);
 
+    // Dark mode detection
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       children: [
         // Progress indicator
-        _buildProgressIndicator(),
+        _buildProgressIndicator(isDark),
         const SizedBox(height: 24),
 
         // Main content
@@ -28,27 +31,27 @@ class CheckoutWidget extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Pickup Time Section
-                _buildPickupTimeSection(ref, selectedPickupTime),
+                _buildPickupTimeSection(ref, selectedPickupTime, isDark, context),
                 const SizedBox(height: 24),
 
                 // Summary Section
-                _buildSummarySection(cart),
+                _buildSummarySection(cart, isDark),
                 const SizedBox(height: 16),
 
                 // Subtotal
-                _buildSubtotal(cartTotal),
+                _buildSubtotal(cartTotal, isDark),
                 const SizedBox(height: 16),
 
                 // Apply Voucher
-                _buildApplyVoucher(),
+                _buildApplyVoucher(context),
                 const SizedBox(height: 24),
 
                 // Payment Method
-                _buildPaymentMethod(),
+                _buildPaymentMethod(isDark, context),
                 const SizedBox(height: 24),
 
                 // Frequently Bought Together
-                _buildFrequentlyBoughtTogether(),
+                _buildFrequentlyBoughtTogether(isDark),
                 const SizedBox(height: 100), // Space for bottom bar
               ],
             ),
@@ -56,27 +59,27 @@ class CheckoutWidget extends ConsumerWidget {
         ),
 
         // Bottom Total & Checkout Button
-        _buildBottomBar(context, cartTotal),
+        _buildBottomBar(context, cartTotal, isDark),
       ],
     );
   }
 
-  Widget _buildProgressIndicator() {
+  Widget _buildProgressIndicator(bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
-          _buildProgressStep('CART', true, true),
-          _buildProgressLine(true),
-          _buildProgressStep('CHECKOUT', true, true),
-          _buildProgressLine(false),
-          _buildProgressStep('PICKUP', false, true),
+          _buildProgressStep('CART', true, true, isDark),
+          _buildProgressLine(true, isDark),
+          _buildProgressStep('CHECKOUT', true, true, isDark),
+          _buildProgressLine(false, isDark),
+          _buildProgressStep('PICKUP', false, true, isDark),
         ],
       ),
     );
   }
 
-  Widget _buildProgressStep(String label, bool isCompleted, bool isActive) {
+  Widget _buildProgressStep(String label, bool isCompleted, bool isActive, bool isDark) {
     return Column(
       children: [
         Container(
@@ -85,7 +88,7 @@ class CheckoutWidget extends ConsumerWidget {
           decoration: BoxDecoration(
             color: isCompleted || isActive
                 ? const Color(0xFFFFC107)
-                : Colors.grey[300],
+                : (isDark ? Colors.grey[700] : Colors.grey[300]),
             shape: BoxShape.circle,
           ),
           child: isCompleted
@@ -98,32 +101,40 @@ class CheckoutWidget extends ConsumerWidget {
           style: TextStyle(
             fontSize: 12,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-            color: isActive ? Colors.black : Colors.grey,
+            color: isActive
+                ? (isDark ? Colors.white : Colors.black)
+                : Colors.grey,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildProgressLine(bool isCompleted) {
+  Widget _buildProgressLine(bool isCompleted, bool isDark) {
     return Expanded(
       child: Container(
         height: 2,
         margin: const EdgeInsets.only(bottom: 20),
-        color: isCompleted ? const Color(0xFFFFC107) : Colors.grey[300],
+        color: isCompleted
+            ? const Color(0xFFFFC107)
+            : (isDark ? Colors.grey[700] : Colors.grey[300]),
       ),
     );
   }
 
-  Widget _buildPickupTimeSection(WidgetRef ref, String selectedTime) {
+  Widget _buildPickupTimeSection(WidgetRef ref, String selectedTime, bool isDark, BuildContext context) {
     final times = ['Now', '15 min', '30 min', '60 min'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Pickup Time',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).textTheme.titleLarge?.color,
+          ),
         ),
         const SizedBox(height: 12),
         Row(
@@ -138,8 +149,8 @@ class CheckoutWidget extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFFFFF8E1)
-                        : Colors.grey[100],
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : (isDark ? Colors.grey[800] : Colors.grey[100]),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isSelected
@@ -156,7 +167,7 @@ class CheckoutWidget extends ConsumerWidget {
                       fontWeight: isSelected
                           ? FontWeight.w600
                           : FontWeight.normal,
-                      color: Colors.black87,
+                      color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
                 ),
@@ -168,13 +179,17 @@ class CheckoutWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummarySection(List cart) {
+  Widget _buildSummarySection(List cart, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Summary',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
         ),
         const SizedBox(height: 16),
         ...cart.map((item) {
@@ -193,58 +208,72 @@ class CheckoutWidget extends ConsumerWidget {
             image: item.image,
             index: cart.indexOf(item),
           );
-        }).toList(),
+        }),
       ],
     );
   }
 
-  Widget _buildSubtotal(double total) {
+  Widget _buildSubtotal(double total, bool isDark) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
+        Text(
           'Subtotal',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : Colors.black,
+          ),
         ),
         Text(
           '\$${total.toStringAsFixed(2)}',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildApplyVoucher() {
+  Widget _buildApplyVoucher(BuildContext context) {
     return GestureDetector(
       onTap: () {
         // TODO: Implement voucher dialog
       },
-      child: const Text(
+      child: Text(
         'Apply Voucher',
         style: TextStyle(
           fontSize: 16,
-          color: Color(0xFFFFC107),
+          color: Theme.of(context).colorScheme.primary,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
 
-  Widget _buildPaymentMethod() {
+  Widget _buildPaymentMethod(bool isDark, BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Payment Method',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).textTheme.titleLarge?.color,
+          ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: isDark ? Colors.grey[850] : Colors.grey[50],
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
+            border: Border.all(
+              color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+            ),
           ),
           child: Row(
             children: [
@@ -266,17 +295,21 @@ class CheckoutWidget extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Cash on Pickup',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Pay when you collect your order',
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
                     ),
                   ],
                 ),
@@ -297,7 +330,7 @@ class CheckoutWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildFrequentlyBoughtTogether() {
+  Widget _buildFrequentlyBoughtTogether(bool isDark) {
     // Mock data - replace with actual product data
     final recommendations = [
       {'name': 'Iced Caramel Macchiato', 'price': 3.41, 'image': ''},
@@ -307,9 +340,13 @@ class CheckoutWidget extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Frequently Bought Together',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -323,9 +360,11 @@ class CheckoutWidget extends ConsumerWidget {
                 width: 140,
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
+                  color: isDark ? Colors.grey[850] : Colors.grey[50],
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
+                  border: Border.all(
+                    color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,13 +372,17 @@ class CheckoutWidget extends ConsumerWidget {
                     Container(
                       height: 100,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: isDark ? Colors.grey[700] : Colors.grey[300],
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(12),
                         ),
                       ),
-                      child: const Center(
-                        child: Icon(Icons.coffee, size: 40, color: Colors.grey),
+                      child: Center(
+                        child: Icon(
+                          Icons.coffee,
+                          size: 40,
+                          color: isDark ? Colors.grey[500] : Colors.grey,
+                        ),
                       ),
                     ),
                     Padding(
@@ -349,9 +392,10 @@ class CheckoutWidget extends ConsumerWidget {
                         children: [
                           Text(
                             item['name'] as String,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : Colors.black,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -362,7 +406,7 @@ class CheckoutWidget extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey[700],
+                              color: isDark ? Colors.grey[300] : Colors.grey[700],
                             ),
                           ),
                         ],
@@ -378,14 +422,14 @@ class CheckoutWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context, double total) {
+  Widget _buildBottomBar(BuildContext context, double total, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[900] : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
+            color: (isDark ? Colors.black : Colors.grey),
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
@@ -398,15 +442,20 @@ class CheckoutWidget extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Total',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
                 ),
                 Text(
                   '\$${total.toStringAsFixed(2)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
               ],
@@ -418,9 +467,15 @@ class CheckoutWidget extends ConsumerWidget {
                 onPressed: () {
                   // TODO: Implement checkout logic
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Processing checkout...'),
-                      duration: Duration(seconds: 2),
+                    SnackBar(
+                      content: Text(
+                        'Processing checkout...',
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      duration: const Duration(seconds: 2),
+                      backgroundColor: isDark ? Colors.grey[800] : Colors.white,
                     ),
                   );
                 },

@@ -148,7 +148,7 @@ class CoffeeButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final bool isLoading;
-  final Color? backgroundColor; // Added for Cancel button style
+  final Color? backgroundColor;
   final Color? textColor;
 
   const CoffeeButton({
@@ -183,7 +183,6 @@ class CoffeeButton extends StatelessWidget {
     );
   }
 }
-
 class SocialButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool isLoading;

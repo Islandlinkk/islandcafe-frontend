@@ -85,14 +85,14 @@ class HistoryScreen extends StatelessWidget {
     final orders = _mockOrders;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'History',
           style: TextStyle(
-            color: Colors.black,
+            color: Theme.of(context).textTheme.titleLarge?.color,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -115,13 +115,16 @@ class HistoryScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: Colors.grey[600],
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Your order history will appear here',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                    ),
                   ),
                 ],
               ),
@@ -146,17 +149,17 @@ class OrderFeedbackCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM dd, yyyy • HH:mm');
     final statusColor = order.status == 'completed'
-        ? Colors.green
+        ? Theme.of(context).colorScheme.primary
         : order.status == 'pending'
-        ? Colors.orange
-        : Colors.red;
+        ? Theme.of(context).colorScheme.tertiary
+        : Theme.of(context).colorScheme.error;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey[200]!),
+        side: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,10 +179,10 @@ class OrderFeedbackCard extends StatelessWidget {
                         children: [
                           Text(
                             'Order #${order.orderNumber}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: Theme.of(context).textTheme.titleLarge?.color,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -187,7 +190,7 @@ class OrderFeedbackCard extends StatelessWidget {
                             dateFormat.format(order.orderDate),
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: Theme.of(context).textTheme.bodyMedium?.color,
                             ),
                           ),
                         ],
@@ -207,7 +210,7 @@ class OrderFeedbackCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: statusColor,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
                       ),
                     ),
@@ -226,7 +229,7 @@ class OrderFeedbackCard extends StatelessWidget {
                               '${item.quantity}x',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey[700],
+                                color: Theme.of(context).textTheme.bodyMedium?.color,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -235,7 +238,7 @@ class OrderFeedbackCard extends StatelessWidget {
                                 item.productName,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[700],
+                                  color: Theme.of(context).textTheme.bodyMedium?.color,
                                 ),
                               ),
                             ),
@@ -248,17 +251,17 @@ class OrderFeedbackCard extends StatelessWidget {
                     '+ ${order.items.length - 3} more items',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[500],
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 const SizedBox(height: 12),
                 Text(
                   'Total: \$${order.totalAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
               ],
@@ -306,35 +309,35 @@ class _StaticFeedbackForm extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Order',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
                 Row(
                   children: [
                     Text(
                       orderNumber,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.bodyMedium?.color,
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(
+                    Icon(
                       Icons.arrow_forward_ios,
                       size: 16,
-                      color: Colors.grey,
+                      color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ],
                 ),
@@ -344,12 +347,12 @@ class _StaticFeedbackForm extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Feedback Category Section
-          const Text(
+          Text(
             '*Feedback Category',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
           const SizedBox(height: 12),
@@ -363,15 +366,15 @@ class _StaticFeedbackForm extends StatelessWidget {
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   border: Border.all(color: Colors.grey[300]!, width: 1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   category,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: FontWeight.normal,
                   ),
                 ),
@@ -381,18 +384,18 @@ class _StaticFeedbackForm extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Description Section
-          const Text(
+          Text(
             '*Description',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
           const SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               border: Border.all(color: Colors.grey[300]!),
               borderRadius: BorderRadius.circular(8),
             ),
@@ -431,7 +434,7 @@ class _StaticFeedbackForm extends StatelessWidget {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   border: Border.all(color: Colors.grey[300]!),
                   borderRadius: BorderRadius.circular(8),
                 ),

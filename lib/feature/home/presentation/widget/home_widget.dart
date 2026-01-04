@@ -78,8 +78,8 @@ class _HomeContentState extends ConsumerState<HomeContent> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: bannerIndex == i
-                                  ? Colors.white
-                                  : Colors.white.withValues(alpha: 0.4),
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
                             ),
                           ),
                         ),
@@ -112,7 +112,7 @@ class _HomeContentState extends ConsumerState<HomeContent> {
               children: [
                 Expanded(
                   child: _ActionCard(
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onPrimaryFixedVariant,
                     icon: Icons.local_cafe,
                     title: 'Pickup',
                     onTap: () {
@@ -124,7 +124,7 @@ class _HomeContentState extends ConsumerState<HomeContent> {
 
                 Expanded(
                   child: _ActionCard(
-                    color: Colors.black87,
+                    color: Theme.of(context).colorScheme.onPrimaryFixedVariant,
                     icon: Icons.local_shipping,
                     title: 'Delivery',
                     onTap: () {
@@ -340,7 +340,7 @@ class _BillboardSlide extends StatelessWidget {
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             return Container(
-              color: Colors.grey[300],
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               alignment: Alignment.center,
               child: const Icon(Icons.image_not_supported),
             );
@@ -353,8 +353,8 @@ class _BillboardSlide extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.0),
-                  Colors.black.withValues(alpha: 0.5),
+                  Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.0),
+                  Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 ],
               ),
             ),
@@ -370,7 +370,7 @@ class _BillboardSlide extends StatelessWidget {
               Text(
                 billboard.title,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -380,7 +380,7 @@ class _BillboardSlide extends StatelessWidget {
                   billboard.link,
                   style: Theme.of(
                     context,
-                  ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurface),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -405,7 +405,7 @@ class _PlaceholderBanner extends StatelessWidget {
         children: [
           Positioned.fill(
             child: Container(
-              color: Colors.grey[200],
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               alignment: Alignment.center,
               child: const Icon(Icons.image, size: 48, color: Colors.grey),
             ),
@@ -433,7 +433,7 @@ class _BillboardSkeleton extends StatelessWidget {
     return Container(
       height: 240,
       decoration: BoxDecoration(
-        color: Colors.grey[300],
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(0),
       ),
       child: Stack(
@@ -445,9 +445,9 @@ class _BillboardSkeleton extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.grey[300]!,
-                    Colors.grey[200]!,
-                    Colors.grey[300]!,
+                    Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
+                    Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                   ],
                   stops: const [0.0, 0.5, 1.0],
                 ),
@@ -465,7 +465,7 @@ class _BillboardSkeleton extends StatelessWidget {
                   height: 24,
                   width: 200,
                   decoration: BoxDecoration(
-                    color: Colors.grey[400],
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -474,7 +474,7 @@ class _BillboardSkeleton extends StatelessWidget {
                   height: 16,
                   width: 120,
                   decoration: BoxDecoration(
-                    color: Colors.grey[400],
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -500,7 +500,7 @@ class _AnnouncementSkeleton extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -512,7 +512,7 @@ class _AnnouncementSkeleton extends StatelessWidget {
                       width: 60,
                       height: 20,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
@@ -523,7 +523,7 @@ class _AnnouncementSkeleton extends StatelessWidget {
                   height: 20,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -532,7 +532,7 @@ class _AnnouncementSkeleton extends StatelessWidget {
                   height: 16,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -541,7 +541,7 @@ class _AnnouncementSkeleton extends StatelessWidget {
                   height: 16,
                   width: 200,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),

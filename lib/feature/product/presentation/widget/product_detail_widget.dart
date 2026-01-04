@@ -1034,7 +1034,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: colors.primary,
+                color: colors.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -1062,7 +1062,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? colors.primary
+                      ? colors.onPrimary
                       : colors.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(

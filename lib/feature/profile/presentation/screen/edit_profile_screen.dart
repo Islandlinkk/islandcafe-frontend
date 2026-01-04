@@ -1,4 +1,4 @@
-import 'dart:io'; 
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
@@ -29,7 +29,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _initialLoad = true;
   Map<String, dynamic>? _originalData;
 
-  XFile? _pickedImage; 
+  XFile? _pickedImage;
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -72,18 +72,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickImage() async {
     if (!_isEditing) return;
-    
+
     Future<void> pick(ImageSource source) async {
-      Navigator.of(context).pop(); 
+      Navigator.of(context).pop();
       final XFile? image = await _picker.pickImage(source: source);
       if (image != null) {
-        setState(() => _pickedImage = image); 
+        setState(() => _pickedImage = image);
       }
     }
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(context).bottomSheetTheme.backgroundColor, // Fix popup color
+      backgroundColor: Theme.of(
+        context,
+      ).bottomSheetTheme.backgroundColor,
       builder: (context) => SafeArea(
         child: Wrap(
           children: [
@@ -116,7 +118,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       initialDate: initial,
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
-      // Theme data automatically handles the date picker colors
     );
     if (picked != null) {
       setState(() {
@@ -144,8 +145,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           uid: user.uid,
           name: _nameController.text.trim(),
           phone: _phoneController.text.replaceAll(' ', '').trim(),
-          birthday: _birthdayController.text.isEmpty ? null : _birthdayController.text,
-          address: _addressController.text.isEmpty ? null : _addressController.text.trim(),
+          birthday: _birthdayController.text.isEmpty
+              ? null
+              : _birthdayController.text,
+          address: _addressController.text.isEmpty
+              ? null
+              : _addressController.text.trim(),
           gender: _selectedGender,
         );
         if (mounted) {
@@ -160,9 +165,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -185,31 +190,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Capture the Theme Data
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDarkMode = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor, // Dynamic Background
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          _isEditing ? 'Edit Profile' : 'My Profile', 
+          _isEditing ? 'Edit Profile' : 'My Profile',
           style: theme.textTheme.titleLarge?.copyWith(
-            color: theme.appBarTheme.foregroundColor, // Dynamic Text
+            color: theme.appBarTheme.foregroundColor,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: theme.appBarTheme.backgroundColor, // Dynamic Bar
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: theme.appBarTheme.foregroundColor),
+          icon: Icon(
+            Icons.arrow_back,
+            color: theme.appBarTheme.foregroundColor,
+          ),
           onPressed: () => context.pop(),
         ),
         actions: [
           if (!_isEditing)
             IconButton(
-              icon: Icon(Icons.edit_outlined, color: theme.appBarTheme.foregroundColor),
+              icon: Icon(
+                Icons.edit_outlined,
+                color: theme.appBarTheme.foregroundColor,
+              ),
               onPressed: _toggleEdit,
             ),
         ],
@@ -217,7 +227,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: AuthService.getUserDetailsStream(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && _initialLoad) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              _initialLoad) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -229,7 +240,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             }
             _initialLoad = false;
           }
-          
+
           final currentPhotoUrl = AuthService.currentUser?.photoURL;
           final imageProvider = _getImageProvider(currentPhotoUrl);
 
@@ -248,7 +259,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             width: 100,
                             height: 100,
                             decoration: BoxDecoration(
-                              // 2. Use surface variant (Grey in Light, Dark Grey in Dark)
                               color: colorScheme.surfaceContainerHighest,
                               shape: BoxShape.circle,
                               image: imageProvider != null
@@ -259,7 +269,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   : null,
                             ),
                             child: imageProvider == null
-                                ? Icon(Icons.person, size: 50, color: colorScheme.onSurfaceVariant)
+                                ? Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: colorScheme.onSurfaceVariant,
+                                  )
                                 : null,
                           ),
                           if (_isEditing)
@@ -269,10 +283,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: colorScheme.primary, // Brand color for edit button
+                                  color: colorScheme
+                                      .primary,
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(Icons.camera_alt, color: colorScheme.onPrimary, size: 20),
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  color: colorScheme.onPrimary,
+                                  size: 20,
+                                ),
                               ),
                             ),
                         ],
@@ -280,9 +299,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 30),
-                  
-                  // Note: Assuming CoffeeTextField uses Theme internally or accepts style. 
-                  // If it's your custom widget, make sure it uses Theme.of(context).inputDecorationTheme
+
                   CoffeeTextField(
                     controller: _nameController,
                     label: 'Full Name',
@@ -312,46 +329,81 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // 3. Updated Dropdown Styles
                   IgnorePointer(
                     ignoring: !_isEditing,
                     child: DropdownButtonFormField<String>(
                       initialValue: _selectedGender,
-                      dropdownColor: theme.cardColor, // Popup background
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 16,
+                      ),
+                      icon: _isEditing
+                          ? Icon(
+                              Icons.arrow_drop_down,
+                              color: colorScheme.primary,
+                            )
+                          : const SizedBox.shrink(),
+                      dropdownColor: theme.colorScheme.surface,
                       decoration: InputDecoration(
                         labelText: 'Gender',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        labelStyle: TextStyle(
+                          color: theme.colorScheme.onSurface,
+                        ),
                         prefixIcon: Icon(
-                          Icons.people_outline, 
-                          color: _isEditing ? colorScheme.primary : colorScheme.onSurfaceVariant
+                          Icons.people_outline,
+                          color: !_isEditing
+                              ? theme.colorScheme.onSurface
+                              : theme.colorScheme.primary,
                         ),
                         filled: true,
-                        // Fill color logic: Bright in Light mode, Dark in Dark mode
-                        fillColor: _isEditing 
-                            ? theme.cardColor 
-                            : theme.scaffoldBackgroundColor.withValues(alpha: 0.5),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                        fillColor: theme.colorScheme.surface,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(
-                            color: _isEditing ? colorScheme.outline.withValues(alpha: 0.3) : Colors.transparent
+                            color: !_isEditing
+                                ? Colors.transparent
+                                : theme.colorScheme.outline,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: colorScheme.primary),
+                          borderSide: BorderSide(
+                            color: theme.colorScheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       items: ['Male', 'Female', 'Other'].map((String val) {
-                        return DropdownMenuItem(
-                          value: val, 
-                          child: Text(val, style: TextStyle(color: colorScheme.onSurface)),
+                        return DropdownMenuItem<String>(
+                          value: val,
+                          child: Text(val),
                         );
                       }).toList(),
-                      onChanged: _isEditing ? (val) => setState(() => _selectedGender = val) : null,
+                      onChanged: _isEditing
+                          ? (val) => setState(() => _selectedGender = val)
+                          : null,
+                      selectedItemBuilder: (context) =>
+                          ['Male', 'Female', 'Other'].map((val) {
+                        return Text(
+                          val,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
+
+                  
                   const SizedBox(height: 20),
                   CoffeeTextField(
                     controller: _addressController,
@@ -361,7 +413,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     hintText: '',
                   ),
                   const SizedBox(height: 30),
-                  
+
                   if (_isEditing)
                     Row(
                       children: [
@@ -369,7 +421,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           child: CoffeeButton(
                             text: 'Cancel',
                             // 4. Cancel Button: Grey in Light, Dark Grey in Dark
-                            backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey[300],
+                            backgroundColor: isDarkMode
+                                ? Colors.grey[800]
+                                : Colors.grey[300],
                             textColor: colorScheme.onSurface,
                             onPressed: _cancelEdit,
                           ),

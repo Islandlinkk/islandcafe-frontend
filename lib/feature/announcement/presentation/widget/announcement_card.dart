@@ -29,14 +29,14 @@ class AnnouncementCard extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: theme.cardColor, // Dynamic Background
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(16),
         // 2. Hide shadow in Dark Mode (use border instead if needed), show in Light Mode
         boxShadow: isDarkMode 
             ? [] 
             : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
+                  color: colorScheme.shadow.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -49,7 +49,7 @@ class AnnouncementCard extends ConsumerWidget {
           ref.read(selectedAnnouncementId.notifier).state = id,
           context.pushNamed('/announcementDetail'),
         },
-        borderRadius: BorderRadius.circular(16), // Fix ripple effect clipping
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -85,14 +85,13 @@ class AnnouncementCard extends ConsumerWidget {
                     title,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: colorScheme.onSurface, // Dynamic Title Color
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     content,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      // 4. Dynamic Description Color (Grey in Light, Light Grey in Dark)
                       color: colorScheme.onSurfaceVariant,
                     ),
                     maxLines: 2,

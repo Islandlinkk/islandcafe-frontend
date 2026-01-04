@@ -19,8 +19,8 @@ abstract class VoucherModel with _$VoucherModel {
     required String code,
     String? description,
     required String discountType,
-    @JsonKey(fromJson: _stringToNum) required num discountValue,
-    @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) num? minOrderValue,
+    required num discountValue,
+    num? minOrderValue,
     
     required DateTime startDate,
     required DateTime endDate,

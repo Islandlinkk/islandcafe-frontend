@@ -7,9 +7,9 @@ class CheckoutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
