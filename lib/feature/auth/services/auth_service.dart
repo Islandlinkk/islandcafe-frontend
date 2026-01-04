@@ -93,6 +93,66 @@ static Future<String> uploadProfileImage({required XFile file, required String u
     }
   }
 
+  /// Upload Feedback Image to Firebase Storage
+  static Future<String> uploadFeedbackImage({
+    required XFile file,
+    required String uid,
+  }) async {
+    try {
+      // Verify user is authenticated
+      final user = currentUser;
+      if (user == null) {
+        throw Exception('User must be logged in to upload images');
+      }
+
+      // Verify the uid matches the current user
+      if (user.uid != uid) {
+        throw Exception('User ID mismatch');
+      }
+
+      // Use timestamp to ensure unique filenames
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = '${uid}_$timestamp.jpg';
+      final ref = _storage.ref().child('user_feedback').child(fileName);
+
+      // Determine content type based on file extension
+      String contentType = 'image/jpeg';
+      if (file.path.toLowerCase().endsWith('.png')) {
+        contentType = 'image/png';
+      } else if (file.path.toLowerCase().endsWith('.webp')) {
+        contentType = 'image/webp';
+      }
+
+      final metadata = SettableMetadata(
+        contentType: contentType,
+        customMetadata: {
+          'picked-file-path': file.path,
+          'uploaded-by': uid,
+          'uploaded-at': DateTime.now().toIso8601String(),
+        },
+      );
+
+      final UploadTask uploadTask;
+
+      if (kIsWeb) {
+        final bytes = await file.readAsBytes();
+        uploadTask = ref.putData(bytes, metadata);
+      } else {
+        uploadTask = ref.putFile(File(file.path), metadata);
+      }
+
+      final TaskSnapshot snapshot = await uploadTask;
+      final url = await snapshot.ref.getDownloadURL();
+      return url;
+    } catch (e) {
+      // Provide more detailed error message
+      if (e is FirebaseException) {
+        throw Exception('Image upload failed: ${e.code} - ${e.message}');
+      }
+      throw Exception('Image upload failed: $e');
+    }
+  }
+
   /// Update User Photo URL in Auth & Firestore
   static Future<void> updateUserPhoto(String photoUrl) async {
     final user = currentUser;
