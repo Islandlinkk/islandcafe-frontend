@@ -5,6 +5,7 @@ import 'package:island_cafe/feature/product/data/provider/category_provider.dart
 import 'package:island_cafe/feature/product/data/provider/product_provider.dart';
 import 'package:island_cafe/feature/menu/presentation/widget/category_item.dart';
 import 'package:island_cafe/feature/menu/presentation/widget/menu_item_card.dart';
+import 'package:island_cafe/feature/theme/loading_screen.dart';
 
 class PickupMenuView extends ConsumerStatefulWidget {
   const PickupMenuView({super.key});
@@ -46,7 +47,7 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
         : ref.watch(productProvider);
 
     return categoriesAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const LoadingScreen(),
       error: (error, stack) =>
           Center(child: Text('Error loading categories: $error')),
       data: (categories) {
@@ -69,25 +70,24 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
         }
 
         return productsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const LoadingScreen(),
           error: (error, stack) =>
               Center(child: Text('Error loading products: $error')),
           data: (products) {
-            // If searching, show search results without categories
             if (isSearchActive && searchQuery.isNotEmpty) {
               if (products.isEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.search_off, size: 64, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4)),
+                      Icon(Icons.search_off, size: 64, color: Theme.of(context).colorScheme.onSurface),
                       const SizedBox(height: 16),
                       Text(
                         'No products found',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),

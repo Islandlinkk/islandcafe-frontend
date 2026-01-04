@@ -11,6 +11,7 @@ import 'package:island_cafe/feature/product/data/provider/size_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/sugar_provider.dart';
 import 'package:island_cafe/feature/product/presentation/widget/cart_item_widget.dart';
 import 'package:island_cafe/feature/product/presentation/widget/related_product_widget.dart';
+import 'package:island_cafe/feature/theme/loading_screen.dart';
 
 class ProductDetailWidget extends ConsumerStatefulWidget {
   const ProductDetailWidget({super.key});
@@ -125,10 +126,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
 
     // Show loading screen until all data is loaded
     if (isLoading) {
-      return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        body: const Center(child: CircularProgressIndicator()),
-      );
+      return LoadingScreen();
     }
 
     return productAsyncValue.when(
@@ -694,10 +692,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
           ),
         ),
       ),
-      loading: () => Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor, // Fix: Dynamic
-        body: Center(child: CircularProgressIndicator(color: colors.primary)),
-      ),
+      loading: () => LoadingScreen(),
       error: (error, stackTrace) => Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor, // Fix: Dynamic
         body: Center(
