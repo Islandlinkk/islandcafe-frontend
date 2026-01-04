@@ -10,6 +10,7 @@ class LoginPage extends StatefulWidget {
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
+
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -34,6 +35,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  // Inside your Login Screen file
 Future<void> _handleEmailLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -77,20 +79,26 @@ Future<void> _handleEmailLogin() async {
               label: 'Email Address',
               icon: Icons.alternate_email_rounded,
               keyboardType: TextInputType.emailAddress,
-              validator: ValidationService.validateEmail, hintText: '',
+              validator: ValidationService.validateEmail,
+              hintText: '',
             ),
             CoffeeTextField(
               controller: _passwordController,
               label: 'Password',
               icon: Icons.lock_outline_rounded,
               obscureText: true,
-              validator: (val) => val?.isEmpty == true ? 'Please enter password' : null, hintText: '',
+              validator: (val) =>
+                  val?.isEmpty == true ? 'Please enter password' : null,
+              hintText: '',
             ),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () => context.push('/forgot-password'),
-                child: const Text('Forgot Password?', style: TextStyle(color: CoffeeColors.primaryLight)),
+                child: const Text(
+                  'Forgot Password?',
+                  style: TextStyle(color: CoffeeColors.primaryLight),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -105,7 +113,10 @@ Future<void> _handleEmailLogin() async {
                 Expanded(child: Divider(color: Colors.grey.shade300)),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('OR', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+                  child: Text(
+                    'OR',
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                  ),
                 ),
                 Expanded(child: Divider(color: Colors.grey.shade300)),
               ],

@@ -19,8 +19,8 @@ class AuthService {
     required String password,
   }) async {
     final cred = await _auth.createUserWithEmailAndPassword(
-      email: email, 
-      password: password
+      email: email,
+      password: password,
     );
     final user = cred.user;
 
@@ -31,14 +31,14 @@ class AuthService {
       }
       await _firestore.collection('users').doc(user.uid).set({
         'email': email,
-        'name': displayName, 
-        'phone': '',       
-        'photoURL': '',    
+        'name': displayName,
+        'phone': '',
+        'photoURL': '',
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
-        'profileComplete': true, 
+        'profileComplete': true,
       });
-      await user.updateDisplayName(displayName); 
+      await user.updateDisplayName(displayName);
       await user.reload();
       if (!user.emailVerified) {
         await user.sendEmailVerification();
@@ -47,13 +47,20 @@ class AuthService {
     return cred;
   }
 
-  /// Sign In with Email/Password
-  static Future<UserCredential> signInWithEmail({
-    required String email,
-    required String password,
-  }) {
-    return _auth.signInWithEmailAndPassword(email: email, password: password);
+// In AuthService class
+static Future<UserCredential> signInWithEmail({
+  required String email,
+  required String password,
+}) async {
+  try {
+    return await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  } on FirebaseAuthException catch (e) {
+    return Future.error(e);
   }
+}
 
   /// Sign In with Google (Updated with Name Fix)
   static Future<UserCredential> signInWithGoogle() async {
@@ -70,15 +77,16 @@ class AuthService {
     if (user != null) {
       final docRef = _firestore.collection('users').doc(user.uid);
       final docSnapshot = await docRef.get();
-      
+
       if (!docSnapshot.exists) {
         String displayName = user.displayName ?? '';
-        
+
         // Fallback: Use email prefix if name is missing
         if (displayName.isEmpty && user.email != null) {
           String emailPrefix = user.email!.split('@')[0];
           if (emailPrefix.isNotEmpty) {
-            displayName = emailPrefix[0].toUpperCase() + emailPrefix.substring(1);
+            displayName =
+                emailPrefix[0].toUpperCase() + emailPrefix.substring(1);
           } else {
             displayName = emailPrefix;
           }
@@ -87,7 +95,7 @@ class AuthService {
         await docRef.set({
           'email': user.email,
           'name': displayName,
-          'photoURL': user.photoURL ?? '', 
+          'photoURL': user.photoURL ?? '',
           'phone': user.phoneNumber ?? '',
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -204,8 +212,13 @@ class AuthService {
       switch (e.code) {
         case 'user-not-found':
           return 'We couldn\'t find an account. Want to join us?';
+        
+        // --- ADD THIS NEW CASE HERE ---
+        case 'invalid-credential': 
         case 'wrong-password':
           return 'That password didn\'t match. Try again?';
+        // ------------------------------
+
         case 'email-already-in-use':
           return 'That email is already sipping coffee with us. Try logging in.';
         case 'invalid-email':

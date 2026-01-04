@@ -38,8 +38,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             content: const Text(
               'Reset link sent! Check your inbox to brew a new password.',
             ),
-            backgroundColor: Theme.of(context).colorScheme.primary, // Matches your theme
-            behavior: SnackBarBehavior.floating, // Looks better
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            behavior: SnackBarBehavior.floating,
           ),
         );
         context.pop();

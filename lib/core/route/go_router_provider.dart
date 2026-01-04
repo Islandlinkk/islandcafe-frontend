@@ -54,12 +54,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       final path = state.uri.path;
 
-      // Define Restricted Routes
       final isStrictlyProtected =
           path.startsWith('/history') ||
           path.startsWith('/favorites') ||
           path.startsWith('/settings') ||
-          path.startsWith('/edit-profile');
+          path.startsWith('/edit-profile') ||
+          path.startsWith('/checkout') ||
+          path.startsWith('/voucher') ||
+          path == '/profile';
 
       final isAuthRoute =
           path == '/login' || path == '/signup' || path == '/forgot-password';
@@ -82,7 +84,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       // If logged in and verified, prevent access to auth pages
       if (isAuthRoute || isVerifyRoute) {
-        return '/home';
+        return context.namedLocation(homeRoute);
       }
 
       return null;

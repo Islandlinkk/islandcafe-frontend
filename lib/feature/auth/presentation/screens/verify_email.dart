@@ -31,6 +31,8 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
   Future<void> _checkEmailVerified() async {
     try {
       await AuthService.reloadCurrentUser();
+      if (!mounted) return; // Add this safety check
+
       final user = AuthService.currentUser;
       if (user != null && user.emailVerified) {
         _timer?.cancel();
