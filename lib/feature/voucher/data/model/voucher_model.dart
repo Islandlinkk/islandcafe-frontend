@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:intl/intl.dart'; // Add this for date formatting
+import 'package:intl/intl.dart';
 
 part 'voucher_model.freezed.dart';
 part 'voucher_model.g.dart';
@@ -12,15 +12,18 @@ num _stringToNum(dynamic value) {
 
 @freezed
 abstract class VoucherModel with _$VoucherModel {
-  const VoucherModel._(); // Needed for custom getters
+  const VoucherModel._();
 
   const factory VoucherModel({
     required String id,
     required String code,
     String? description,
-    required String discountType, // 'percentage' or 'fixed'
+    required String discountType, // 'FIXED' or 'PERCENTAGE' (API is uppercase)
     @JsonKey(fromJson: _stringToNum) required num discountValue,
-    @JsonKey(fromJson: _stringToNum) num? minOrderValue, // New Field
+    
+    // MAP 'minOrderTotal' (API) to 'minOrderValue' (App)
+    @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) num? minOrderValue, 
+    
     required DateTime startDate,
     required DateTime endDate,
     required bool isActive,
@@ -29,24 +32,21 @@ abstract class VoucherModel with _$VoucherModel {
   factory VoucherModel.fromJson(Map<String, dynamic> json) =>
       _$VoucherModelFromJson(json);
 
-  // --- Helpers for UI ---
-  
-  // Returns "10% OFF" or "$5.00 OFF"
+  // --- Helpers ---
   String get formattedDiscount {
-    if (discountType == 'percentage') {
+    // Check for both lowercase and uppercase from API
+    if (discountType.toUpperCase() == 'PERCENTAGE') {
       return '${discountValue.toStringAsFixed(0)}% OFF';
     } else {
       return '\$${discountValue.toStringAsFixed(2)} OFF';
     }
   }
 
-  // Returns "Min. Spend: $15.00"
   String get minSpendText {
     if (minOrderValue == null || minOrderValue == 0) return 'No min. spend';
     return 'Min. spend \$${minOrderValue!.toStringAsFixed(2)}';
   }
 
-  // Returns "Valid until: 25 Dec 2025"
   String get formattedExpiry {
     return DateFormat('d MMM yyyy').format(endDate);
   }

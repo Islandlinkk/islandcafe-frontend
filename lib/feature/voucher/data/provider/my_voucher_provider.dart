@@ -1,4 +1,4 @@
-import 'package:hive_ce/hive.dart'; // Using Hive CE
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:island_cafe/feature/voucher/data/model/voucher_model.dart';
 import 'package:island_cafe/feature/voucher/data/provider/voucher_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -7,46 +7,31 @@ part 'my_voucher_provider.g.dart';
 
 @riverpod
 class MyVouchers extends _$MyVouchers {
-  // Reference to the Hive CE Box
-  Box get _box => Hive.box('voucher_box');
-
+  
   @override
-  List<VoucherModel> build() {
-    // 1. LOAD: Read from database
-    final List<dynamic> storedList = _box.get('claimed_vouchers', defaultValue: []);
-    
-    return storedList
-        .map((json) => VoucherModel.fromJson(Map<String, dynamic>.from(json)))
-        .toList();
+  Future<List<VoucherModel>> build() async {
+    // 1. Get current User ID
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return []; // Return empty if not logged in
+
+    // 2. Fetch from Server
+    final service = ref.read(voucherServiceProvider);
+    return await service.fetchMyVouchers(user.uid);
   }
 
   Future<void> claimVoucher(String code) async {
-    // Check for duplicate in local list
-    if (state.any((v) => v.code.toLowerCase() == code.toLowerCase())) {
-      throw Exception('You have already claimed this voucher!');
-    }
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception('You must be logged in');
 
-    // 2. FETCH: Use the NEW method name 'fetchVoucherByCode'
+    // 1. Call API
     final service = ref.read(voucherServiceProvider);
+    await service.claimVoucher(user.uid, code);
+
+    // 2. Refresh the list automatically
+    // This forces build() to run again, fetching the new list from server
+    ref.invalidateSelf();
     
-    // --- THIS WAS THE ERROR (was findVoucherByCode) ---
-    final voucher = await service.fetchVoucherByCode(code); 
-
-    if (voucher == null) {
-      throw Exception('Invalid Voucher Code');
-    }
-
-    // Add to state
-    state = [...state, voucher];
-
-    // 3. SAVE: Save to Hive
-    _saveToHive();
-  }
-  
-  void _saveToHive() {
-    final List<Map<String, dynamic>> jsonList = 
-        state.map((v) => v.toJson()).toList();
-    
-    _box.put('claimed_vouchers', jsonList);
+    // Wait for the refresh to finish so the UI updates
+    await future; 
   }
 }
