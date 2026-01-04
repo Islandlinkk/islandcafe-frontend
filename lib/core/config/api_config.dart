@@ -38,4 +38,6 @@ class ApiConfig {
   // Voucher
   static String get baseUrl => _baseUrl; 
   static String get voucher => '$_baseUrl/voucher';
+
+  static String get account => '$_baseUrl/account';
 }

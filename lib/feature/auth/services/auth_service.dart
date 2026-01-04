@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:island_cafe/feature/auth/services/user_sync_service.dart';
 
 class AuthService {
   static FirebaseAuth get _auth => FirebaseAuth.instance;
@@ -29,6 +30,8 @@ class AuthService {
       if (displayName.isNotEmpty) {
         displayName = displayName[0].toUpperCase() + displayName.substring(1);
       }
+
+      // 1. Save to Firestore
       await _firestore.collection('users').doc(user.uid).set({
         'email': email,
         'name': displayName,
@@ -38,6 +41,16 @@ class AuthService {
         'updatedAt': FieldValue.serverTimestamp(),
         'profileComplete': true,
       });
+
+      // 2. Sync to External API (CREATE)
+      await UserSyncService.syncUser(
+        name: displayName,
+        email: email,
+        phone: "",
+        gender: "",
+        birthday: "",
+      );
+
       await user.updateDisplayName(displayName);
       await user.reload();
       if (!user.emailVerified) {
@@ -47,20 +60,20 @@ class AuthService {
     return cred;
   }
 
-// In AuthService class
-static Future<UserCredential> signInWithEmail({
-  required String email,
-  required String password,
-}) async {
-  try {
-    return await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-  } on FirebaseAuthException catch (e) {
-    return Future.error(e);
+  // In AuthService class
+  static Future<UserCredential> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      return await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      return Future.error(e);
+    }
   }
-}
 
   /// Sign In with Google (Updated with Name Fix)
   static Future<UserCredential> signInWithGoogle() async {
@@ -78,24 +91,20 @@ static Future<UserCredential> signInWithEmail({
       final docRef = _firestore.collection('users').doc(user.uid);
       final docSnapshot = await docRef.get();
 
+      // If user document does not exist, it's a NEW user
       if (!docSnapshot.exists) {
         String displayName = user.displayName ?? '';
-
-        // Fallback: Use email prefix if name is missing
         if (displayName.isEmpty && user.email != null) {
           String emailPrefix = user.email!.split('@')[0];
-          if (emailPrefix.isNotEmpty) {
-            displayName =
-                emailPrefix[0].toUpperCase() + emailPrefix.substring(1);
-          } else {
-            displayName = emailPrefix;
-          }
+          displayName = emailPrefix.isNotEmpty
+              ? emailPrefix[0].toUpperCase() + emailPrefix.substring(1)
+              : emailPrefix;
         }
 
         await docRef.set({
           'email': user.email,
           'name': displayName,
-          'photoURL': user.photoURL ?? '',
+          'photoURL': user.photoURL ?? '', 
           'phone': user.phoneNumber ?? '',
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -104,6 +113,15 @@ static Future<UserCredential> signInWithEmail({
           'gender': null,
           'address': null,
         });
+        
+        // 2. Sync to External API (CREATE)
+        await UserSyncService.syncUser(
+          name: displayName,
+          email: user.email!,
+          phone: user.phoneNumber ?? "",
+          gender: "",
+          birthday: "",
+        );
       }
     }
     return cred;
@@ -160,6 +178,7 @@ static Future<UserCredential> signInWithEmail({
     String? gender,
     String? address,
   }) async {
+    // 1. Update Firestore
     await _firestore.collection('users').doc(uid).set({
       'name': name,
       'phone': phone,
@@ -174,6 +193,40 @@ static Future<UserCredential> signInWithEmail({
     final user = currentUser;
     if (user != null) {
       await user.updateDisplayName(name);
+
+      // 2. Sync to External API (UPDATE)
+      // Note: We don't have the password here, send empty or modify backend to ignore
+      await UserSyncService.syncUser(
+        name: name,
+        email: user.email ?? "",
+        phone: phone,
+        gender: gender,
+        birthday: birthday
+      );
+    }
+  }
+
+  static Future<void> deleteAccount() async {
+    final user = currentUser;
+    if (user != null) {
+      String email = user.email ?? "";
+      String uid = user.uid;
+
+      try {
+        // 1. Delete from Firestore
+        await _firestore.collection('users').doc(uid).delete();
+        await _storage.ref().child('user_images').child('$uid.jpg').delete().catchError((_) {}); // Ignore if image doesn't exist
+
+        // 2. Sync to External API (DELETE)
+        if (email.isNotEmpty) {
+          await UserSyncService.deleteUser(email);
+        }
+
+        // 3. Delete from Firebase Auth
+        await user.delete(); 
+      } catch (e) {
+        throw Exception('Failed to delete account: $e');
+      }
     }
   }
 
@@ -212,9 +265,9 @@ static Future<UserCredential> signInWithEmail({
       switch (e.code) {
         case 'user-not-found':
           return 'We couldn\'t find an account. Want to join us?';
-        
+
         // --- ADD THIS NEW CASE HERE ---
-        case 'invalid-credential': 
+        case 'invalid-credential':
         case 'wrong-password':
           return 'That password didn\'t match. Try again?';
         // ------------------------------
