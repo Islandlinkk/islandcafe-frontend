@@ -83,9 +83,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Theme.of(
-        context,
-      ).bottomSheetTheme.backgroundColor,
+      backgroundColor: Theme.of(context).bottomSheetTheme.backgroundColor,
       builder: (context) => SafeArea(
         child: Wrap(
           children: [
@@ -165,12 +163,59 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  // --- NEW: Handle Account Deletion ---
+  Future<void> _handleDeleteAccount() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account?'),
+        content: const Text(
+          'Are you sure you want to delete your account? This action cannot be undone and all your data will be removed.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      setState(() => _loading = true);
+      try {
+        await AuthService.deleteAccount();
+        // Upon success, AuthService signs out. 
+        // GoRouter should ideally listen to auth state changes, 
+        // but explicit navigation ensures we leave this screen.
+        if (mounted) context.go('/login'); 
+      } catch (e) {
+        if (mounted) {
+          setState(() => _loading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to delete account: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -207,19 +252,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back,
-            color: theme.appBarTheme.foregroundColor,
-          ),
+          icon: Icon(Icons.arrow_back, color: theme.appBarTheme.foregroundColor),
           onPressed: () => context.pop(),
         ),
         actions: [
           if (!_isEditing)
             IconButton(
-              icon: Icon(
-                Icons.edit_outlined,
-                color: theme.appBarTheme.foregroundColor,
-              ),
+              icon: Icon(Icons.edit_outlined, color: theme.appBarTheme.foregroundColor),
               onPressed: _toggleEdit,
             ),
         ],
@@ -227,8 +266,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: AuthService.getUserDetailsStream(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              _initialLoad) {
+          if (snapshot.connectionState == ConnectionState.waiting && _initialLoad) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -250,6 +288,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               key: _formKey,
               child: Column(
                 children: [
+                  // --- 1. Profile Image ---
                   Center(
                     child: GestureDetector(
                       onTap: _pickImage,
@@ -283,8 +322,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: colorScheme
-                                      .primary,
+                                  color: colorScheme.primary,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
@@ -300,6 +338,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 30),
 
+                  // --- 2. Input Fields ---
                   CoffeeTextField(
                     controller: _nameController,
                     label: 'Full Name',
@@ -330,7 +369,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
 
-                  // 3. Updated Dropdown Styles
+                  // Gender Dropdown
                   IgnorePointer(
                     ignoring: !_isEditing,
                     child: DropdownButtonFormField<String>(
@@ -340,17 +379,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         fontSize: 16,
                       ),
                       icon: _isEditing
-                          ? Icon(
-                              Icons.arrow_drop_down,
-                              color: colorScheme.primary,
-                            )
+                          ? Icon(Icons.arrow_drop_down, color: colorScheme.primary)
                           : const SizedBox.shrink(),
                       dropdownColor: theme.colorScheme.surface,
                       decoration: InputDecoration(
                         labelText: 'Gender',
-                        labelStyle: TextStyle(
-                          color: theme.colorScheme.onSurface,
-                        ),
+                        labelStyle: TextStyle(color: theme.colorScheme.onSurface),
                         prefixIcon: Icon(
                           Icons.people_outline,
                           color: !_isEditing
@@ -395,15 +429,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ['Male', 'Female', 'Other'].map((val) {
                         return Text(
                           val,
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface,
-                          ),
+                          style: TextStyle(color: theme.colorScheme.onSurface),
                         );
                       }).toList(),
                     ),
                   ),
 
-                  
                   const SizedBox(height: 20),
                   CoffeeTextField(
                     controller: _addressController,
@@ -414,13 +445,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const SizedBox(height: 30),
 
+                  // --- 3. Action Buttons (Save/Cancel) ---
                   if (_isEditing)
                     Row(
                       children: [
                         Expanded(
                           child: CoffeeButton(
                             text: 'Cancel',
-                            // 4. Cancel Button: Grey in Light, Dark Grey in Dark
                             backgroundColor: isDarkMode
                                 ? Colors.grey[800]
                                 : Colors.grey[300],
@@ -434,11 +465,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             text: 'Save Changes',
                             onPressed: _saveProfile,
                             isLoading: _loading,
-                            // CoffeeButton usually defaults to primary color, which is good
                           ),
                         ),
                       ],
                     ),
+
+                  // --- 4. NEW: Delete Account Section ---
+                  // Only show when not in editing mode (or you can remove the if condition to show always)
+                  if (!_isEditing) ...[
+                    const SizedBox(height: 40),
+                    Divider(color: theme.dividerColor),
+                    const SizedBox(height: 10),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: _loading ? null : _handleDeleteAccount,
+                        icon: const Icon(
+                          Icons.delete_forever_rounded,
+                          color: Colors.redAccent,
+                          size: 20,
+                        ),
+                        label: const Text(
+                          'Delete Account',
+                          style: TextStyle(
+                            color: Colors.redAccent,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ],
               ),
             ),
