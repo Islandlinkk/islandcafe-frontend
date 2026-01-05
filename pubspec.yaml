@@ -57,7 +57,7 @@ dev_dependencies:
   json_serializable: ^6.8.0
   freezed: ^3.2.3
   riverpod_generator: ^3.0.3
-  hive_ce_generator: ^1.10.0
+  hive_ce_generator: 1.9.3
 
   # Lints
   custom_lint: ^0.8.0
