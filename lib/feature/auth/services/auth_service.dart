@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,7 +9,13 @@ import 'package:image_picker/image_picker.dart';
 class AuthService {
   static FirebaseAuth get _auth => FirebaseAuth.instance;
   static FirebaseFirestore get _firestore => FirebaseFirestore.instance;
-  static FirebaseStorage get _storage => FirebaseStorage.instance;
+  
+  // Explicitly use the Firebase Storage bucket: gs://islandcoffeeapp-62b47.firebasestorage.app
+  // This ensures images are stored in the correct bucket
+  static FirebaseStorage get _storage => FirebaseStorage.instanceFor(
+    app: Firebase.app(),
+    bucket: 'islandcoffeeapp-62b47.firebasestorage.app',
+  );
 
   static Stream<User?> get authStateChanges => _auth.userChanges();
   static User? get currentUser => _auth.currentUser;
@@ -94,6 +101,7 @@ static Future<String> uploadProfileImage({required XFile file, required String u
   }
 
   /// Upload Feedback Image to Firebase Storage
+  /// Stores images in: user_images/feedback/{uid}_{timestamp}.{ext}
   static Future<String> uploadFeedbackImage({
     required XFile file,
     required String uid,
@@ -105,32 +113,74 @@ static Future<String> uploadProfileImage({required XFile file, required String u
         throw Exception('User must be logged in to upload images');
       }
 
+      // Refresh the user's auth token to ensure it's valid
+      await user.reload();
+      final refreshedUser = currentUser;
+      if (refreshedUser == null) {
+        throw Exception('User authentication expired. Please log in again.');
+      }
+
       // Verify the uid matches the current user
-      if (user.uid != uid) {
+      if (refreshedUser.uid != uid) {
         throw Exception('User ID mismatch');
       }
 
+      // Check file size (10MB limit as per storage rules)
+      int fileSize = 0;
+      if (kIsWeb) {
+        final bytes = await file.readAsBytes();
+        fileSize = bytes.length;
+      } else {
+        final fileObj = File(file.path);
+        fileSize = await fileObj.length();
+      }
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (fileSize > maxSize) {
+        throw Exception('Image size exceeds 10MB limit. Please choose a smaller image.');
+      }
+
+      // Get file extension from original file
+      final fileExtension = file.path.split('.').last.toLowerCase();
+      final validExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+      final ext = validExtensions.contains(fileExtension) ? fileExtension : 'jpg';
+
       // Use timestamp to ensure unique filenames
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = '${uid}_$timestamp.jpg';
-      final ref = _storage.ref().child('user_feedback').child(fileName);
+      final now = DateTime.now();
+      final timestamp = now.millisecondsSinceEpoch;
+      final fileName = '${uid}_feedback_$timestamp.$ext';
+      
+      // Storage path: user_images/feedback/userId_feedback_timestamp.jpg
+      final storagePath = 'user_images/feedback/$fileName';
+      final ref = _storage.ref().child(storagePath);
 
       // Determine content type based on file extension
       String contentType = 'image/jpeg';
-      if (file.path.toLowerCase().endsWith('.png')) {
+      if (ext == 'png') {
         contentType = 'image/png';
-      } else if (file.path.toLowerCase().endsWith('.webp')) {
+      } else if (ext == 'webp') {
         contentType = 'image/webp';
       }
 
+      // Get original filename (fallback to path if name not available)
+      final originalFilename = file.name.isNotEmpty 
+          ? file.name 
+          : file.path.split('/').last;
+
       final metadata = SettableMetadata(
         contentType: contentType,
+        cacheControl: 'public, max-age=31536000', // Cache for 1 year
         customMetadata: {
-          'picked-file-path': file.path,
           'uploaded-by': uid,
-          'uploaded-at': DateTime.now().toIso8601String(),
+          'uploaded-at': now.toIso8601String(),
+          'original-filename': originalFilename,
         },
       );
+
+      print('📤 Uploading image to Firebase Storage: $storagePath');
+      print('📦 Storage Bucket: ${_storage.bucket}');
+      print('🔗 Full Storage Path: gs://${_storage.bucket}/$storagePath');
+      print('👤 User ID: ${refreshedUser.uid}');
+      print('📏 File size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)} MB');
 
       final UploadTask uploadTask;
 
@@ -141,15 +191,47 @@ static Future<String> uploadProfileImage({required XFile file, required String u
         uploadTask = ref.putFile(File(file.path), metadata);
       }
 
+      // Monitor upload progress
+      uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+        final progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        print('📊 Upload progress: ${progress.toStringAsFixed(1)}%');
+      });
+
       final TaskSnapshot snapshot = await uploadTask;
       final url = await snapshot.ref.getDownloadURL();
+      
+      print('✅ Image uploaded successfully!');
+      print('🔗 Download URL: $url');
+      print('📁 Storage Path: $storagePath');
+      
       return url;
     } catch (e) {
-      // Provide more detailed error message
+      print('❌ Image upload error: $e');
+      print('❌ Error type: ${e.runtimeType}');
+      
+      // Provide more detailed error message based on error type
       if (e is FirebaseException) {
-        throw Exception('Image upload failed: ${e.code} - ${e.message}');
+        final errorCode = e.code;
+        final errorMessage = e.message ?? 'Unknown error';
+        
+        // Handle specific Firebase Storage error codes
+        if (errorCode == 'unauthorized' || errorCode == 'permission-denied') {
+          throw Exception('Image upload failed: unauthorized - User is not authorized to perform the desired action. Please ensure Firebase Storage rules are deployed and you are logged in.');
+        } else if (errorCode == 'unauthenticated') {
+          throw Exception('Image upload failed: Authentication expired. Please log in again.');
+        } else if (errorCode == 'object-not-found') {
+          throw Exception('Image upload failed: Storage path not found.');
+        } else if (errorCode == 'quota-exceeded') {
+          throw Exception('Image upload failed: Storage quota exceeded.');
+        } else {
+          throw Exception('Image upload failed: $errorCode - $errorMessage');
+        }
+      } else if (e is Exception) {
+        // Re-throw if it's already an Exception with a message
+        rethrow;
+      } else {
+        throw Exception('Image upload failed: $e');
       }
-      throw Exception('Image upload failed: $e');
     }
   }
 

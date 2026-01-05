@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:island_cafe/core/config/api_config.dart';
 import 'package:island_cafe/feature/history/data/model/feedback_model.dart';
+import 'package:island_cafe/feature/account/service/user_api_service.dart';
 
 class FeedbackService {
   static User? get _currentUser => FirebaseAuth.instance.currentUser;
@@ -30,6 +31,7 @@ class FeedbackService {
               );
             },
           );
+          
 
       if (response.statusCode == 200) {
         try {
@@ -101,7 +103,14 @@ class FeedbackService {
     if (user == null) {
       throw Exception('User must be logged in to fetch feedback');
     }
-    return await fetchFeedbackByUserId(user.uid);
+
+    // Fetch API user account to get the API user ID
+    final apiUserAccount = await UserApiService.getCurrentUserAccount();
+    if (apiUserAccount == null) {
+      throw Exception('User account not found in API database');
+    }
+
+    return await fetchFeedbackByUserId(apiUserAccount.id);
   }
 
   /// Fetch a single feedback by ID
@@ -156,26 +165,36 @@ class FeedbackService {
     }
 
     try {
+      // Fetch API user account to get the API user ID
+      final apiUserAccount = await UserApiService.getCurrentUserAccount();
+      if (apiUserAccount == null) {
+        throw Exception('User account not found in API database. Please contact support to set up your account.');
+      }
+
+      final apiUserId = apiUserAccount.id;
+      print('✅ Using API User ID: $apiUserId');
+
       // Construct the API URL
       final url = Uri.parse(ApiConfig.feedback);
 
       // Prepare request body matching API format
-      // Only include orderId if it's not null and not empty
       final requestBody = <String, dynamic>{
-        'userId': userId,
+        'userId': apiUserId,
+        'orderId': orderId ?? '',
         'category': category,
         'description': description.trim(),
-        'images': imageUrls ?? [],
+        'status': 'PENDING',
       };
       
-      // Only add orderId if it's provided and not empty
-      if (orderId != null && orderId.isNotEmpty) {
-        requestBody['orderId'] = orderId;
+      // Only include images if provided
+      if (imageUrls != null && imageUrls.isNotEmpty) {
+        requestBody['images'] = imageUrls;
       }
 
-      // Debug: Print request details (remove in production)
-      print('Submitting feedback to: $url');
-      print('Request body: ${json.encode(requestBody)}');
+      // Debug: Print request details
+      print('📤 Submitting feedback to: $url');
+      print('📦 Request body: ${json.encode(requestBody)}');
+      print('👤 User ID: $userId');
 
       final response = await http
           .post(
@@ -194,11 +213,14 @@ class FeedbackService {
           );
 
       // Debug: Print response details
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      print('📥 Response status: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
 
+      // Handle SUCCESS responses (200, 201)
       if (response.statusCode == 200 || response.statusCode == 201) {
         try {
+          print('✅ Feedback submission successful!');
+          
           // API may return the created feedback object or just success
           if (response.body.isNotEmpty) {
             final trimmedBody = response.body.trim();
@@ -207,48 +229,142 @@ class FeedbackService {
               final jsonData = json.decode(response.body);
               // Handle both single object and array response
               if (jsonData is List && jsonData.isNotEmpty) {
-                return FeedbackModel.fromJson(
+                final feedbackModel = FeedbackModel.fromJson(
                   jsonData[0] as Map<String, dynamic>,
                 );
+                print('✅ Feedback created with ID: ${feedbackModel.id}');
+                return feedbackModel;
               } else if (jsonData is Map<String, dynamic>) {
-                return FeedbackModel.fromJson(jsonData);
+                final feedbackModel = FeedbackModel.fromJson(jsonData);
+                print('✅ Feedback created with ID: ${feedbackModel.id}');
+                return feedbackModel;
               }
             } else {
               // Response is not JSON, but status is success
-              // This might mean the API accepted the request but returned plain text
-              // Create a minimal feedback model to return
+              print('⚠️ Success but invalid response format: ${response.body}');
               throw Exception(
-                'Feedback submitted but received invalid response format: ${response.body}',
+                'Feedback submitted successfully but received invalid response format',
               );
             }
           }
           // If no response body, throw exception as we need to return FeedbackModel
+          print('⚠️ Success but no response data received');
           throw Exception(
-            'Feedback submitted but no response data received from server',
+            'Feedback submitted successfully but no response data received from server',
           );
-        } on FormatException {
+        } on FormatException catch (e) {
           // If response is not valid JSON but status is 200/201
+          print('❌ Failed to parse success response: $e');
           throw Exception(
-            'Feedback submitted but received invalid response format: ${response.body}',
+            'Feedback submitted successfully but failed to parse response: ${response.body}',
           );
         } catch (e) {
           if (e is Exception && e.toString().contains('Feedback submitted')) {
             rethrow;
           }
+          print('❌ Error processing success response: $e');
           throw Exception(
-            'Feedback submitted but failed to parse response: $e',
+            'Feedback submitted successfully but failed to process response: $e',
           );
         }
-      } else {
-        // Handle error responses (4xx, 5xx)
-        _handleError(response, 'Failed to submit feedback');
-        throw Exception('Failed to submit feedback');
+      } 
+      // Handle FAILURE responses (4xx, 5xx)
+      else {
+        print('❌ Feedback submission failed with status: ${response.statusCode}');
+        
+        // Get detailed error message
+        String errorMessage = 'Failed to submit feedback';
+        String errorType = 'UNKNOWN_ERROR';
+        
+        try {
+          final trimmedBody = response.body.trim();
+          if (trimmedBody.isNotEmpty) {
+            if (trimmedBody.startsWith('{') || trimmedBody.startsWith('[')) {
+              final errorBody = json.decode(response.body);
+              errorMessage = errorBody['message'] ?? 
+                           errorBody['error'] ?? 
+                           errorBody['details'] ?? 
+                           'Server error (${response.statusCode})';
+            } else {
+              errorMessage = trimmedBody;
+            }
+          } else {
+            errorMessage = 'Server error (${response.statusCode})';
+          }
+          
+          // Categorize error types for better handling
+          if (response.statusCode == 400) {
+            errorType = 'BAD_REQUEST';
+            // Check for foreign key constraint errors (user ID doesn't exist)
+            if (errorMessage.toLowerCase().contains('foreign key') ||
+                errorMessage.toLowerCase().contains('userid') ||
+                errorMessage.toLowerCase().contains('user id')) {
+              errorMessage = 'User account not found in system. Please contact support to set up your account.';
+              errorType = 'USER_NOT_FOUND';
+            }
+          } else if (response.statusCode == 401) {
+            errorType = 'UNAUTHORIZED';
+            errorMessage = 'Authentication failed. Please log in again.';
+          } else if (response.statusCode == 403) {
+            errorType = 'FORBIDDEN';
+            errorMessage = 'Access denied. You do not have permission to submit feedback.';
+          } else if (response.statusCode == 404) {
+            errorType = 'NOT_FOUND';
+            errorMessage = 'Feedback service not found. Please contact support.';
+          } else if (response.statusCode == 422) {
+            errorType = 'VALIDATION_ERROR';
+            errorMessage = 'Invalid feedback data. Please check your input and try again.';
+          } else if (response.statusCode >= 500) {
+            errorType = 'SERVER_ERROR';
+            errorMessage = 'Server error occurred. Please try again later or contact support.';
+          }
+        } catch (e) {
+          errorMessage = 'Server error (${response.statusCode}): ${response.body}';
+          errorType = 'PARSE_ERROR';
+        }
+        
+        print('❌ Error type: $errorType');
+        print('❌ Error message: $errorMessage');
+        print('❌ Status code: ${response.statusCode}');
+        print('❌ Full response: ${response.body}');
+        
+        throw Exception('[$errorType] $errorMessage');
       }
     } catch (e) {
+      // Handle different types of errors
       if (e is Exception) {
+        // Check if it's already a formatted error with error type
+        final errorString = e.toString();
+        if (errorString.contains('[') && errorString.contains(']')) {
+          // Already formatted error, rethrow as is
+          rethrow;
+        }
+        
+        // Categorize network/connection errors
+        if (errorString.toLowerCase().contains('timeout') ||
+            errorString.toLowerCase().contains('socket') ||
+            errorString.toLowerCase().contains('network') ||
+            errorString.toLowerCase().contains('connection')) {
+          print('❌ Network error: $e');
+          throw Exception('[NETWORK_ERROR] Network connection failed. Please check your internet connection and try again.');
+        }
+        
+        // Categorize authentication errors
+        if (errorString.toLowerCase().contains('user account not found') ||
+            errorString.toLowerCase().contains('user must be logged in') ||
+            errorString.toLowerCase().contains('authentication')) {
+          print('❌ Authentication error: $e');
+          rethrow; // Keep original message
+        }
+        
+        // Re-throw other exceptions as-is
         rethrow;
       }
-      throw Exception('Network error while submitting feedback: $e');
+      
+      // Handle non-Exception errors
+      print('❌ Unexpected error type: ${e.runtimeType}');
+      print('❌ Error: $e');
+      throw Exception('[UNEXPECTED_ERROR] An unexpected error occurred: $e');
     }
   }
 

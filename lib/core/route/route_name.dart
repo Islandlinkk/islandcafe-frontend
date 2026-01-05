@@ -15,3 +15,4 @@ const String resetPasswordRoute = '/reset-password';
 const String loadingRoute = '/loading';
 const String editProfileRoute = '/edit-profile';
 const String voucherRoute = '/voucher';
+const String feedbackSubmissionRoute = '/feedback-submission';

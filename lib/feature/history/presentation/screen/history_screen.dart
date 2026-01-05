@@ -1,13 +1,10 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:island_cafe/feature/auth/presentation/widgets/auth_widgets.dart';
 import 'package:island_cafe/feature/auth/services/auth_service.dart';
 import 'package:island_cafe/feature/history/data/model/feedback_model.dart';
 import 'package:island_cafe/feature/history/data/model/order_model.dart';
 import 'package:island_cafe/feature/history/service/feedback_service.dart';
+import 'package:go_router/go_router.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -122,6 +119,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final result = await context.push('/feedback-submission');
+          if (result == true) {
+            _loadFeedback();
+          }
+        },
+        backgroundColor: const Color(0xFFFF6B6B),
+        icon: const Icon(Icons.feedback, color: Colors.white),
+        label: const Text(
+          'Submit Feedback',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null
@@ -209,7 +220,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 itemBuilder: (context, index) {
                                   return OrderFeedbackCard(
                                     order: orders[index],
-                                    onFeedbackSubmitted: _loadFeedback,
                                   );
                                 },
                               ),
@@ -268,12 +278,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
 class OrderFeedbackCard extends StatelessWidget {
   final OrderModel order;
-  final VoidCallback? onFeedbackSubmitted;
 
   const OrderFeedbackCard({
     super.key,
     required this.order,
-    this.onFeedbackSubmitted,
   });
 
   @override
@@ -399,456 +407,6 @@ class OrderFeedbackCard extends StatelessWidget {
             ),
           ),
 
-          // Divider
-          if (order.status == 'completed') const Divider(height: 1),
-
-          // Feedback Section (only for completed orders)
-          if (order.status == 'completed')
-            _StaticFeedbackForm(
-              orderNumber: order.orderNumber,
-              orderId: order.id,
-              userId: order.userId,
-              onFeedbackSubmitted: onFeedbackSubmitted,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// Feedback Form UI Component with Image Upload
-class _StaticFeedbackForm extends StatefulWidget {
-  final String orderNumber;
-  final String orderId;
-  final String userId;
-  final VoidCallback? onFeedbackSubmitted;
-
-  const _StaticFeedbackForm({
-    required this.orderNumber,
-    required this.orderId,
-    required this.userId,
-    this.onFeedbackSubmitted,
-  });
-
-  @override
-  State<_StaticFeedbackForm> createState() => _StaticFeedbackFormState();
-}
-
-class _StaticFeedbackFormState extends State<_StaticFeedbackForm> {
-  final List<String> _categories = const [
-    'Good Environment',
-    'Good Service',
-    'Good Food',
-    'Good Price',
-    'Good Location',
-    'Good Promotion',
-    'Good Customer Service',
-    'Good Customer Experience',
-    'Good Customer Satisfaction',
-    'other',
-  ];
-
-  final _descriptionController = TextEditingController();
-  final _picker = ImagePicker();
-
-  String? _selectedCategory;
-  XFile? _pickedImage;
-  bool _isSubmitting = false;
-
-  @override
-  void dispose() {
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Theme.of(context).bottomSheetTheme.backgroundColor,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final XFile? image = await _picker.pickImage(
-                  source: ImageSource.gallery,
-                );
-                if (image != null && mounted) {
-                  setState(() => _pickedImage = image);
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final XFile? image = await _picker.pickImage(
-                  source: ImageSource.camera,
-                );
-                if (image != null && mounted) {
-                  setState(() => _pickedImage = image);
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _submitFeedback() async {
-    if (_selectedCategory == null || _selectedCategory!.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a feedback category')),
-        );
-      }
-      return;
-    }
-
-    if (_descriptionController.text.trim().isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a description')),
-        );
-      }
-      return;
-    }
-
-    if (!mounted) return;
-    setState(() => _isSubmitting = true);
-
-    try {
-      final user = AuthService.currentUser;
-      if (user == null) {
-        throw Exception('User must be logged in');
-      }
-
-      List<String> imageUrls = [];
-      if (_pickedImage != null) {
-        try {
-          final imageUrl = await AuthService.uploadFeedbackImage(
-            file: _pickedImage!,
-            uid: user.uid,
-          );
-          if (mounted) {
-            imageUrls.add(imageUrl);
-          }
-        } catch (imageError) {
-          // If image upload fails, ask user if they want to continue without image
-          if (mounted) {
-            final shouldContinue = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Image Upload Failed'),
-                content: Text(
-                  'Failed to upload image: ${imageError.toString()}\n\n'
-                  'Would you like to submit feedback without the image?',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Submit Without Image'),
-                  ),
-                ],
-              ),
-            );
-
-            if (!mounted) return;
-            if (shouldContinue != true) {
-              setState(() => _isSubmitting = false);
-              return;
-            }
-          } else {
-            return;
-          }
-        }
-      }
-
-      // Use current logged-in user's ID to ensure feedback is stored correctly
-      // Only pass orderId if it's not empty and not a mock order ID
-      // Mock orders have simple IDs like '1', '2', etc. which don't exist in the API
-      // Real Firestore IDs are longer alphanumeric strings (typically 20+ characters)
-      final isMockOrderId =
-          widget.orderId.length < 10 ||
-          RegExp(r'^\d+$').hasMatch(widget.orderId);
-      final orderId = widget.orderId.isNotEmpty && !isMockOrderId
-          ? widget.orderId
-          : null;
-
-      await FeedbackService.submitFeedback(
-        userId: user.uid,
-        orderId: orderId,
-        category: _selectedCategory!,
-        description: _descriptionController.text.trim(),
-        imageUrls: imageUrls.isNotEmpty ? imageUrls : null,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Feedback submitted successfully!'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-        // Reset form
-        setState(() {
-          _selectedCategory = null;
-          _descriptionController.clear();
-          _pickedImage = null;
-        });
-        // Refresh feedback list to show the newly submitted feedback
-        widget.onFeedbackSubmitted?.call();
-      }
-    } catch (e) {
-      if (mounted) {
-        // Provide more helpful error messages
-        String errorMessage = 'Failed to submit feedback';
-        if (e.toString().contains('Internal Server Error')) {
-          errorMessage =
-              'Server error. Please try again later or contact support.';
-        } else if (e.toString().contains('timeout')) {
-          errorMessage =
-              'Request timed out. Please check your internet connection.';
-        } else if (e.toString().contains('Network')) {
-          errorMessage =
-              'Network error. Please check your internet connection.';
-        } else {
-          errorMessage = e.toString().replaceAll('Exception: ', '');
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $errorMessage'),
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Retry',
-              onPressed: () {
-                if (mounted) {
-                  _submitFeedback();
-                }
-              },
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSubmitting = false);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Order Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Order',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      widget.orderNumber,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: Colors.grey,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Feedback Category Section
-          const Text(
-            '*Feedback Category',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _categories.map((category) {
-              final isSelected = _selectedCategory == category;
-              return InkWell(
-                onTap: () {
-                  if (mounted) {
-                    setState(() => _selectedCategory = category);
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? const Color(0xFFFF6B6B).withOpacity(0.1)
-                        : Colors.grey[100],
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFFFF6B6B)
-                          : Colors.grey[300]!,
-                      width: isSelected ? 2 : 1,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    category,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isSelected
-                          ? const Color(0xFFFF6B6B)
-                          : Colors.black87,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-
-          // Description Section
-          const Text(
-            '*Description',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TextField(
-              controller: _descriptionController,
-              maxLength: 150,
-              maxLines: 6,
-              onChanged: (_) {
-                if (mounted) {
-                  setState(() {});
-                }
-              },
-              decoration: InputDecoration(
-                hintText:
-                    'Please describe your issues. For order issues, please contact our Online Customer Service.',
-                hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.all(16),
-                counterText: '',
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              '${_descriptionController.text.length}/150',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Image Upload and Send Button Row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image Upload Button
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: _pickedImage != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: kIsWeb
-                              ? Image.network(
-                                  _pickedImage!.path,
-                                  fit: BoxFit.cover,
-                                  width: 80,
-                                  height: 80,
-                                )
-                              : Image.file(
-                                  File(_pickedImage!.path),
-                                  fit: BoxFit.cover,
-                                  width: 80,
-                                  height: 80,
-                                ),
-                        )
-                      : const Center(
-                          child: Icon(
-                            Icons.camera_alt,
-                            color: Colors.grey,
-                            size: 32,
-                          ),
-                        ),
-                ),
-              ),
-              const Spacer(),
-              // Send Button
-              Expanded(
-                flex: 2,
-                child: CoffeeButton(
-                  text: _isSubmitting ? 'SENDING...' : 'SEND',
-                  onPressed: _isSubmitting ? null : _submitFeedback,
-                  backgroundColor: const Color(0xFFFF6B6B),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -943,24 +501,105 @@ class FeedbackCard extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: feedback.images.map((imageUrl) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      imageUrl,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          width: 80,
-                          height: 80,
-                          color: Colors.grey[200],
-                          child: const Icon(
-                            Icons.broken_image,
-                            color: Colors.grey,
+                  return GestureDetector(
+                    onTap: () {
+                      // Show full screen image
+                      showDialog(
+                        context: context,
+                        builder: (context) => Dialog(
+                          backgroundColor: Colors.transparent,
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: InteractiveViewer(
+                                  child: Image.network(
+                                    imageUrl,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        padding: const EdgeInsets.all(32),
+                                        color: Colors.grey[200],
+                                        child: const Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.broken_image,
+                                              color: Colors.grey,
+                                              size: 48,
+                                            ),
+                                            SizedBox(height: 8),
+                                            Text(
+                                              'Failed to load image',
+                                              style: TextStyle(color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 40,
+                                right: 20,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 32,
+                                  ),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Colors.black54,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        );
-                      },
+                        ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          imageUrl,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              width: 100,
+                              height: 100,
+                              color: Colors.grey[200],
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 100,
+                              height: 100,
+                              color: Colors.grey[200],
+                              child: const Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
                   );
                 }).toList(),

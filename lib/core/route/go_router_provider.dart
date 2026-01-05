@@ -21,6 +21,7 @@ import 'package:island_cafe/feature/profile/presentation/screen/favorites_screen
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
 import 'package:island_cafe/feature/theme/loading_screen.dart';
 import 'package:island_cafe/feature/voucher/presentation/screen/voucher_screen.dart'; // Import the new screen
+import 'package:island_cafe/feature/history/presentation/screen/feedback_submission_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   // Use an integer notifier
@@ -166,6 +167,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: "/productDetail",
             name: productDetailRoute,
             builder: (context, state) => const ProductDetailScreen(),
+          ),
+          GoRoute(
+            path: '/feedback-submission',
+            name: feedbackSubmissionRoute,
+            builder: (context, state) {
+              final orderId = state.uri.queryParameters['orderId'];
+              final orderNumber = state.uri.queryParameters['orderNumber'];
+              return FeedbackSubmissionScreen(
+                orderId: orderId,
+                orderNumber: orderNumber,
+              );
+            },
           ),
         ],
       ),
