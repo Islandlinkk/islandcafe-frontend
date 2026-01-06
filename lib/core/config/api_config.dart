@@ -39,6 +39,8 @@ class ApiConfig {
   static String get baseUrl => _baseUrl; 
   static String get voucher => '$_baseUrl/voucher';
 
+  static String get feedback => '$_baseUrl/feedback';
+
   static String get account => '$_baseUrl/account';
   static String accountById(String id) => '$_baseUrl/account/$id';
 }
