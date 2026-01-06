@@ -4,9 +4,8 @@ import 'package:island_cafe/core/config/api_config.dart';
 
 class UserSyncService {
   /// CREATE User (POST)
-  /// Matches Postman: POST .../api/account
   static Future<void> createUser({
-    required String uid, // Maps to "id" in API
+    required String uid,
     required String name,
     required String email,
     String? phone,
@@ -25,7 +24,7 @@ class UserSyncService {
         "gender": gender ?? "",
         "birthday": birthday ?? "",
         "photoURL": photoURL ?? "",
-        "password": "", // API expects this key based on JSON
+        "password": "",
       };
 
       final response = await http.post(
@@ -35,7 +34,6 @@ class UserSyncService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        // Log error but don't crash app flow, just print for debug
         print("API Create Failed: ${response.body}");
       }
     } catch (e) {
@@ -44,7 +42,6 @@ class UserSyncService {
   }
 
   /// UPDATE User (PATCH)
-  /// Matches Postman: PATCH .../api/account/{uid}
   static Future<void> updateUser({
     required String uid,
     required String name,
@@ -82,7 +79,6 @@ class UserSyncService {
   }
 
   /// DELETE User (DELETE)
-  /// Matches Postman: DELETE .../api/account/{uid}
   static Future<void> deleteUser(String uid) async {
     try {
       final url = Uri.parse(ApiConfig.accountById(uid));

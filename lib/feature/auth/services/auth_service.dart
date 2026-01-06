@@ -10,9 +10,6 @@ import 'package:island_cafe/feature/auth/services/user_sync_service.dart';
 class AuthService {
   static FirebaseAuth get _auth => FirebaseAuth.instance;
   static FirebaseFirestore get _firestore => FirebaseFirestore.instance;
-  
-  // Explicitly use the Firebase Storage bucket: gs://islandcoffeeapp-62b47.firebasestorage.app
-  // This ensures images are stored in the correct bucket
   static FirebaseStorage get _storage => FirebaseStorage.instanceFor(
     app: Firebase.app(),
     bucket: 'islandcoffeeapp-62b47.firebasestorage.app',
@@ -51,7 +48,7 @@ class AuthService {
 
       // 2. Sync to External API (CREATE)
       await UserSyncService.createUser(
-        uid: user.uid, // Pass UID as ID
+        uid: user.uid,
         name: displayName,
         email: email,
         phone: "",
@@ -98,8 +95,6 @@ class AuthService {
     if (user != null) {
       final docRef = _firestore.collection('users').doc(user.uid);
       final docSnapshot = await docRef.get();
-
-      // If user document does not exist, it's a NEW user
       if (!docSnapshot.exists) {
         String displayName = user.displayName ?? '';
         if (displayName.isEmpty && user.email != null) {
@@ -121,8 +116,6 @@ class AuthService {
           'gender': null,
           'address': null,
         });
-        
-        // 2. Sync to External API (CREATE)
         await UserSyncService.createUser(
           uid: user.uid,
           name: displayName,
@@ -166,7 +159,6 @@ class AuthService {
   }
 
   /// Upload Feedback Image to Firebase Storage
-  /// Stores images in: user_images/feedback/{uid}_{timestamp}.{ext}
   static Future<String> uploadFeedbackImage({
     required XFile file,
     required String uid,
@@ -199,7 +191,7 @@ class AuthService {
         final fileObj = File(file.path);
         fileSize = await fileObj.length();
       }
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      const maxSize = 10 * 1024 * 1024;
       if (fileSize > maxSize) {
         throw Exception('Image size exceeds 10MB limit. Please choose a smaller image.');
       }
@@ -209,13 +201,11 @@ class AuthService {
       final validExtensions = ['jpg', 'jpeg', 'png', 'webp'];
       final ext = validExtensions.contains(fileExtension) ? fileExtension : 'jpg';
 
-      // Use timestamp to ensure unique filenames
       final now = DateTime.now();
       final timestamp = now.millisecondsSinceEpoch;
-      final fileName = '${uid}_feedback_$timestamp.$ext';
+      final fileName = 'feedback_$timestamp.$ext'; 
+      final storagePath = 'feedback_images/$uid/$fileName';
       
-      // Storage path: user_images/feedback/userId_feedback_timestamp.jpg
-      final storagePath = 'feedback_images/$fileName';
       final ref = _storage.ref().child(storagePath);
 
       // Determine content type based on file extension
@@ -233,7 +223,7 @@ class AuthService {
 
       final metadata = SettableMetadata(
         contentType: contentType,
-        cacheControl: 'public, max-age=31536000', // Cache for 1 year
+        cacheControl: 'public, max-age=31536000',
         customMetadata: {
           'uploaded-by': uid,
           'uploaded-at': now.toIso8601String(),
@@ -339,7 +329,7 @@ class AuthService {
 
       // 2. Sync to External API (UPDATE via PATCH)
       await UserSyncService.updateUser(
-        uid: user.uid, // Use UID to identify record to update
+        uid: user.uid,
         name: name,
         email: user.email ?? "",
         phone: phone,

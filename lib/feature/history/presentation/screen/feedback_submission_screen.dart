@@ -241,7 +241,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
         } else if (errorMessage.contains('403') || errorMessage.contains('Forbidden')) {
           errorMessage = 'Access denied. Please contact support.';
         } else if (errorMessage.contains('Foreign key constraint') || 
-                   errorMessage.contains('userId') && errorMessage.contains('not exist')) {
+                  errorMessage.contains('userId') && errorMessage.contains('not exist')) {
           errorMessage = 'User account issue. Please contact support.';
         }
         
@@ -326,7 +326,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFFFF6B6B).withOpacity(0.1)
+                          ? const Color(0xFFFF6B6B)
                           : Colors.grey[100],
                       border: Border.all(
                         color: isSelected

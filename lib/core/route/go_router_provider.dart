@@ -10,7 +10,6 @@ import 'package:island_cafe/feature/auth/presentation/screens/forgot_password_sc
 import 'package:island_cafe/feature/auth/presentation/screens/login_screen.dart';
 import 'package:island_cafe/feature/auth/presentation/screens/signup_screen.dart';
 import 'package:island_cafe/feature/auth/presentation/screens/verify_email.dart';
-import 'package:island_cafe/feature/checkout/presentation/screen/checkout_screen.dart';
 import 'package:island_cafe/feature/history/presentation/screen/history_screen.dart';
 import 'package:island_cafe/feature/home/presentation/screen/home_screen.dart';
 import 'package:island_cafe/feature/menu/presentation/screen/menu_screen.dart';
@@ -31,12 +30,12 @@ class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
   
   RouterNotifier(this._ref) {
-    // Listen to the auth state changes
     _ref.listen(authStateProvider, (previous, next) {
       notifyListeners();
     });
-
-    // ... other listeners
+    _ref.listen(routerRefreshTriggerProvider, (_, __) {
+      notifyListeners();
+    });
   }
 }
 
@@ -54,8 +53,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // 1. Get State
       final authState = ref.read(authStateProvider);
       final profileState = ref.read(isProfileCompleteProvider);
-
-      // FIX: Prioritize the Provider value if available to ensure sync
       final liveUser = AuthService.currentUser;
       final bool isLoggedIn = liveUser != null || (authState.value != null);
       if (location.startsWith('com.googleusercontent.apps')) {
@@ -63,9 +60,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
 
       // 2. Loading State Logic
-      // PROBLEM AREA: If it's loading, we generally want to stay put (return null).
-      // But if we are ON the login page and actually Logged In (but just waiting on profile),
-      // we might want to let it proceed or show a loading screen.
       if (authState.isLoading || profileState.isLoading) {
         return null;
       }
@@ -97,8 +91,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         if (!isVerifyRoute) return '/verify-email';
         return null;
       }
-
-      // If logged in and verified, prevent access to auth pages
       if (isAuthRoute || isVerifyRoute) {
         return '/home';
       }
@@ -212,10 +204,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-
-// =========================================================
-// HELPER WIDGET: Handles Global Loading State
-// =========================================================
 class _GlobalLoadingWrapper extends ConsumerWidget {
   final Widget child;
   const _GlobalLoadingWrapper({required this.child});
