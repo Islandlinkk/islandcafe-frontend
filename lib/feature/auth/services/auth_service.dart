@@ -257,6 +257,48 @@ class AuthService {
     await currentUser?.reload();
   }
 
+  /// Upload a Feedback Image
+  /// Returns the download URL of the uploaded image.
+  static Future<String> uploadFeedbackImage({
+    required XFile file,
+    required String uid,
+  }) async {
+    try {
+      // Create a unique filename using a timestamp so images don't overwrite each other
+      final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final String fileName = '$timestamp.jpg';
+
+      // Path: feedback_images/USER_ID/17098234234.jpg
+      final ref = _storage
+          .ref()
+          .child('feedback_images')
+          .child(uid)
+          .child(fileName);
+
+      final metadata = SettableMetadata(
+        contentType: 'image/jpeg',
+        customMetadata: {
+          'picked-file-path': file.path,
+          'uploaded-by': uid, // Useful for admin tracking
+        },
+      );
+
+      final UploadTask uploadTask;
+      if (kIsWeb) {
+        final bytes = await file.readAsBytes();
+        uploadTask = ref.putData(bytes, metadata);
+      } else {
+        uploadTask = ref.putFile(File(file.path), metadata);
+      }
+
+      final TaskSnapshot snapshot = await uploadTask;
+      final url = await snapshot.ref.getDownloadURL();
+      return url;
+    } catch (e) {
+      throw Exception('Feedback image upload failed: $e');
+    }
+  }
+
   static String getExceptionMessage(dynamic e) {
     if (e is FirebaseAuthException) {
       switch (e.code) {
