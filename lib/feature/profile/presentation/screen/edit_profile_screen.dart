@@ -116,6 +116,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       initialDate: initial,
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      // Theme data automatically handles the date picker colors
     );
     if (picked != null) {
       setState(() {
@@ -465,6 +466,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             text: 'Save Changes',
                             onPressed: _saveProfile,
                             isLoading: _loading,
+                            // CoffeeButton usually defaults to primary color, which is good
                           ),
                         ),
                       ],

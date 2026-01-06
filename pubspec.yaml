@@ -14,7 +14,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_native_splash: ^2.4.7
   shimmer_animation: ^2.2.2+1
-
   # State Management
   flutter_riverpod: ^3.0.3
   riverpod_annotation: ^3.0.3
@@ -52,12 +51,11 @@ dev_dependencies:
 
   flutter_lints: ^5.0.0
   build_runner: ^2.4.11
-
   # Generators
   json_serializable: ^6.8.0
   freezed: ^3.2.3
   riverpod_generator: ^3.0.3
-  hive_ce_generator: 1.9.3
+  hive_ce_generator: ^1.10.0 # <--- The CE generator
 
   # Lints
   custom_lint: ^0.8.0

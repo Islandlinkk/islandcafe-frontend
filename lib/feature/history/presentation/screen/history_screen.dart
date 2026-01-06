@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:island_cafe/feature/auth/presentation/widgets/auth_widgets.dart';
+import 'package:island_cafe/feature/auth/services/auth_service.dart';
+import 'package:island_cafe/feature/history/data/model/feedback_model.dart';
 import 'package:island_cafe/feature/history/data/model/order_model.dart';
+import 'package:island_cafe/feature/history/service/feedback_service.dart';
+import 'package:go_router/go_router.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
   // Static mock data for UI display
@@ -81,60 +84,267 @@ class HistoryScreen extends StatelessWidget {
   ];
 
   @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  List<FeedbackModel> _feedbackList = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFeedback();
+  }
+
+  // Make loadFeedback public so it can be called from child widgets
+  void loadFeedback() {
+    _loadFeedback();
+  }
+
+  Future<void> _loadFeedback() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final user = AuthService.currentUser;
+      if (user != null) {
+        // Fetch feedback for current user
+        final feedback = await FeedbackService.fetchMyFeedback();
+        setState(() {
+          _feedbackList = feedback;
+          _isLoading = false;
+        });
+      } else {
+        // If no user, fetch all feedback (for testing)
+        final feedback = await FeedbackService.fetchFeedback();
+        setState(() {
+          _feedbackList = feedback;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Static mock data for UI display
+  static List<OrderModel> get _mockOrders => [
+    OrderModel(
+      id: '1',
+      orderNumber: '8005470707328249913',
+      totalAmount: 45.50,
+      orderDate: DateTime.now().subtract(const Duration(days: 2)),
+      status: 'completed',
+      userId: 'mock_user',
+      items: [
+        OrderItem(
+          productId: '1',
+          productName: 'Cappuccino',
+          quantity: 2,
+          price: 12.50,
+          size: 'Large',
+        ),
+        OrderItem(
+          productId: '2',
+          productName: 'Latte',
+          quantity: 1,
+          price: 10.00,
+          size: 'Medium',
+        ),
+        OrderItem(
+          productId: '3',
+          productName: 'Croissant',
+          quantity: 2,
+          price: 5.25,
+        ),
+      ],
+    ),
+  ];
+
+  @override
   Widget build(BuildContext context) {
     final orders = _mockOrders;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(
+        title: const Text(
           'History',
           style: TextStyle(
-            color: Theme.of(context).textTheme.titleLarge?.color,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            onPressed: _loadFeedback,
+          ),
+        ],
       ),
-      body: orders.isEmpty
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final result = await context.push('/feedback-submission');
+          if (result == true) {
+            _loadFeedback();
+          }
+        },
+        backgroundColor: const Color(0xFFFF6B6B),
+        icon: const Icon(Icons.feedback, color: Colors.white),
+        label: const Text(
+          'Submit Feedback',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.shopping_bag_outlined,
-                    size: 64,
-                    color: Colors.grey[400],
-                  ),
+                  Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
                   const SizedBox(height: 16),
                   Text(
-                    'No orders yet',
+                    'Error loading feedback',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      color: Colors.grey[600],
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Your order history will appear here',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      _errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadFeedback,
+                    child: const Text('Retry'),
                   ),
                 ],
               ),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: orders.length,
-              itemBuilder: (context, index) {
-                return OrderFeedbackCard(order: orders[index]);
-              },
+          : DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  const TabBar(
+                    labelColor: Colors.black,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Colors.black,
+                    tabs: [
+                      Tab(text: 'Orders'),
+                      Tab(text: 'Feedback'),
+                    ],
+                  ),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        // Orders Tab
+                        orders.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.shopping_bag_outlined,
+                                      size: 64,
+                                      color: Colors.grey[400],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No orders yet',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Your order history will appear here',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: orders.length,
+                                itemBuilder: (context, index) {
+                                  return OrderFeedbackCard(
+                                    order: orders[index],
+                                  );
+                                },
+                              ),
+                        // Feedback Tab
+                        _feedbackList.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.feedback_outlined,
+                                      size: 64,
+                                      color: Colors.grey[400],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No feedback yet',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Your feedback submissions will appear here',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : RefreshIndicator(
+                                onRefresh: _loadFeedback,
+                                child: ListView.builder(
+                                  padding: const EdgeInsets.all(16),
+                                  itemCount: _feedbackList.length,
+                                  itemBuilder: (context, index) {
+                                    return FeedbackCard(
+                                      feedback: _feedbackList[index],
+                                    );
+                                  },
+                                ),
+                              ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
     );
   }
@@ -143,23 +353,26 @@ class HistoryScreen extends StatelessWidget {
 class OrderFeedbackCard extends StatelessWidget {
   final OrderModel order;
 
-  const OrderFeedbackCard({super.key, required this.order});
+  const OrderFeedbackCard({
+    super.key,
+    required this.order,
+  });
 
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM dd, yyyy • HH:mm');
     final statusColor = order.status == 'completed'
-        ? Theme.of(context).colorScheme.primary
+        ? Colors.green
         : order.status == 'pending'
-        ? Theme.of(context).colorScheme.tertiary
-        : Theme.of(context).colorScheme.error;
+        ? Colors.orange
+        : Colors.red;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Theme.of(context).colorScheme.outline, width: 1),
+        side: BorderSide(color: Colors.grey[200]!),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,10 +392,10 @@ class OrderFeedbackCard extends StatelessWidget {
                         children: [
                           Text(
                             'Order #${order.orderNumber}',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).textTheme.titleLarge?.color,
+                              color: Colors.black87,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -190,7 +403,7 @@ class OrderFeedbackCard extends StatelessWidget {
                             dateFormat.format(order.orderDate),
                             style: TextStyle(
                               fontSize: 12,
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                              color: Colors.grey[600],
                             ),
                           ),
                         ],
@@ -202,7 +415,7 @@ class OrderFeedbackCard extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor,
+                        color: statusColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -210,7 +423,7 @@ class OrderFeedbackCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Theme.of(context).colorScheme.onPrimary,
+                          color: statusColor,
                         ),
                       ),
                     ),
@@ -229,7 +442,7 @@ class OrderFeedbackCard extends StatelessWidget {
                               '${item.quantity}x',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                                color: Colors.grey[700],
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -238,7 +451,7 @@ class OrderFeedbackCard extends StatelessWidget {
                                 item.productName,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context).textTheme.bodyMedium?.color,
+                                  color: Colors.grey[700],
                                 ),
                               ),
                             ),
@@ -251,218 +464,244 @@ class OrderFeedbackCard extends StatelessWidget {
                     '+ ${order.items.length - 3} more items',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
+                      color: Colors.grey[500],
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 const SizedBox(height: 12),
                 Text(
                   'Total: \$${order.totalAmount.toStringAsFixed(2)}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                    color: Colors.black87,
                   ),
                 ),
               ],
             ),
           ),
 
-          // Divider
-          if (order.status == 'completed') const Divider(height: 1),
-
-          // Feedback Section (only for completed orders)
-          if (order.status == 'completed')
-            _StaticFeedbackForm(orderNumber: order.orderNumber),
         ],
       ),
     );
   }
 }
 
-// Static Feedback Form UI Component
-class _StaticFeedbackForm extends StatelessWidget {
-  final String orderNumber;
+// Feedback Card Widget to display submitted feedback
+class FeedbackCard extends StatelessWidget {
+  final FeedbackModel feedback;
 
-  const _StaticFeedbackForm({required this.orderNumber});
-
-  final List<String> _categories = const [
-    'APP Function',
-    'Software',
-    'Order Delivery',
-    'Merchant Cooperation & Entry',
-    'Coupon & Red Envelope',
-    'Food/Item Quality',
-    'Refund',
-    'Service Attitude',
-    'other',
-  ];
+  const FeedbackCard({super.key, required this.feedback});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Order Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
+    final dateFormat = DateFormat('MMM dd, yyyy • HH:mm');
+    final statusColor = feedback.status == 'PENDING'
+        ? Colors.orange
+        : feedback.status == 'RESOLVED'
+        ? Colors.green
+        : Colors.grey;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with status and date
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Order',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        feedback.category,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        dateFormat.format(feedback.createdAt),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
                   ),
                 ),
-                Row(
-                  children: [
-                    Text(
-                      orderNumber,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                      ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    feedback.status,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
                     ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 16,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
-
-          // Feedback Category Section
-          Text(
-            '*Feedback Category',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _categories.map((category) {
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  border: Border.all(color: Colors.grey[300]!, width: 1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  category,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-
-          // Description Section
-          Text(
-            '*Description',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: TextField(
-              maxLength: 150,
-              maxLines: 6,
-              decoration: InputDecoration(
-                hintText:
-                    'Please describe your issues. For order issues, please contact our Online Customer Service.',
-                hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.all(16),
-                counterText: '',
+            const SizedBox(height: 12),
+            // Description
+            Text(
+              feedback.description,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[700],
+                height: 1.5,
               ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              '0/150',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Image Upload and Send Button Row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image Upload Button
-              // The image upload currently does nothing because onTap is empty.
-              // To enable image upload, you need to implement image picking logic.
-              // For now, this button is just a placeholder and does not upload.
+            // Images if available
+            if (feedback.images.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: feedback.images.map((imageUrl) {
+                  return GestureDetector(
+                    onTap: () {
+                      // Show full screen image
+                      showDialog(
+                        context: context,
+                        builder: (context) => Dialog(
+                          backgroundColor: Colors.transparent,
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: InteractiveViewer(
+                                  child: Image.network(
+                                    imageUrl,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        padding: const EdgeInsets.all(32),
+                                        color: Colors.grey[200],
+                                        child: const Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.broken_image,
+                                              color: Colors.grey,
+                                              size: 48,
+                                            ),
+                                            SizedBox(height: 8),
+                                            Text(
+                                              'Failed to load image',
+                                              style: TextStyle(color: Colors.grey),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 40,
+                                right: 20,
+                                child: IconButton(
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 32,
+                                  ),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Colors.black54,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey[300]!),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          imageUrl,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              width: 100,
+                              height: 100,
+                              color: Colors.grey[200],
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 100,
+                              height: 100,
+                              color: Colors.grey[200],
+                              child: const Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+            // Order info if available
+            if (feedback.order?.orderNumber != null) ...[
+              const SizedBox(height: 12),
               Container(
-                width: 80,
-                height: 80,
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  border: Border.all(color: Colors.grey[300]!),
+                  color: Colors.grey[50],
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: InkWell(
-                  // No image upload implemented yet
-                  onTap: () {
-                    // TODO: Implement image upload functionality here.
-                    // e.g. use image_picker package to pick image from gallery or camera
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  child: const Center(
-                    child: Icon(Icons.camera_alt, color: Colors.grey, size: 32),
-                  ),
-                ),
-              ),
-              const Spacer(),
-              // Send Button
-              Expanded(
-                flex: 2,
-                child: CoffeeButton(
-                  text: 'SEND',
-                  onPressed: () {},
-                  backgroundColor: const Color(0xFFFF6B6B),
+                child: Row(
+                  children: [
+                    const Icon(Icons.receipt, size: 16, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Order: ${feedback.order!.orderNumber}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                    ),
+                  ],
                 ),
               ),
             ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

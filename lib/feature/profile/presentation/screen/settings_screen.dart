@@ -69,7 +69,7 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
             // ... (Rest of your code remains the same: FAQs, Share, etc.)
-             const SizedBox(height: 20),
+            const SizedBox(height: 20),
             _SettingsCard(
               surface: surface,
               divider: divider,

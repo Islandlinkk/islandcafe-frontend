@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AuthService.getExceptionMessage(e)),
-        backgroundColor: Colors.redAccent,
+        backgroundColor: Theme.of(context).colorScheme.error,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -112,7 +112,7 @@ Future<void> _handleEmailLogin() async {
             const SizedBox(height: 24),
             Row(
               children: [
-                Expanded(child: Divider(color: Colors.grey.shade300)),
+                Expanded(child: Divider(color: Theme.of(context).dividerColor)),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Text(
@@ -120,7 +120,7 @@ Future<void> _handleEmailLogin() async {
                     style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
                   ),
                 ),
-                Expanded(child: Divider(color: Colors.grey.shade300)),
+                Expanded(child: Divider(color: Theme.of(context).dividerColor)),
               ],
             ),
             const SizedBox(height: 24),
@@ -129,10 +129,10 @@ Future<void> _handleEmailLogin() async {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("New here? ", style: TextStyle(color: Colors.grey[600])),
+                Text("New here? ", style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6))),
                 GestureDetector(
                   onTap: _loading ? null : () => context.go('/signup'),
-                  child: const Text("Create Account"),
+                  child: Text("Create Account", style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),

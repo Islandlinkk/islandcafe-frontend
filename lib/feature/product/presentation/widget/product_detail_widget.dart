@@ -444,8 +444,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                         scrollDirection: Axis.horizontal,
                                         itemCount: filteredProducts.length,
                                         itemBuilder: (context, index) {
-                                          final relatedProduct =
-                                              filteredProducts[index];
+                                          final relatedProduct = filteredProducts[index];
                                           return GestureDetector(
                                             onTap: () {
                                               ref
@@ -461,10 +460,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                             },
                                             child: RelatedProductWidget(
                                               productName: relatedProduct.name,
-                                              productImage:
-                                                  relatedProduct.image,
-                                              productPrice:
-                                                  relatedProduct.price,
+                                              productImage: relatedProduct.image,
+                                              productPrice: relatedProduct.price,
                                             ),
                                           );
                                         },
@@ -861,8 +858,8 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       size.sizeName == "large"
                           ? "L"
                           : size.sizeName == "medium"
-                          ? "M"
-                          : "S",
+                              ? "M"
+                              : "S",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1280,7 +1277,6 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
   void _showCartBottomSheet(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
