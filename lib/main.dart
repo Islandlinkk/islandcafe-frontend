@@ -17,9 +17,8 @@ void main() async {
   Hive.registerAdapter(CartOptionAdapter());
   Hive.registerAdapter(CartModelAdapter());
 
-  // 3. OPEN THE BOXES (This was missing!)
-  // You need one for the cart and one for the vouchers.
   await Hive.openBox('voucher_box');   
+  await Hive.openBox('settings');
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await dotenv.load(fileName: ".env");
