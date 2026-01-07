@@ -3,12 +3,35 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:island_cafe/core/route/go_router_provider.dart';
 import 'package:island_cafe/feature/theme/app_theme.dart';
 import 'package:island_cafe/feature/theme/theme_notifier.dart';
+import 'package:island_cafe/feature/theme/splash_screen.dart';
 
-class MainWidget extends ConsumerWidget {
+class MainWidget extends ConsumerStatefulWidget {
   const MainWidget({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainWidget> createState() => _MainWidgetState();
+}
+
+class _MainWidgetState extends ConsumerState<MainWidget> {
+  bool _showSplash = true;
+
+  void _onSplashComplete() {
+    setState(() {
+      _showSplash = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Show splash screen first
+    if (_showSplash) {
+      return MaterialApp(
+        title: 'Island Cafe',
+        debugShowCheckedModeBanner: false,
+        home: SplashScreen(onComplete: _onSplashComplete),
+      );
+    }
+
     // 1. Watch the Router (Navigation)
     final goRouter = ref.watch(goRouterProvider);
     

@@ -255,7 +255,7 @@ class _LoggedInView extends StatelessWidget {
               CardItem(
                 icon: Icons.edit_note_outlined,
                 label: 'Feedback',
-                onTap: () => showPlatformModal(context),
+                onTap: () => context.push(feedbackSubmissionRoute),
               ),
             ],
           ),

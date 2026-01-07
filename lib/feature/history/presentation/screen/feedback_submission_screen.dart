@@ -313,39 +313,43 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
               runSpacing: 8,
               children: _categories.map((category) {
                 final isSelected = _selectedCategory == category;
-                return InkWell(
-                  onTap: () {
-                    if (mounted) {
-                      setState(() => _selectedCategory = category);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFFFF6B6B)
-                          : Colors.grey[100],
-                      border: Border.all(
-                        color: isSelected
-                            ? const Color(0xFFFF6B6B)
-                            : Colors.grey[300]!,
-                        width: isSelected ? 2 : 1,
+                return Tooltip(
+                  message: category,
+                  preferBelow: false,
+                  child: InkWell(
+                    onTap: () {
+                      if (mounted) {
+                        setState(() => _selectedCategory = category);
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
                       ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      category,
-                      style: TextStyle(
-                        fontSize: 14,
+                      decoration: BoxDecoration(
                         color: isSelected
                             ? const Color(0xFFFF6B6B)
-                            : Colors.black87,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.normal,
+                            : Colors.grey[100],
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFFFF6B6B)
+                              : Colors.grey[300]!,
+                          width: isSelected ? 2 : 1,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        category,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: isSelected
+                              ? Colors.white
+                              : Colors.black87,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
                       ),
                     ),
                   ),
@@ -518,6 +522,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
               text: _isSubmitting ? 'SUBMITTING...' : 'SUBMIT FEEDBACK',
               onPressed: _isSubmitting ? null : _submitFeedback,
               backgroundColor: const Color(0xFFFF6B6B),
+              textColor: Colors.white,
             ),
           ],
         ),

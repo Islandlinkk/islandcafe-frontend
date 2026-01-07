@@ -12,10 +12,24 @@ class LoadingScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Coffee Icon
-            Icon(
-              Icons.coffee,
-              size: 80,
-              color: Theme.of(context).colorScheme.primary,
+            // Island Coffee Logo Image
+            Container(
+              constraints: const BoxConstraints(
+                maxWidth: 240,
+                maxHeight: 240,
+              ),
+              child: Image.asset(
+                'assets/images/island_coffee.png',
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback to coffee icon if logo asset is missing
+                  return Icon(
+                    Icons.coffee,
+                    size: 80,
+                    color: Theme.of(context).colorScheme.primary,
+                  );
+                },
+              ),
             ),
             const SizedBox(height: 40),
 

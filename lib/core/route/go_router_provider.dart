@@ -20,15 +20,15 @@ import 'package:island_cafe/feature/profile/presentation/screen/settings_screen.
 import 'package:island_cafe/feature/profile/presentation/screen/favorites_screen.dart';
 import 'package:island_cafe/feature/voucher/presentation/screen/voucher_screen.dart';
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
-import 'package:island_cafe/feature/theme/loading_screen.dart';
 import 'package:island_cafe/feature/auth/services/auth_service.dart';
 import 'package:island_cafe/feature/history/presentation/screen/feedback_submission_screen.dart';
+import 'package:island_cafe/feature/theme/splash_screen.dart';
 
 final routerRefreshTriggerProvider = StateProvider<int>((ref) => 0);
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
-  
+
   RouterNotifier(this._ref) {
     _ref.listen(authStateProvider, (previous, next) {
       notifyListeners();
@@ -204,6 +204,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
 class _GlobalLoadingWrapper extends ConsumerWidget {
   final Widget child;
   const _GlobalLoadingWrapper({required this.child});
@@ -214,7 +215,7 @@ class _GlobalLoadingWrapper extends ConsumerWidget {
     final profileState = ref.watch(isProfileCompleteProvider);
 
     if (authState.isLoading || profileState.isLoading) {
-      return const LoadingScreen();
+      return SplashScreen(onComplete: () {});
     }
 
     return child;

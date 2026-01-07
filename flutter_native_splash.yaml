@@ -1,0 +1,24 @@
+flutter_native_splash:
+  # Background color for the splash screen (white)
+  color: "#FFFFFF"
+  
+  # Path to the logo image (user needs to add this file)
+  image: assets/images/island_coffee_logo.png
+  
+  # Android specific settings
+  android: true
+  android_12: true
+  
+  # iOS specific settings
+  ios: true
+  
+  # Web specific settings
+  web: true
+  web_image_mode: center
+  
+  # Remove the splash screen after the app loads
+  remove: true
+  
+  # Full screen mode
+  fullscreen: true
+
