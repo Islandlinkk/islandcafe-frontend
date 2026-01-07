@@ -152,26 +152,48 @@ class _ClaimVoucherSheetState extends ConsumerState<_ClaimVoucherSheet> {
     if (code.isEmpty) return;
 
     setState(() => _isLoading = true);
-    FocusScope.of(context).unfocus();
+    FocusScope.of(context).unfocus(); // Close keyboard
+
+    // Calculate margin to push SnackBar to the TOP
+    // Screen Height - (Approx AppBar + Status Bar + SnackBar height)
+    final double topMargin = MediaQuery.of(context).size.height - 160 - kToolbarHeight - MediaQuery.of(context).padding.top;
 
     try {
+      // 1. Attempt to claim
       await ref.read(myVouchersProvider.notifier).claimVoucher(code);
       
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pop(context); // Close the sheet on success
+        
+        // 2. SUCCESS: Show Green SnackBar at the TOP
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Voucher Claimed Successfully!'), backgroundColor: Colors.green),
+          SnackBar(
+            content: const Text('Voucher Claimed Successfully!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            // Pushes the SnackBar to the top of the screen
+            margin: EdgeInsets.only(
+              bottom: topMargin, 
+              left: 16, 
+              right: 16
+            ),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
+        // 3. ERROR: Show Red SnackBar at the TOP (Sheet stays open)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')), 
+            content: Text(
+              e.toString().replaceAll('Exception: ', ''),
+              textAlign: TextAlign.center,
+            ), 
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
+            // Pushes the SnackBar to the top of the screen
             margin: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+              bottom: topMargin,
               left: 16, 
               right: 16
             ),
@@ -182,7 +204,6 @@ class _ClaimVoucherSheetState extends ConsumerState<_ClaimVoucherSheet> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

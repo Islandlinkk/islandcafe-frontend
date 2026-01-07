@@ -15,8 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$VoucherModel {
 
- String get id; String get code; String? get description; String get discountType;// 'FIXED' or 'PERCENTAGE' (API is uppercase)
-@JsonKey(fromJson: _stringToNum) num get discountValue;// MAP 'minOrderTotal' (API) to 'minOrderValue' (App)
+ String get id; String get code; String? get description; String get discountType;// Fixed: Added JsonKey to handle String/Num conversion
+@JsonKey(fromJson: _stringToNum) num get discountValue;// Fixed: Added JsonKey to map minOrderTotal and handle conversion
 @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) num? get minOrderValue; DateTime get startDate; DateTime get endDate; bool get isActive;
 /// Create a copy of VoucherModel
 /// with the given fields replaced by the non-null parameter values.
@@ -226,9 +226,9 @@ class _VoucherModel extends VoucherModel {
 @override final  String code;
 @override final  String? description;
 @override final  String discountType;
-// 'FIXED' or 'PERCENTAGE' (API is uppercase)
+// Fixed: Added JsonKey to handle String/Num conversion
 @override@JsonKey(fromJson: _stringToNum) final  num discountValue;
-// MAP 'minOrderTotal' (API) to 'minOrderValue' (App)
+// Fixed: Added JsonKey to map minOrderTotal and handle conversion
 @override@JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) final  num? minOrderValue;
 @override final  DateTime startDate;
 @override final  DateTime endDate;

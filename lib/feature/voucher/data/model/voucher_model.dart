@@ -18,11 +18,15 @@ abstract class VoucherModel with _$VoucherModel {
     required String id,
     required String code,
     String? description,
-    required String discountType, // 'FIXED' or 'PERCENTAGE' (API is uppercase)
-    @JsonKey(fromJson: _stringToNum) required num discountValue,
+    required String discountType,
     
-    // MAP 'minOrderTotal' (API) to 'minOrderValue' (App)
-    @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) num? minOrderValue, 
+    // Fixed: Added JsonKey to handle String/Num conversion
+    @JsonKey(fromJson: _stringToNum) 
+    required num discountValue,
+
+    // Fixed: Added JsonKey to map minOrderTotal and handle conversion
+    @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) 
+    num? minOrderValue,
     
     required DateTime startDate,
     required DateTime endDate,
@@ -32,9 +36,7 @@ abstract class VoucherModel with _$VoucherModel {
   factory VoucherModel.fromJson(Map<String, dynamic> json) =>
       _$VoucherModelFromJson(json);
 
-  // --- Helpers ---
   String get formattedDiscount {
-    // Check for both lowercase and uppercase from API
     if (discountType.toUpperCase() == 'PERCENTAGE') {
       return '${discountValue.toStringAsFixed(0)}% OFF';
     } else {

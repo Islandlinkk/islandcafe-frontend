@@ -33,7 +33,7 @@ final class MyVouchersProvider
   MyVouchers create() => MyVouchers();
 }
 
-String _$myVouchersHash() => r'40ce57a924d06a2468c9b99d43fd112b26993c5a';
+String _$myVouchersHash() => r'7e49d112f2ecfa1907c994470e12e3891068b594';
 
 abstract class _$MyVouchers extends $AsyncNotifier<List<VoucherModel>> {
   FutureOr<List<VoucherModel>> build();

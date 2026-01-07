@@ -5,10 +5,9 @@ import 'package:island_cafe/feature/voucher/data/model/voucher_model.dart';
 
 class VoucherService {
   
-  // 1. GET MY VOUCHERS (Standard)
   Future<List<VoucherModel>> fetchMyVouchers(String userId) async {
     final url = Uri.parse('${ApiConfig.voucher}/my?userId=$userId');
-    final response = await http.get(url);
+    final response = await http.get(url, headers: {'Content-Type': 'application/json'});
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -18,56 +17,41 @@ class VoucherService {
     }
   }
 
-  // 2. CLAIM VOUCHER (THE PROOF DEBUGGER)
   Future<void> claimVoucher(String userId, String code) async {
-    // 1. Construct URL (Params in URL as required by your API)
     final url = Uri.parse('${ApiConfig.voucher}/claim?userId=$userId&code=$code');
-
-    print('--------------- DEBUG START ---------------');
-    print('1. Firebase User ID: $userId');
-    print('2. Voucher Code: $code');
-    print('3. Calling API URL: $url');
-    print('-------------------------------------------');
 
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
     );
 
-    print('4. Backend Response Code: ${response.statusCode}');
-    print('5. Backend Response Body: ${response.body}');
-    print('--------------- DEBUG END -----------------');
-
-    // SUCCESS CASE
+    // 1. SUCCESS
     if (response.statusCode == 200 || response.statusCode == 201) {
       return; 
-    } 
+    }
     
-    // ERROR ANALYSIS
-    else {
+    // 2. INVALID CODE (404)
+    else if (response.statusCode == 404) {
+      throw Exception('Invalid voucher code'); 
+    }
+
+    // 3. LOGIC ERROR / LIMIT REACHED (400)
+    else if (response.statusCode == 400) {
       try {
         final body = json.decode(response.body);
-        String rawError = body['message'] ?? body['error'] ?? response.body;
-
-        // --- THE EVIDENCE LOGIC ---
-        if (rawError.contains('Foreign key constraint') || rawError.contains('VoucherUsage_userId_fkey')) {
-          // This specific error PROVES the ID was sent, but DB rejected it.
-          throw Exception(
-            'PROOF OF ERROR:\n'
-            'The Backend received User ID: "$userId"\n'
-            'But rejected it because this ID does NOT exist in the PostgreSQL "User" table.\n'
-            '(Prisma Error: Foreign Key Constraint Violated)'
-          );
+        final serverMessage = body['message'] ?? body['error'];
+        if (serverMessage != null && serverMessage.toString().isNotEmpty) {
+           throw Exception(serverMessage); 
         }
-
-        // Other errors (Wrong code, etc.)
-        throw Exception('Backend Error: $rawError');
-
       } catch (e) {
-        // If the custom message above was thrown, rethrow it so UI sees it
-        if (e.toString().contains('PROOF OF ERROR')) rethrow;
-        throw Exception('Server Error (${response.statusCode}): ${response.body}');
+        if (e.toString().contains('Exception')) rethrow;
       }
+      throw Exception('Voucher limit reached or unavailable');
+    }
+
+    // 4. OTHER ERRORS
+    else {
+      throw Exception('Server Error: ${response.statusCode}');
     }
   }
 }

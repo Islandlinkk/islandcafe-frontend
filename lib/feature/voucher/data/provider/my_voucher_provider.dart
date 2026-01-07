@@ -15,7 +15,7 @@ class MyVouchers extends _$MyVouchers {
     if (user == null) return []; // Return empty if not logged in
 
     // 2. Fetch from Server
-    final service = ref.read(voucherServiceProvider);
+    final service = ref.watch(voucherServiceProvider);
     return await service.fetchMyVouchers(user.uid);
   }
 
