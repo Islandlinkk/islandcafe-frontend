@@ -23,10 +23,9 @@ class LoadingScreen extends StatelessWidget {
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   // Fallback to coffee icon if logo asset is missing
-                  return Icon(
-                    Icons.coffee,
-                    size: 80,
-                    color: Theme.of(context).colorScheme.primary,
+                  return Image.asset(
+                    'assets/images/island_coffee.png',
+                    fit: BoxFit.contain,
                   );
                 },
               ),

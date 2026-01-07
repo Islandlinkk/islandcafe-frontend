@@ -58,7 +58,6 @@ dev_dependencies:
   riverpod_generator: ^3.0.3
   hive_ce_generator: ^1.10.0 # <--- The CE generator
 
- 
   # Lints
   custom_lint: ^0.8.0
   riverpod_lint: ^3.0.3
@@ -70,6 +69,11 @@ flutter:
   - assets/images/
 
 flutter_launcher_icons:
-  android: true
+  android: "ic_launcher"
   ios: true
-  image_path: "assets/images/island_coffee_app.png"
+  image_path: "assets/images/island_coffee_app.png" # Used for iOS and older Android
+  min_sdk_android: 21 # Optional but good practice
+
+  # Adaptive Icons for Android 8.0+
+  adaptive_icon_background: "#FFFFFF" # Use your brand color or an image path
+  adaptive_icon_foreground: "assets/images/island_coffee_app.png" # Your logo (transparent background recommended)
