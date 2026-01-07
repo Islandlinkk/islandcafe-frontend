@@ -107,7 +107,7 @@ class AuthService {
         await docRef.set({
           'email': user.email,
           'name': displayName,
-          'photoURL': user.photoURL ?? '', 
+          'photoURL': user.photoURL ?? '',
           'phone': user.phoneNumber ?? '',
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -130,13 +130,14 @@ class AuthService {
     return cred;
   }
 
+  /// Upload Profile Image to Firebase Storage
   static Future<String> uploadProfileImage({
     required XFile file,
     required String uid,
   }) async {
     try {
       final ref = _storage.ref().child('user_images').child('$uid.jpg');
-      
+
       final metadata = SettableMetadata(
         contentType: 'image/jpeg',
         customMetadata: {'picked-file-path': file.path},
@@ -193,19 +194,23 @@ class AuthService {
       }
       const maxSize = 10 * 1024 * 1024;
       if (fileSize > maxSize) {
-        throw Exception('Image size exceeds 10MB limit. Please choose a smaller image.');
+        throw Exception(
+          'Image size exceeds 10MB limit. Please choose a smaller image.',
+        );
       }
 
       // Get file extension from original file
       final fileExtension = file.path.split('.').last.toLowerCase();
       final validExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-      final ext = validExtensions.contains(fileExtension) ? fileExtension : 'jpg';
+      final ext = validExtensions.contains(fileExtension)
+          ? fileExtension
+          : 'jpg';
 
       final now = DateTime.now();
       final timestamp = now.millisecondsSinceEpoch;
-      final fileName = 'feedback_$timestamp.$ext'; 
+      final fileName = 'feedback_$timestamp.$ext';
       final storagePath = 'feedback_images/$uid/$fileName';
-      
+
       final ref = _storage.ref().child(storagePath);
 
       // Determine content type based on file extension
@@ -217,8 +222,8 @@ class AuthService {
       }
 
       // Get original filename (fallback to path if name not available)
-      final originalFilename = file.name.isNotEmpty 
-          ? file.name 
+      final originalFilename = file.name.isNotEmpty
+          ? file.name
           : file.path.split('/').last;
 
       final metadata = SettableMetadata(
@@ -248,32 +253,37 @@ class AuthService {
 
       // Monitor upload progress
       uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-        final progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        final progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         print('📊 Upload progress: ${progress.toStringAsFixed(1)}%');
       });
 
       final TaskSnapshot snapshot = await uploadTask;
       final url = await snapshot.ref.getDownloadURL();
-      
+
       print('✅ Image uploaded successfully!');
       print('🔗 Download URL: $url');
       print('📁 Storage Path: $storagePath');
-      
+
       return url;
     } catch (e) {
       print('❌ Image upload error: $e');
       print('❌ Error type: ${e.runtimeType}');
-      
+
       // Provide more detailed error message based on error type
       if (e is FirebaseException) {
         final errorCode = e.code;
         final errorMessage = e.message ?? 'Unknown error';
-        
+
         // Handle specific Firebase Storage error codes
         if (errorCode == 'unauthorized' || errorCode == 'permission-denied') {
-          throw Exception('Image upload failed: unauthorized - User is not authorized to perform the desired action. Please ensure Firebase Storage rules are deployed and you are logged in.');
+          throw Exception(
+            'Image upload failed: unauthorized - User is not authorized to perform the desired action. Please ensure Firebase Storage rules are deployed and you are logged in.',
+          );
         } else if (errorCode == 'unauthenticated') {
-          throw Exception('Image upload failed: Authentication expired. Please log in again.');
+          throw Exception(
+            'Image upload failed: Authentication expired. Please log in again.',
+          );
         } else if (errorCode == 'object-not-found') {
           throw Exception('Image upload failed: Storage path not found.');
         } else if (errorCode == 'quota-exceeded') {
@@ -282,7 +292,6 @@ class AuthService {
           throw Exception('Image upload failed: $errorCode - $errorMessage');
         }
       } else if (e is Exception) {
-        // Re-throw if it's already an Exception with a message
         rethrow;
       } else {
         throw Exception('Image upload failed: $e');
@@ -295,6 +304,8 @@ class AuthService {
     final user = currentUser;
     if (user != null) {
       await user.updatePhotoURL(photoUrl);
+      await user.reload();
+
       await _firestore.collection('users').doc(user.uid).set({
         'photoURL': photoUrl,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -348,13 +359,18 @@ class AuthService {
       try {
         // 1. Delete from Firestore
         await _firestore.collection('users').doc(uid).delete();
-        await _storage.ref().child('user_images').child('$uid.jpg').delete().catchError((_) {}); 
+        await _storage
+            .ref()
+            .child('user_images')
+            .child('$uid.jpg')
+            .delete()
+            .catchError((_) {});
 
         // 2. Sync to External API (DELETE)
         await UserSyncService.deleteUser(uid);
 
         // 3. Delete from Firebase Auth
-        await user.delete(); 
+        await user.delete();
       } catch (e) {
         throw Exception('Failed to delete account: $e');
       }

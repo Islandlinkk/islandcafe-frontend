@@ -14,7 +14,6 @@ class SectionLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w700,
-        // Use dynamic color for text
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         letterSpacing: 0.3,
       ),
@@ -142,7 +141,7 @@ class SocialsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bg = theme.colorScheme.surfaceContainerHighest; // Dynamic light grey
+    final bg = theme.colorScheme.surfaceContainerHighest;
 
     return Column(
       children: [
@@ -191,7 +190,11 @@ class SocialIcon extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(color: background, shape: BoxShape.circle),
       // Icon color adapts to the background
-      child: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
+      child: Icon(
+        icon,
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
+        size: 22,
+      ),
     );
   }
 }
@@ -207,24 +210,18 @@ class ProfileHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
-
-    // 1. DYNAMIC BUTTON STYLES
-    final buttonColor = isDarkMode 
-        ? theme.colorScheme.primary // Orange/Brown in Dark Mode
-        : Colors.white;             // White in Light Mode
-
-    final buttonTextColor = isDarkMode 
-        ? theme.colorScheme.onPrimary // White text on Orange
-        : Colors.black;               // Black text on White
-
+    final buttonColor = isDarkMode ? theme.colorScheme.primary : Colors.white;
+    final buttonTextColor = isDarkMode
+        ? theme.colorScheme.onPrimary
+        : Colors.black;
     final buttonShadow = isDarkMode
-        ? <BoxShadow>[] // No shadow for flat dark mode look
+        ? <BoxShadow>[]
         : [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
-            )
+            ),
           ];
 
     return Column(
@@ -240,11 +237,18 @@ class ProfileHero extends StatelessWidget {
                   ? DecorationImage(
                       image: NetworkImage(user.photoURL!),
                       fit: BoxFit.cover,
+                      onError: (exception, stackTrace) {
+                        print("Error loading profile image: $exception");
+                      },
                     )
                   : null,
             ),
             child: user.photoURL == null
-                ? Icon(Icons.person, size: 40, color: theme.colorScheme.onPrimaryContainer)
+                ? Icon(
+                    Icons.person,
+                    size: 40,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  )
                 : null,
           ),
         ),
@@ -253,14 +257,13 @@ class ProfileHero extends StatelessWidget {
           child: Text(
             user.displayName ?? 'Coffee Lover',
             style: TextStyle(
-              fontSize: 18, 
+              fontSize: 18,
               fontWeight: FontWeight.w700,
               color: theme.colorScheme.onSurface,
             ),
           ),
         ),
         const SizedBox(height: 12), // Slightly more space
-        
         // 2. THE NEW BUTTON
         Center(
           child: Container(
@@ -275,7 +278,10 @@ class ProfileHero extends StatelessWidget {
                 borderRadius: BorderRadius.circular(30),
                 onTap: () => context.push('/edit-profile'),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 10,
+                  ),
                   child: Text(
                     'View Profile',
                     style: TextStyle(
@@ -354,7 +360,7 @@ class PlatformSelectionModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor, // Dynamic Background
@@ -379,7 +385,7 @@ class PlatformSelectionModal extends StatelessWidget {
                 Text(
                   'Select Platform',
                   style: TextStyle(
-                    fontSize: 18, 
+                    fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: theme.colorScheme.onSurface,
                   ),
@@ -464,7 +470,7 @@ class PlatformOption extends StatelessWidget {
             Text(
               label,
               style: TextStyle(
-                fontSize: 16, 
+                fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: theme.colorScheme.onSurface,
               ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:island_cafe/feature/auth/presentation/widgets/auth_widgets.dart';
 import 'package:island_cafe/feature/auth/services/auth_service.dart';
@@ -10,11 +11,7 @@ class FeedbackSubmissionScreen extends StatefulWidget {
   final String? orderId;
   final String? orderNumber;
 
-  const FeedbackSubmissionScreen({
-    super.key,
-    this.orderId,
-    this.orderNumber,
-  });
+  const FeedbackSubmissionScreen({super.key, this.orderId, this.orderNumber});
 
   @override
   State<FeedbackSubmissionScreen> createState() =>
@@ -115,6 +112,9 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
   }
 
   Future<void> _submitFeedback() async {
+    // Dismiss keyboard
+    FocusScope.of(context).unfocus();
+
     if (_selectedCategory == null || _selectedCategory!.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -143,7 +143,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
       }
 
       List<String> imageUrls = [];
-      
+
       // Upload all images
       if (_pickedImages.isNotEmpty) {
         for (var image in _pickedImages) {
@@ -181,7 +181,6 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
 
       // Show success alert
       if (mounted) {
-        // Show success snackbar with icon
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Row(
@@ -199,7 +198,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
                 ),
               ],
             ),
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 2),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -207,45 +206,25 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
             ),
           ),
         );
-        
-        // Navigate back after a short delay to show the success message
+
+        // Navigate back after a short delay
         await Future.delayed(const Duration(milliseconds: 500));
-        
+
         if (mounted) {
-          Navigator.of(context).pop(true);
+          context.pop(true);
         }
       }
     } catch (e) {
       if (mounted) {
         String errorMessage = 'Failed to submit feedback';
         final errorString = e.toString();
-        
-        // Extract the actual error message
+
         if (errorString.contains('Exception: ')) {
           errorMessage = errorString.replaceAll('Exception: ', '');
         } else {
           errorMessage = errorString;
         }
-        
-        // Provide user-friendly messages for common errors
-        if (errorMessage.contains('500') || errorMessage.contains('Internal Server Error')) {
-          errorMessage = 'Server error. Please try again later or contact support.';
-        } else if (errorMessage.contains('timeout') || errorMessage.contains('Timeout')) {
-          errorMessage = 'Request timed out. Please check your internet connection.';
-        } else if (errorMessage.contains('Network') || errorMessage.contains('SocketException')) {
-          errorMessage = 'Network error. Please check your internet connection.';
-        } else if (errorMessage.contains('404') || errorMessage.contains('Not Found')) {
-          errorMessage = 'Service not found. Please contact support.';
-        } else if (errorMessage.contains('401') || errorMessage.contains('Unauthorized')) {
-          errorMessage = 'Authentication failed. Please log in again.';
-        } else if (errorMessage.contains('403') || errorMessage.contains('Forbidden')) {
-          errorMessage = 'Access denied. Please contact support.';
-        } else if (errorMessage.contains('Foreign key constraint') || 
-                  errorMessage.contains('userId') && errorMessage.contains('not exist')) {
-          errorMessage = 'User account issue. Please contact support.';
-        }
-        
-        // Log the full error for debugging
+
         print('❌ Feedback submission error: $e');
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -281,7 +260,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         title: const Text(
           'Submit Feedback',
@@ -343,9 +322,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
                         category,
                         style: TextStyle(
                           fontSize: 14,
-                          color: isSelected
-                              ? Colors.white
-                              : Colors.black87,
+                          color: isSelected ? Colors.white : Colors.black87,
                           fontWeight: isSelected
                               ? FontWeight.w600
                               : FontWeight.normal,
@@ -413,7 +390,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            
+
             // Display picked images
             if (_pickedImages.isNotEmpty) ...[
               Wrap(
@@ -488,18 +465,11 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.camera_alt,
-                          color: Colors.grey,
-                          size: 32,
-                        ),
+                        Icon(Icons.camera_alt, color: Colors.grey, size: 32),
                         SizedBox(height: 4),
                         Text(
                           'Add Image',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -530,4 +500,3 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
     );
   }
 }
-
