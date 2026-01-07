@@ -44,6 +44,7 @@ dependencies:
   # Local Database (Using CE as requested)
   hive_ce: ^2.16.0
   hive_ce_flutter: ^2.3.3
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +58,7 @@ dev_dependencies:
   riverpod_generator: ^3.0.3
   hive_ce_generator: ^1.10.0 # <--- The CE generator
 
+ 
   # Lints
   custom_lint: ^0.8.0
   riverpod_lint: ^3.0.3
@@ -66,3 +68,8 @@ flutter:
   assets:
   - .env
   - assets/images/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/island_coffee_app.png"
