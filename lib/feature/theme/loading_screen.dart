@@ -15,8 +15,8 @@ class LoadingScreen extends StatelessWidget {
             // Island Coffee Logo Image
             Container(
               constraints: const BoxConstraints(
-                maxWidth: 240,
-                maxHeight: 240,
+                maxWidth: 140,
+                maxHeight: 140,
               ),
               child: Image.asset(
                 'assets/images/island_coffee.png',
@@ -31,7 +31,7 @@ class LoadingScreen extends StatelessWidget {
                 },
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
 
             // Spinner
             SizedBox(

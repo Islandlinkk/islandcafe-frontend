@@ -281,10 +281,10 @@ class FeedbackService {
           if (trimmedBody.isNotEmpty) {
             if (trimmedBody.startsWith('{') || trimmedBody.startsWith('[')) {
               final errorBody = json.decode(response.body);
-              errorMessage = errorBody['message'] ?? 
-                           errorBody['error'] ?? 
-                           errorBody['details'] ?? 
-                           'Server error (${response.statusCode})';
+              errorMessage = errorBody['message'] ??
+                          errorBody['error'] ??
+                          errorBody['details'] ??
+                          'Server error (${response.statusCode})';
             } else {
               errorMessage = trimmedBody;
             }

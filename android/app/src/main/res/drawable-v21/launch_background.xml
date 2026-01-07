@@ -5,9 +5,9 @@
     <item android:drawable="@android:color/white" />
 
     <!-- Island Coffee Logo centered -->
-    <item>
+    <!-- <item>
         <bitmap
             android:gravity="center"
             android:src="@mipmap/launch_image" />
-    </item>
+    </item> -->
 </layer-list>

@@ -38,26 +38,23 @@ class _SplashScreenState extends State<SplashScreen> {
               // Island Coffee Logo
               _buildLogo(),
               const SizedBox(height: 50),
-              
-              // Loading Indicator
-              SizedBox(
-                height: 40,
-                width: 40,
-                child: CircularProgressIndicator(
-                  color: const Color(0xFF8B4513), // Brown color for coffee theme
-                  strokeWidth: 3,
-                ),
-              ),
-              const SizedBox(height: 24),
-              
+            
               // Loading Text
               Text(
-                'Loading...',
+                'Welcome to Island Coffee',
                 style: TextStyle(
                   color: Colors.grey[700],
-                  fontSize: 16,
+                  fontSize: 24,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
+                  height: 1.2,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 4,
+                      color: Theme.of(context).colorScheme.onSurface,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
               ),
             ],

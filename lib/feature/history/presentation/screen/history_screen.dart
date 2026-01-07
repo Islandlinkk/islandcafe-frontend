@@ -4,90 +4,87 @@ import 'package:island_cafe/feature/auth/services/auth_service.dart';
 import 'package:island_cafe/feature/history/data/model/feedback_model.dart';
 import 'package:island_cafe/feature/history/data/model/order_model.dart';
 import 'package:island_cafe/feature/history/service/feedback_service.dart';
+import 'package:island_cafe/feature/theme/loading_screen.dart';
 import 'package:go_router/go_router.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
-
-  // Static mock data for UI display
-  static List<OrderModel> get _mockOrders => [
-    OrderModel(
-      id: '1',
-      orderNumber: '8005470707328249913',
-      totalAmount: 45.50,
-      orderDate: DateTime.now().subtract(const Duration(days: 2)),
-      status: 'completed',
-      userId: 'mock_user',
-      items: [
-        OrderItem(
-          productId: '1',
-          productName: 'Cappuccino',
-          quantity: 2,
-          price: 12.50,
-          size: 'Large',
-        ),
-        OrderItem(
-          productId: '2',
-          productName: 'Latte',
-          quantity: 1,
-          price: 10.00,
-          size: 'Medium',
-        ),
-        OrderItem(
-          productId: '3',
-          productName: 'Croissant',
-          quantity: 2,
-          price: 5.25,
-        ),
-      ],
-    ),
-    OrderModel(
-      id: '2',
-      orderNumber: '8005470707328249914',
-      totalAmount: 28.75,
-      orderDate: DateTime.now().subtract(const Duration(days: 5)),
-      status: 'completed',
-      userId: 'mock_user',
-      items: [
-        OrderItem(
-          productId: '4',
-          productName: 'Espresso',
-          quantity: 1,
-          price: 8.50,
-          size: 'Small',
-        ),
-        OrderItem(
-          productId: '5',
-          productName: 'Muffin',
-          quantity: 2,
-          price: 10.125,
-        ),
-      ],
-    ),
-    OrderModel(
-      id: '3',
-      orderNumber: '8005470707328249915',
-      totalAmount: 15.00,
-      orderDate: DateTime.now().subtract(const Duration(days: 1)),
-      status: 'pending',
-      userId: 'mock_user',
-      items: [
-        OrderItem(
-          productId: '6',
-          productName: 'Americano',
-          quantity: 1,
-          price: 15.00,
-          size: 'Large',
-        ),
-      ],
-    ),
-  ];
+  //   OrderModel(
+  //     id: '1',
+  //     orderNumber: '8005470707328249913',
+  //     totalAmount: 45.50,
+  //     orderDate: DateTime.now().subtract(const Duration(days: 2)),
+  //     status: 'completed',
+  //     userId: 'mock_user',
+  //     items: [
+  //       OrderItem(
+  //         productId: '1',
+  //         productName: 'Cappuccino',
+  //         quantity: 2,
+  //         price: 12.50,
+  //         size: 'Large',
+  //       ),
+  //       OrderItem(
+  //         productId: '2',
+  //         productName: 'Latte',
+  //         quantity: 1,
+  //         price: 10.00,
+  //         size: 'Medium',
+  //       ),
+  //       OrderItem(
+  //         productId: '3',
+  //         productName: 'Croissant',
+  //         quantity: 2,
+  //         price: 5.25,
+  //       ),
+  //     ],
+  //   ),
+  //   OrderModel(
+  //     id: '2',
+  //     orderNumber: '8005470707328249914',
+  //     totalAmount: 28.75,
+  //     orderDate: DateTime.now().subtract(const Duration(days: 5)),
+  //     status: 'completed',
+  //     userId: 'mock_user',
+  //     items: [
+  //       OrderItem(
+  //         productId: '4',
+  //         productName: 'Espresso',
+  //         quantity: 1,
+  //         price: 8.50,
+  //         size: 'Small',
+  //       ),
+  //       OrderItem(
+  //         productId: '5',
+  //         productName: 'Muffin',
+  //         quantity: 2,
+  //         price: 10.125,
+  //       ),
+  //     ],
+  //   ),
+  //   OrderModel(
+  //     id: '3',
+  //     orderNumber: '8005470707328249915',
+  //     totalAmount: 15.00,
+  //     orderDate: DateTime.now().subtract(const Duration(days: 1)),
+  //     status: 'pending',
+  //     userId: 'mock_user',
+  //     items: [
+  //       OrderItem(
+  //         productId: '6',
+  //         productName: 'Americano',
+  //         quantity: 1,
+  //         price: 15.00,
+  //         size: 'Large',
+  //       ),
+  //     ],
+  //   ),
+  // ];
 
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
-
-class _HistoryScreenState extends State<HistoryScreen> {
+class _HistoryScreenState extends State<HistoryScreen> with AutomaticKeepAliveClientMixin {
   List<FeedbackModel> _feedbackList = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -97,13 +94,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.initState();
     _loadFeedback();
   }
-
-  // Make loadFeedback public so it can be called from child widgets
   void loadFeedback() {
     _loadFeedback();
   }
 
+  @override
+  bool get wantKeepAlive => true;
+
   Future<void> _loadFeedback() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -111,22 +111,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     try {
       final user = AuthService.currentUser;
+      List<FeedbackModel> feedback;
+
       if (user != null) {
-        // Fetch feedback for current user
-        final feedback = await FeedbackService.fetchMyFeedback();
-        setState(() {
-          _feedbackList = feedback;
-          _isLoading = false;
-        });
+        feedback = await FeedbackService.fetchMyFeedback();
       } else {
-        // If no user, fetch all feedback (for testing)
-        final feedback = await FeedbackService.fetchFeedback();
-        setState(() {
-          _feedbackList = feedback;
-          _isLoading = false;
-        });
+        feedback = await FeedbackService.fetchFeedback();
       }
+      if (!mounted) return;
+
+      setState(() {
+        _feedbackList = feedback;
+        _isLoading = false;
+      });
     } catch (e) {
+      if (!mounted) return;
+
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
@@ -168,10 +168,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     ),
   ];
 
-  @override
+@override
   Widget build(BuildContext context) {
-    final orders = _mockOrders;
+    super.build(context); 
 
+    final orders = _mockOrders;
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -208,7 +210,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoadingScreen()
           : _errorMessage != null
           ? Center(
               child: Column(
@@ -353,10 +355,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 class OrderFeedbackCard extends StatelessWidget {
   final OrderModel order;
 
-  const OrderFeedbackCard({
-    super.key,
-    required this.order,
-  });
+  const OrderFeedbackCard({super.key, required this.order});
 
   @override
   Widget build(BuildContext context) {
@@ -480,7 +479,6 @@ class OrderFeedbackCard extends StatelessWidget {
               ],
             ),
           ),
-
         ],
       ),
     );
@@ -604,7 +602,9 @@ class FeedbackCard extends StatelessWidget {
                                             SizedBox(height: 8),
                                             Text(
                                               'Failed to load image',
-                                              style: TextStyle(color: Colors.grey),
+                                              style: TextStyle(
+                                                color: Colors.grey,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -653,9 +653,10 @@ class FeedbackCard extends StatelessWidget {
                               color: Colors.grey[200],
                               child: Center(
                                 child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes != null
+                                  value:
+                                      loadingProgress.expectedTotalBytes != null
                                       ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
+                                            loadingProgress.expectedTotalBytes!
                                       : null,
                                 ),
                               ),
