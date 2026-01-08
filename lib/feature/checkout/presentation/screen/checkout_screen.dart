@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:island_cafe/feature/checkout/presentation/widget/checkout_widget.dart';
+import 'package:island_cafe/feature/product/presentation/widget/product_detail_widget.dart';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({super.key});
@@ -14,7 +16,21 @@ class CheckoutScreen extends StatelessWidget {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () async {
+            context.go('/menu');
+            
+            await Future.delayed(const Duration(milliseconds: 100));
+            if (context.mounted) {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => CartBottomSheetContent(
+                  onClose: () => context.pop(),
+                ),
+              );
+            }
+          },
         ),
         title: Column(
           children: [

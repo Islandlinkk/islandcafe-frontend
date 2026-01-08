@@ -47,15 +47,28 @@ class OrderModel {
   }
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    // Map API fields to model fields
+    // API uses: orderStatus, createdAt, total (string), displayId, orderItems
+    final orderStatus = json['orderStatus'] ?? 'pending';
+    // Convert orderStatus to lowercase for consistency
+    final status = orderStatus.toString().toLowerCase();
+    
     return OrderModel(
       id: json['id'] ?? '',
-      orderNumber: json['orderNumber'] ?? '',
-      totalAmount: (json['totalAmount'] ?? 0).toDouble(),
-      orderDate: json['orderDate'] != null
-          ? DateTime.parse(json['orderDate'])
-          : DateTime.now(),
-      status: json['status'] ?? 'pending',
-      items: (json['items'] as List<dynamic>?)
+      orderNumber: json['displayId']?.toString() ?? json['orderNumber'] ?? '',
+      totalAmount: json['total'] != null
+          ? double.tryParse(json['total'].toString()) ?? 0.0
+          : (json['totalAmount'] ?? 0).toDouble(),
+      orderDate: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : (json['orderDate'] != null
+              ? DateTime.parse(json['orderDate'])
+              : DateTime.now()),
+      status: status,
+      items: (json['orderItems'] as List<dynamic>?)
+              ?.map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          (json['items'] as List<dynamic>?)
               ?.map((item) => OrderItem.fromMap(item as Map<String, dynamic>))
               .toList() ??
           [],
@@ -110,6 +123,24 @@ class OrderItem {
       ice: map['ice'],
       extraShot: map['extraShot'],
       image: map['image'],
+    );
+  }
+
+  factory OrderItem.fromJson(Map<String, dynamic> json) {
+    // API structure: productId, quantity, price (string), sizeId, iceId, sugarId, extraShotId
+    // Note: API doesn't provide productName, size name, etc. - using IDs or placeholders
+    return OrderItem(
+      productId: json['productId'] ?? '',
+      productName: json['productName'] ?? 'Product', // API doesn't provide this
+      quantity: json['quantity'] ?? 1,
+      price: json['price'] != null
+          ? double.tryParse(json['price'].toString()) ?? 0.0
+          : 0.0,
+      size: json['sizeId']?.toString() ?? json['size'],
+      sugar: json['sugarId']?.toString() ?? json['sugar'],
+      ice: json['iceId']?.toString() ?? json['ice'],
+      extraShot: json['extraShotId']?.toString() ?? json['extraShot'],
+      image: json['image'],
     );
   }
 

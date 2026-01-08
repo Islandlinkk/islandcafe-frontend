@@ -134,6 +134,8 @@ class OrderService {
           ? Uri.parse('$baseUrl?userId=$userId')
           : Uri.parse(baseUrl);
 
+      print('📤 Fetching orders from: $uri');
+
       final response = await http
           .get(
             uri,
@@ -156,31 +158,50 @@ class OrderService {
           // Check if response is valid JSON
           final trimmedBody = response.body.trim();
           if (trimmedBody.isEmpty) {
+            print('⚠️ Empty response from orders API');
             return [];
           }
 
           if (!trimmedBody.startsWith('[') && !trimmedBody.startsWith('{')) {
             // Response is not JSON, might be an error message
+            print('❌ Invalid response format: ${response.body}');
             throw Exception('Invalid response format: ${response.body}');
           }
 
           final List<dynamic> jsonList = json.decode(response.body);
+          print('✅ Fetched ${jsonList.length} orders from API');
+          
           final ordersList = jsonList
               .map(
-                (json) => OrderModel.fromJson(json as Map<String, dynamic>),
+                (json) {
+                  try {
+                    return OrderModel.fromJson(json as Map<String, dynamic>);
+                  } catch (e) {
+                    print('❌ Error parsing order: $e');
+                    print('❌ Order data: $json');
+                    rethrow;
+                  }
+                },
               )
               .toList();
 
           // Sort by orderDate descending (newest first)
           ordersList.sort((a, b) => b.orderDate.compareTo(a.orderDate));
 
+          print('✅ Successfully parsed ${ordersList.length} orders');
           return ordersList;
-        } on FormatException {
+        } on FormatException catch (e) {
+          print('❌ FormatException parsing orders: $e');
+          print('❌ Response body: ${response.body}');
           throw Exception('Failed to parse order data: ${response.body}');
         } catch (e) {
+          print('❌ Error parsing orders: $e');
+          print('❌ Response body: ${response.body}');
           throw Exception('Failed to parse order data: $e');
         }
       } else {
+        print('❌ Orders API returned status ${response.statusCode}');
+        print('❌ Response body: ${response.body}');
         _handleError(response, 'Failed to fetch orders');
         return [];
       }
@@ -221,13 +242,19 @@ class OrderService {
       throw Exception('User must be logged in to fetch orders');
     }
 
-    // Fetch API user account to get the API user ID
-    final apiUserAccount = await UserApiService.getCurrentUserAccount();
-    if (apiUserAccount == null) {
-      throw Exception('User account not found in API database');
-    }
+    try {
+      // Fetch API user account to get the API user ID
+      final apiUserAccount = await UserApiService.getCurrentUserAccount();
+      if (apiUserAccount == null) {
+        throw Exception('User account not found in API database. Please contact support to set up your account.');
+      }
 
-    return await fetchOrdersByUserId(apiUserAccount.id);
+      print('✅ Using API User ID: ${apiUserAccount.id}');
+      return await fetchOrdersByUserId(apiUserAccount.id);
+    } catch (e) {
+      print('❌ Error in fetchMyOrders: $e');
+      rethrow;
+    }
   }
 
   /// Helper method to handle API errors consistently

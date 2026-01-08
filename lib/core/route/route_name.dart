@@ -15,3 +15,4 @@ const String loadingRoute = '/loading';
 const String editProfileRoute = '/edit-profile';
 const String voucherRoute = '/voucher';
 const String feedbackSubmissionRoute = '/feedback-submission';
+const String checkoutRoute = '/checkout';

@@ -1274,174 +1274,180 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
     });
   }
 
+  // Bottom sheet show function for reuse
   void _showCartBottomSheet(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Consumer(
-        builder: (context, ref, child) {
-          final cart = ref.watch(cartProvider);
-          final cartTotal = ref.watch(cartTotalProvider);
+      builder: (context) => CartBottomSheetContent(
+        onClose: () => Navigator.pop(context),
+      ),
+    );
+  }
+}
 
-          return Container(
-            height: MediaQuery.of(context).size.height * 0.9,
+// Reusable cart bottom sheet content widget
+class CartBottomSheetContent extends ConsumerWidget {
+  final VoidCallback? onClose;
+  const CartBottomSheetContent({super.key, this.onClose});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final cart = ref.watch(cartProvider);
+    final cartTotal = ref.watch(cartTotalProvider);
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.9,
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
             decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
+              color: theme.dividerColor,
+              borderRadius: BorderRadius.circular(2),
             ),
-            child: Column(
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: theme.dividerColor,
-                    borderRadius: BorderRadius.circular(2),
+                Text(
+                  'Cart (${cart.length})',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: colors.onSurface,
                   ),
                 ),
+                IconButton(
+                  icon: Icon(Icons.close, color: colors.onSurface),
+                  onPressed: onClose ?? () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 1, color: theme.dividerColor),
+          Expanded(
+            child: cart.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.shopping_cart_outlined,
+                          size: 80,
+                          color: colors.surfaceContainerHighest,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Your cart is empty',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: cart.length,
+                    itemBuilder: (context, index) {
+                      final item = cart[index];
+                      final options = [
+                        item.size.name,
+                        if (item.sugar != null) item.sugar!.name,
+                        if (item.ice != null) item.ice!.name,
+                        if (item.extraShot != null) item.extraShot!.name,
+                      ].join(', ');
 
-                Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
+                      return CartItemWidget(
+                        name: item.productName,
+                        options: options,
+                        quantity: item.quantity,
+                        price: item.totalPrice,
+                        image: item.image,
+                        index: index,
+                      );
+                    },
+                  ),
+          ),
+          if (cart.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black,
+                    blurRadius: 10,
+                    offset: const Offset(0, -3),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Cart (${cart.length})',
+                        'Total',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: colors.onSurface,
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.close, color: colors.onSurface),
-                        onPressed: () => Navigator.pop(context),
+                      Text(
+                        '\$${cartTotal.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: colors.primary,
+                        ),
                       ),
                     ],
                   ),
-                ),
-
-                Divider(height: 1, color: theme.dividerColor),
-
-                Expanded(
-                  child: cart.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.shopping_cart_outlined,
-                                size: 80,
-                                color: colors.surfaceContainerHighest,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Your cart is empty',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: colors.onSurfaceVariant,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(20),
-                          itemCount: cart.length,
-                          itemBuilder: (context, index) {
-                            final item = cart[index];
-                            final options = [
-                              item.size.name,
-                              if (item.sugar != null) item.sugar!.name,
-                              if (item.ice != null) item.ice!.name,
-                              if (item.extraShot != null) item.extraShot!.name,
-                            ].join(', ');
-
-                            return CartItemWidget(
-                              name: item.productName,
-                              options: options,
-                              quantity: item.quantity,
-                              price: item.totalPrice,
-                              image: item.image,
-                              index: index,
-                            );
-                          },
-                        ),
-                ),
-
-                if (cart.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black,
-                          blurRadius: 10,
-                          offset: const Offset(0, -3),
-                        ),
-                      ],
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.pushReplacementNamed('/checkout');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colors.primary,
+                      foregroundColor: colors.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      minimumSize: const Size(double.infinity, 50),
                     ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: colors.onSurface,
-                              ),
-                            ),
-                            Text(
-                              '\$${cartTotal.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: colors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            context.pushReplacementNamed('/checkout');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: colors.primary,
-                            foregroundColor: colors.onPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            minimumSize: const Size(double.infinity, 50),
-                          ),
-                          child: const Text(
-                            'CHECKOUT',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ],
+                    child: const Text(
+                      'CHECKOUT',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
-          );
-        },
+        ],
       ),
     );
   }
