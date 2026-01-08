@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:island_cafe/feature/history/data/model/feedback_model.dart';
 import 'package:island_cafe/feature/history/data/model/order_model.dart';
 import 'package:island_cafe/feature/history/data/provider/feedback_provider.dart';
+import 'package:island_cafe/feature/history/data/provider/order_provider.dart';
 import 'package:island_cafe/feature/theme/loading_screen.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -19,47 +20,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
   @override
   bool get wantKeepAlive => true;
 
-  // Static mock data for UI display (Orders)
-  static List<OrderModel> get _mockOrders => [
-    OrderModel(
-      id: '1',
-      orderNumber: '8005470707328249913',
-      totalAmount: 45.50,
-      orderDate: DateTime.now().subtract(const Duration(days: 2)),
-      status: 'completed',
-      userId: 'mock_user',
-      items: [
-        OrderItem(
-          productId: '1',
-          productName: 'Cappuccino',
-          quantity: 2,
-          price: 12.50,
-          size: 'Large',
-        ),
-        OrderItem(
-          productId: '2',
-          productName: 'Latte',
-          quantity: 1,
-          price: 10.00,
-          size: 'Medium',
-        ),
-        OrderItem(
-          productId: '3',
-          productName: 'Croissant',
-          quantity: 2,
-          price: 5.25,
-        ),
-      ],
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
-    // 1. WATCH THE PROVIDER
+    // 1. WATCH THE PROVIDERS
     final feedbackAsyncValue = ref.watch(feedbackProvider);
-    final orders = _mockOrders;
+    final ordersAsyncValue = ref.watch(ordersProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -79,7 +46,10 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.black),
             // 2. REFRESH USING RIVERPOD
-            onPressed: () => ref.refresh(feedbackProvider),
+            onPressed: () {
+              ref.invalidate(feedbackProvider);
+              ref.invalidate(ordersProvider);
+            },
           ),
         ],
       ),
@@ -117,8 +87,43 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
               child: TabBarView(
                 children: [
                   // TAB 1: ORDERS
-                  orders.isEmpty
-                      ? Center(
+                  ordersAsyncValue.when(
+                    loading: () => const LoadingScreen(),
+                    error: (error, stack) => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: Colors.red[300],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error loading orders',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Text(
+                              error.toString(),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => ref.refresh(ordersProvider),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    data: (orders) {
+                      if (orders.isEmpty) {
+                        return Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -138,14 +143,21 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
                               ),
                             ],
                           ),
-                        )
-                      : ListView.builder(
+                        );
+                      }
+                      return RefreshIndicator(
+                        onRefresh: () async =>
+                            ref.refresh(ordersProvider.future),
+                        child: ListView.builder(
                           padding: const EdgeInsets.all(16),
                           itemCount: orders.length,
                           itemBuilder: (context, index) {
                             return OrderFeedbackCard(order: orders[index]);
                           },
                         ),
+                      );
+                    },
+                  ),
 
                   // TAB 2: FEEDBACK
                   feedbackAsyncValue.when(

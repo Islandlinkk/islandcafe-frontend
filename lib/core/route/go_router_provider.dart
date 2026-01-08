@@ -22,6 +22,7 @@ import 'package:island_cafe/feature/voucher/presentation/screen/voucher_screen.d
 import 'package:island_cafe/root/root_BottomNavigation_screen.dart';
 import 'package:island_cafe/feature/auth/services/auth_service.dart';
 import 'package:island_cafe/feature/history/presentation/screen/feedback_submission_screen.dart';
+import 'package:island_cafe/feature/checkout/presentation/screen/checkout_screen.dart';
 import 'package:island_cafe/feature/theme/splash_screen.dart';
 
 final routerRefreshTriggerProvider = StateProvider<int>((ref) => 0);
@@ -198,6 +199,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 orderNumber: orderNumber,
               );
             },
+          ),
+          GoRoute(
+            path: '/checkout',
+            name: checkoutRoute,
+            builder: (context, state) => const CheckoutScreen(),
           ),
         ],
       ),
