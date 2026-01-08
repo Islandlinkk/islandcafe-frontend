@@ -1,8 +1,6 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:island_cafe/core/route/route_name.dart';
 import 'package:island_cafe/feature/auth/presentation/widgets/auth_widgets.dart';
 import 'package:island_cafe/feature/auth/services/auth_service.dart';
 import 'package:island_cafe/feature/history/service/feedback_service.dart';
@@ -20,7 +18,6 @@ class FeedbackSubmissionScreen extends StatefulWidget {
 
 class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
   final List<String> _categories = const [
-    'APP Functionality',
     'Good Environment',
     'Good Service',
     'Good Food',
@@ -34,81 +31,16 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
   ];
 
   final _descriptionController = TextEditingController();
-  final _picker = ImagePicker();
 
   String? _selectedCategory;
-  List<XFile> _pickedImages = [];
   bool _isSubmitting = false;
+  String? _hoveredCategory;
+  bool _isDescriptionHovered = false;
 
   @override
   void dispose() {
     _descriptionController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Theme.of(context).bottomSheetTheme.backgroundColor,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final List<XFile> images = await _picker.pickMultiImage();
-                if (images.isNotEmpty && mounted) {
-                  setState(() {
-                    _pickedImages.addAll(images);
-                    // Limit to 5 images
-                    if (_pickedImages.length > 5) {
-                      _pickedImages = _pickedImages.take(5).toList();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Maximum 5 images allowed'),
-                        ),
-                      );
-                    }
-                  });
-                }
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
-              onTap: () async {
-                Navigator.of(context).pop();
-                final XFile? image = await _picker.pickImage(
-                  source: ImageSource.camera,
-                );
-                if (image != null && mounted) {
-                  setState(() {
-                    _pickedImages.add(image);
-                    // Limit to 5 images
-                    if (_pickedImages.length > 5) {
-                      _pickedImages = _pickedImages.take(5).toList();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Maximum 5 images allowed'),
-                        ),
-                      );
-                    }
-                  });
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _removeImage(int index) {
-    setState(() {
-      _pickedImages.removeAt(index);
-    });
   }
 
   Future<void> _submitFeedback() async {
@@ -142,52 +74,40 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
         throw Exception('User must be logged in');
       }
 
-      List<String> imageUrls = [];
-
-      // Upload all images
-      if (_pickedImages.isNotEmpty) {
-        for (var image in _pickedImages) {
-          try {
-            final imageUrl = await AuthService.uploadFeedbackImage(
-              file: image,
-              uid: user.uid,
-            );
-            if (mounted) {
-              imageUrls.add(imageUrl);
-            }
-          } catch (imageError) {
-            // Log error but continue with other images
-            print('Failed to upload image: $imageError');
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Failed to upload one image: $imageError'),
-                  duration: const Duration(seconds: 2),
-                ),
-              );
-            }
-          }
-        }
-      }
-
       // Submit feedback
       await FeedbackService.submitFeedback(
         userId: user.uid,
         orderId: widget.orderId,
         category: _selectedCategory!,
         description: _descriptionController.text.trim(),
-        imageUrls: imageUrls.isNotEmpty ? imageUrls : null,
+        imageUrls: null,
       );
 
-      // Show success alert
+      // Show success alert - same flow for both with and without images
       if (mounted) {
+        // Clear any previous SnackBars first
+        ScaffoldMessenger.of(context).clearSnackBars();
+        
+        // Show success message (same message regardless of images)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 12),
-                Expanded(
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check,
+                    color: Colors.green,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
                   child: Text(
                     'Feedback submitted successfully!',
                     style: TextStyle(
@@ -204,14 +124,15 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
+            elevation: 4,
           ),
         );
 
-        // Navigate back after a short delay
+        // Navigate to menu screen after a short delay (same delay for both cases)
         await Future.delayed(const Duration(milliseconds: 500));
 
         if (mounted) {
-          context.pop(true);
+          context.go(menuRoute);
         }
       }
     } catch (e) {
@@ -292,40 +213,57 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
               runSpacing: 8,
               children: _categories.map((category) {
                 final isSelected = _selectedCategory == category;
+                final isHovered = _hoveredCategory == category;
                 return Tooltip(
                   message: category,
                   preferBelow: false,
-                  child: InkWell(
-                    onTap: () {
-                      if (mounted) {
-                        setState(() => _selectedCategory = category);
+                  child: MouseRegion(
+                    onEnter: (_) {
+                      if (mounted && !isSelected) {
+                        setState(() => _hoveredCategory = category);
                       }
                     },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFFFF6B6B)
-                            : Colors.grey[100],
-                        border: Border.all(
+                    onExit: (_) {
+                      if (mounted) {
+                        setState(() => _hoveredCategory = null);
+                      }
+                    },
+                    child: InkWell(
+                      onTap: () {
+                        if (mounted) {
+                          setState(() => _selectedCategory = category);
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
                           color: isSelected
                               ? const Color(0xFFFF6B6B)
-                              : Colors.grey[300]!,
-                          width: isSelected ? 2 : 1,
+                              : isHovered
+                                  ? Colors.grey[200]
+                                  : Colors.grey[100],
+                          border: Border.all(
+                            color: isSelected
+                                ? const Color(0xFFFF6B6B)
+                                : isHovered
+                                    ? Colors.grey[400]!
+                                    : Colors.grey[300]!,
+                            width: isSelected ? 2 : isHovered ? 1.5 : 1,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        category,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: isSelected ? Colors.white : Colors.black87,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
+                        child: Text(
+                          category,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isSelected ? Colors.white : Colors.black87,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
                         ),
                       ),
                     ),
@@ -345,28 +283,45 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: TextField(
-                controller: _descriptionController,
-                maxLength: 500,
-                maxLines: 6,
-                onChanged: (_) {
-                  if (mounted) {
-                    setState(() {});
-                  }
-                },
-                decoration: InputDecoration(
-                  hintText:
-                      'Please describe your feedback. For order issues, please contact our Online Customer Service.',
-                  hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(16),
-                  counterText: '',
+            MouseRegion(
+              onEnter: (_) {
+                if (mounted) {
+                  setState(() => _isDescriptionHovered = true);
+                }
+              },
+              onExit: (_) {
+                if (mounted) {
+                  setState(() => _isDescriptionHovered = false);
+                }
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(
+                    color: _isDescriptionHovered
+                        ? Colors.grey[400]!
+                        : Colors.grey[300]!,
+                    width: _isDescriptionHovered ? 1.5 : 1,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: TextField(
+                  controller: _descriptionController,
+                  maxLength: 500,
+                  maxLines: 6,
+                  onChanged: (_) {
+                    if (mounted) {
+                      setState(() {});
+                    }
+                  },
+                  decoration: InputDecoration(
+                    hintText:
+                        'Please describe your feedback. For order issues, please contact our Online Customer Service.',
+                    hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.all(16),
+                    counterText: '',
+                  ),
                 ),
               ),
             ),
@@ -378,113 +333,6 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
                 style: TextStyle(color: Colors.grey[600], fontSize: 12),
               ),
             ),
-            const SizedBox(height: 24),
-
-            // Image Upload Section
-            const Text(
-              'Images (Optional)',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Display picked images
-            if (_pickedImages.isNotEmpty) ...[
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: List.generate(_pickedImages.length, (index) {
-                  return Stack(
-                    children: [
-                      Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: kIsWeb
-                              ? Image.network(
-                                  _pickedImages[index].path,
-                                  fit: BoxFit.cover,
-                                  width: 100,
-                                  height: 100,
-                                )
-                              : Image.file(
-                                  File(_pickedImages[index].path),
-                                  fit: BoxFit.cover,
-                                  width: 100,
-                                  height: 100,
-                                ),
-                        ),
-                      ),
-                      Positioned(
-                        top: 4,
-                        right: 4,
-                        child: GestureDetector(
-                          onTap: () => _removeImage(index),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              color: Colors.white,
-                              size: 16,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }),
-              ),
-              const SizedBox(height: 12),
-            ],
-
-            // Image Upload Button
-            if (_pickedImages.length < 5)
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.camera_alt, color: Colors.grey, size: 32),
-                        SizedBox(height: 4),
-                        Text(
-                          'Add Image',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            if (_pickedImages.length >= 5)
-              Text(
-                'Maximum 5 images reached',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
             const SizedBox(height: 32),
 
             // Submit Button

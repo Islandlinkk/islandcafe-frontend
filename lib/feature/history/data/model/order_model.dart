@@ -45,6 +45,35 @@ class OrderModel {
       'userId': userId,
     };
   }
+
+  factory OrderModel.fromJson(Map<String, dynamic> json) {
+    return OrderModel(
+      id: json['id'] ?? '',
+      orderNumber: json['orderNumber'] ?? '',
+      totalAmount: (json['totalAmount'] ?? 0).toDouble(),
+      orderDate: json['orderDate'] != null
+          ? DateTime.parse(json['orderDate'])
+          : DateTime.now(),
+      status: json['status'] ?? 'pending',
+      items: (json['items'] as List<dynamic>?)
+              ?.map((item) => OrderItem.fromMap(item as Map<String, dynamic>))
+              .toList() ??
+          [],
+      userId: json['userId'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'orderNumber': orderNumber,
+      'totalAmount': totalAmount,
+      'orderDate': orderDate.toIso8601String(),
+      'status': status,
+      'items': items.map((item) => item.toMap()).toList(),
+      'userId': userId,
+    };
+  }
 }
 
 class OrderItem {

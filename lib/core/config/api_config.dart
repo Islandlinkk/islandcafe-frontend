@@ -45,4 +45,7 @@ class ApiConfig {
   // Account
   static String get account => '$_baseUrl/account';
   static String accountById(String id) => '$_baseUrl/account/$id';
+
+  // Order
+  static String get order => '$_baseUrl/order';
 }
