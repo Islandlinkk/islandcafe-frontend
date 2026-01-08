@@ -68,13 +68,17 @@ class CartModelAdapter extends TypeAdapter<CartModel> {
       extraShot: fields[8] as CartOption?,
       discount: (fields[9] as num?)?.toInt(),
       note: fields[10] as String?,
+      sizeId: fields[11] as String?,
+      sugarId: fields[12] as String?,
+      iceId: fields[13] as String?,
+      extraShotId: fields[14] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, CartModel obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.productId)
       ..writeByte(1)
@@ -96,7 +100,15 @@ class CartModelAdapter extends TypeAdapter<CartModel> {
       ..writeByte(9)
       ..write(obj.discount)
       ..writeByte(10)
-      ..write(obj.note);
+      ..write(obj.note)
+      ..writeByte(11)
+      ..write(obj.sizeId)
+      ..writeByte(12)
+      ..write(obj.sugarId)
+      ..writeByte(13)
+      ..write(obj.iceId)
+      ..writeByte(14)
+      ..write(obj.extraShotId);
   }
 
   @override

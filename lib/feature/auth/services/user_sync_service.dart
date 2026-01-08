@@ -3,23 +3,29 @@ import 'package:http/http.dart' as http;
 import 'package:island_cafe/core/config/api_config.dart';
 
 class UserSyncService {
-  /// Syncs user data (Create or Update) to external API
-  static Future<void> syncUser({
+  /// CREATE User (POST)
+  /// Matches Postman: POST .../api/account
+  static Future<void> createUser({
+    required String uid, // Maps to "id" in API
     required String name,
     required String email,
-    String? phone, // Default empty if not available (e.g. Google Auth)
+    String? phone,
     String? gender,
     String? birthday,
+    String? photoURL,
   }) async {
     try {
       final url = Uri.parse(ApiConfig.account);
       
       final body = {
+        "id": uid,
         "name": name,
         "email": email,
-        "phone": phone ?? "", // Send empty if not available (e.g. Google Auth)
+        "phone": phone ?? "",
         "gender": gender ?? "",
         "birthday": birthday ?? "",
+        "photoURL": photoURL ?? "",
+        "password": "", // API expects this key based on JSON
       };
 
       final response = await http.post(
@@ -29,28 +35,65 @@ class UserSyncService {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        return Future.error("Failed to sync user: ${response.body}");
+        // Log error but don't crash app flow, just print for debug
+        print("API Create Failed: ${response.body}");
       }
     } catch (e) {
-      return Future.error("Error syncing user data: $e");
+      print("Error creating user in API: $e");
     }
   }
 
-  /// Deletes user from external API
-  static Future<void> deleteUser(String email) async {
+  /// UPDATE User (PATCH)
+  /// Matches Postman: PATCH .../api/account/{uid}
+  static Future<void> updateUser({
+    required String uid,
+    required String name,
+    required String email,
+    String? phone,
+    String? gender,
+    String? birthday,
+    String? photoURL,
+  }) async {
     try {
-      // Assuming DELETE endpoint uses email or ID in the query or body
-      // Adjust this URL structure based on your specific backend requirements
-      // Example: DELETE .../api/account?email=john@example.com
-      final url = Uri.parse('${ApiConfig.account}?email=$email');
+      final url = Uri.parse(ApiConfig.accountById(uid));
+      
+      final body = {
+        "name": name,
+        "email": email,
+        "phone": phone ?? "",
+        "gender": gender ?? "",
+        "birthday": birthday ?? "",
+        "photoURL": photoURL ?? "",
+        "password": "", 
+      };
+
+      final response = await http.patch(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode != 200) {
+        print("API Update Failed: ${response.body}");
+      }
+    } catch (e) {
+      print("Error updating user in API: $e");
+    }
+  }
+
+  /// DELETE User (DELETE)
+  /// Matches Postman: DELETE .../api/account/{uid}
+  static Future<void> deleteUser(String uid) async {
+    try {
+      final url = Uri.parse(ApiConfig.accountById(uid));
       
       final response = await http.delete(url);
 
       if (response.statusCode != 200) {
-        return Future.error("Failed to delete user from API: ${response.body}");
+        print("API Delete Failed: ${response.body}");
       }
     } catch (e) {
-      return Future.error("Error deleting user from API: $e");
+      print("Error deleting user from API: $e");
     }
   }
 }

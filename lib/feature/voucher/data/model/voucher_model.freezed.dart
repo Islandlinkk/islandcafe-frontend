@@ -15,9 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$VoucherModel {
 
- String get id; String get code; String? get description; String get discountType;// 'FIXED' or 'PERCENTAGE' (API is uppercase)
-@JsonKey(fromJson: _stringToNum) num get discountValue;// MAP 'minOrderTotal' (API) to 'minOrderValue' (App)
-@JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) num? get minOrderValue; DateTime get startDate; DateTime get endDate; bool get isActive;
+ String get id; String get code; String? get description; String get discountType;@JsonKey(fromJson: _stringToNum) num get discountValue;@JsonKey(fromJson: _stringToNum) num? get minOrderValue; DateTime get startDate; DateTime get endDate; bool get isActive;
 /// Create a copy of VoucherModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -50,7 +48,7 @@ abstract mixin class $VoucherModelCopyWith<$Res>  {
   factory $VoucherModelCopyWith(VoucherModel value, $Res Function(VoucherModel) _then) = _$VoucherModelCopyWithImpl;
 @useResult
 $Res call({
- String id, String code, String? description, String discountType,@JsonKey(fromJson: _stringToNum) num discountValue,@JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) num? minOrderValue, DateTime startDate, DateTime endDate, bool isActive
+ String id, String code, String? description, String discountType,@JsonKey(fromJson: _stringToNum) num discountValue,@JsonKey(fromJson: _stringToNum) num? minOrderValue, DateTime startDate, DateTime endDate, bool isActive
 });
 
 
@@ -163,7 +161,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String code,  String? description,  String discountType, @JsonKey(fromJson: _stringToNum)  num discountValue, @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum)  num? minOrderValue,  DateTime startDate,  DateTime endDate,  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String code,  String? description,  String discountType, @JsonKey(fromJson: _stringToNum)  num discountValue, @JsonKey(fromJson: _stringToNum)  num? minOrderValue,  DateTime startDate,  DateTime endDate,  bool isActive)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VoucherModel() when $default != null:
 return $default(_that.id,_that.code,_that.description,_that.discountType,_that.discountValue,_that.minOrderValue,_that.startDate,_that.endDate,_that.isActive);case _:
@@ -184,7 +182,7 @@ return $default(_that.id,_that.code,_that.description,_that.discountType,_that.d
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String code,  String? description,  String discountType, @JsonKey(fromJson: _stringToNum)  num discountValue, @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum)  num? minOrderValue,  DateTime startDate,  DateTime endDate,  bool isActive)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String code,  String? description,  String discountType, @JsonKey(fromJson: _stringToNum)  num discountValue, @JsonKey(fromJson: _stringToNum)  num? minOrderValue,  DateTime startDate,  DateTime endDate,  bool isActive)  $default,) {final _that = this;
 switch (_that) {
 case _VoucherModel():
 return $default(_that.id,_that.code,_that.description,_that.discountType,_that.discountValue,_that.minOrderValue,_that.startDate,_that.endDate,_that.isActive);case _:
@@ -204,7 +202,7 @@ return $default(_that.id,_that.code,_that.description,_that.discountType,_that.d
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String code,  String? description,  String discountType, @JsonKey(fromJson: _stringToNum)  num discountValue, @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum)  num? minOrderValue,  DateTime startDate,  DateTime endDate,  bool isActive)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String code,  String? description,  String discountType, @JsonKey(fromJson: _stringToNum)  num discountValue, @JsonKey(fromJson: _stringToNum)  num? minOrderValue,  DateTime startDate,  DateTime endDate,  bool isActive)?  $default,) {final _that = this;
 switch (_that) {
 case _VoucherModel() when $default != null:
 return $default(_that.id,_that.code,_that.description,_that.discountType,_that.discountValue,_that.minOrderValue,_that.startDate,_that.endDate,_that.isActive);case _:
@@ -219,17 +217,15 @@ return $default(_that.id,_that.code,_that.description,_that.discountType,_that.d
 @JsonSerializable()
 
 class _VoucherModel extends VoucherModel {
-  const _VoucherModel({required this.id, required this.code, this.description, required this.discountType, @JsonKey(fromJson: _stringToNum) required this.discountValue, @JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) this.minOrderValue, required this.startDate, required this.endDate, required this.isActive}): super._();
+  const _VoucherModel({required this.id, required this.code, this.description, required this.discountType, @JsonKey(fromJson: _stringToNum) required this.discountValue, @JsonKey(fromJson: _stringToNum) this.minOrderValue, required this.startDate, required this.endDate, required this.isActive}): super._();
   factory _VoucherModel.fromJson(Map<String, dynamic> json) => _$VoucherModelFromJson(json);
 
 @override final  String id;
 @override final  String code;
 @override final  String? description;
 @override final  String discountType;
-// 'FIXED' or 'PERCENTAGE' (API is uppercase)
 @override@JsonKey(fromJson: _stringToNum) final  num discountValue;
-// MAP 'minOrderTotal' (API) to 'minOrderValue' (App)
-@override@JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) final  num? minOrderValue;
+@override@JsonKey(fromJson: _stringToNum) final  num? minOrderValue;
 @override final  DateTime startDate;
 @override final  DateTime endDate;
 @override final  bool isActive;
@@ -267,7 +263,7 @@ abstract mixin class _$VoucherModelCopyWith<$Res> implements $VoucherModelCopyWi
   factory _$VoucherModelCopyWith(_VoucherModel value, $Res Function(_VoucherModel) _then) = __$VoucherModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String code, String? description, String discountType,@JsonKey(fromJson: _stringToNum) num discountValue,@JsonKey(name: 'minOrderTotal', fromJson: _stringToNum) num? minOrderValue, DateTime startDate, DateTime endDate, bool isActive
+ String id, String code, String? description, String discountType,@JsonKey(fromJson: _stringToNum) num discountValue,@JsonKey(fromJson: _stringToNum) num? minOrderValue, DateTime startDate, DateTime endDate, bool isActive
 });
 
 

@@ -11,12 +11,76 @@ class VoucherScreen extends ConsumerStatefulWidget {
 }
 
 class _VoucherScreenState extends ConsumerState<VoucherScreen> {
-  
+  void showTopAlert(
+    BuildContext context,
+    String message, {
+    Color backgroundColor = Colors.green,
+  }) {
+    // Check if context is still mounted before getting overlay
+    if (!context.mounted) return;
+
+    final overlay = Overlay.of(context, rootOverlay: false);
+    _showOverlayAlert(overlay, message, backgroundColor);
+  }
+
+  void _showOverlayAlert(
+    OverlayState overlay,
+    String message,
+    Color backgroundColor,
+  ) {
+    // Check if overlay is still mounted before inserting
+    if (!overlay.mounted) return;
+
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50,
+        left: 16,
+        right: 16,
+        
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(const Duration(seconds: 2), () {
+      // Check if overlay entry is still mounted before removing
+      if (overlayEntry.mounted) {
+        overlayEntry.remove();
+      }
+    });
+  }
+
   void _showClaimSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).cardColor, // Fix: Dynamic Sheet Background
+      backgroundColor: Theme.of(
+        context,
+      ).cardColor, // Fix: Dynamic Sheet Background
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -27,7 +91,7 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
   @override
   Widget build(BuildContext context) {
     final voucherState = ref.watch(myVouchersProvider);
-    
+
     // 1. Get Theme Data
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
@@ -36,15 +100,15 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
       backgroundColor: theme.scaffoldBackgroundColor, // Fix: Dynamic Background
       appBar: AppBar(
         title: Text(
-          'My Vouchers', 
-          style: TextStyle(color: theme.appBarTheme.foregroundColor)
+          'My Vouchers',
+          style: TextStyle(color: theme.appBarTheme.foregroundColor),
         ),
         backgroundColor: theme.appBarTheme.backgroundColor,
       ),
-      
+
       body: voucherState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        
+
         error: (err, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -71,9 +135,9 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
                 children: [
                   // Fix: Icon color adapts to dark mode
                   Icon(
-                    Icons.confirmation_number_outlined, 
-                    size: 64, 
-                    color: theme.colorScheme.surfaceContainerHighest, 
+                    Icons.confirmation_number_outlined,
+                    size: 64,
+                    color: theme.colorScheme.surfaceContainerHighest,
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -100,8 +164,8 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           // Fix: Use Card Color (Dark Grey in Dark Mode, White in Light Mode)
-          color: theme.cardColor, 
-          boxShadow: isDarkMode 
+          color: theme.cardColor,
+          boxShadow: isDarkMode
               ? [] // No shadow in dark mode (cleaner)
               : [
                   BoxShadow(
@@ -111,8 +175,8 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
                   ),
                 ],
           // Optional: Top border for Dark Mode separation
-          border: isDarkMode 
-              ? Border(top: BorderSide(color: theme.dividerColor)) 
+          border: isDarkMode
+              ? Border(top: BorderSide(color: theme.dividerColor))
               : null,
         ),
         child: SafeArea(
@@ -121,7 +185,9 @@ class _VoucherScreenState extends ConsumerState<VoucherScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.colorScheme.primary, // Orange
               foregroundColor: theme.colorScheme.onPrimary, // White/Black text
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               padding: const EdgeInsets.symmetric(vertical: 16),
               elevation: 0,
             ),
@@ -154,28 +220,34 @@ class _ClaimVoucherSheetState extends ConsumerState<_ClaimVoucherSheet> {
     setState(() => _isLoading = true);
     FocusScope.of(context).unfocus();
 
+    // Capture navigator and context before async operations
+    final navigator = Navigator.of(context);
+    final parentContext = context;
+
     try {
       await ref.read(myVouchersProvider.notifier).claimVoucher(code);
-      
+
       if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Voucher Claimed Successfully!'), backgroundColor: Colors.green),
-        );
+        navigator.pop();
+        // Find the parent VoucherScreen to call showTopAlert
+        if (parentContext.mounted) {
+          final voucherScreenState = parentContext
+              .findAncestorStateOfType<_VoucherScreenState>();
+          voucherScreenState?.showTopAlert(
+            parentContext,
+            'Voucher Claimed Successfully!',
+            backgroundColor: Colors.green,
+          );
+        }
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')), 
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-              left: 16, 
-              right: 16
-            ),
-          ),
+      if (mounted && parentContext.mounted) {
+        final voucherScreenState = parentContext
+            .findAncestorStateOfType<_VoucherScreenState>();
+        voucherScreenState?.showTopAlert(
+          parentContext,
+          e.toString().replaceAll('Exception: ', ''),
+          backgroundColor: Colors.red,
         );
       }
     } finally {
@@ -196,16 +268,20 @@ class _ClaimVoucherSheetState extends ConsumerState<_ClaimVoucherSheet> {
         children: [
           Text(
             'Enter Voucher Code',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
-          
+
           // --- 3. FIXED INPUT FIELD ---
           TextField(
             controller: _codeController,
             autofocus: true,
             textCapitalization: TextCapitalization.characters,
-            style: TextStyle(color: theme.colorScheme.onSurface), // Fix: Input text color
+            style: TextStyle(
+              color: theme.colorScheme.onSurface,
+            ), // Fix: Input text color
             decoration: InputDecoration(
               hintText: 'e.g. AHJM168',
               hintStyle: TextStyle(color: theme.hintColor),
@@ -216,7 +292,10 @@ class _ClaimVoucherSheetState extends ConsumerState<_ClaimVoucherSheet> {
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
           ),
           const SizedBox(height: 24),
@@ -227,12 +306,24 @@ class _ClaimVoucherSheetState extends ConsumerState<_ClaimVoucherSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: theme.colorScheme.primary, // Orange
                 foregroundColor: theme.colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: _isLoading 
-                  ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: theme.colorScheme.onPrimary, strokeWidth: 2))
-                  : const Text('Confirm Claim', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: _isLoading
+                  ? SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: theme.colorScheme.onPrimary,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text(
+                      'Confirm Claim',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
             ),
           ),
         ],

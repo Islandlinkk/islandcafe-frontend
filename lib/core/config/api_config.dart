@@ -40,4 +40,13 @@ class ApiConfig {
   static String get voucher => '$_baseUrl/voucher';
 
   static String get account => '$_baseUrl/account';
+  static String accountById(String id) => '$_baseUrl/account/$id';
+
+  // Order
+  static String get order => '$_baseUrl/order';
+  static String orderById(String id) => '$_baseUrl/order/$id';
+  static String get orderItem => '$_baseUrl/order_item';
+
+  // Favorite
+  static String favoriteById(String id) => '$_baseUrl/favorite?userId=$id';
 }

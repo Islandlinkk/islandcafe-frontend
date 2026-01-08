@@ -43,12 +43,14 @@ class AuthService {
       });
 
       // 2. Sync to External API (CREATE)
-      await UserSyncService.syncUser(
+      await UserSyncService.createUser(
+        uid: user.uid, // Pass UID as ID
         name: displayName,
         email: email,
         phone: "",
         gender: "",
         birthday: "",
+        photoURL: "",
       );
 
       await user.updateDisplayName(displayName);
@@ -60,7 +62,6 @@ class AuthService {
     return cred;
   }
 
-  // In AuthService class
   static Future<UserCredential> signInWithEmail({
     required String email,
     required String password,
@@ -75,7 +76,7 @@ class AuthService {
     }
   }
 
-  /// Sign In with Google (Updated with Name Fix)
+  /// Sign In with Google
   static Future<UserCredential> signInWithGoogle() async {
     final provider = GoogleAuthProvider()
       ..addScope('profile')
@@ -115,33 +116,33 @@ class AuthService {
         });
         
         // 2. Sync to External API (CREATE)
-        await UserSyncService.syncUser(
+        await UserSyncService.createUser(
+          uid: user.uid,
           name: displayName,
           email: user.email!,
           phone: user.phoneNumber ?? "",
           gender: "",
           birthday: "",
+          photoURL: user.photoURL ?? "",
         );
       }
     }
     return cred;
   }
 
-  /// Upload Profile Image to Firebase Storage & Update Firestore
   static Future<String> uploadProfileImage({
     required XFile file,
     required String uid,
   }) async {
     try {
       final ref = _storage.ref().child('user_images').child('$uid.jpg');
-
+      
       final metadata = SettableMetadata(
         contentType: 'image/jpeg',
         customMetadata: {'picked-file-path': file.path},
       );
 
       final UploadTask uploadTask;
-
       if (kIsWeb) {
         final bytes = await file.readAsBytes();
         uploadTask = ref.putData(bytes, metadata);
@@ -157,7 +158,6 @@ class AuthService {
     }
   }
 
-  /// Update User Photo URL in Auth & Firestore
   static Future<void> updateUserPhoto(String photoUrl) async {
     final user = currentUser;
     if (user != null) {
@@ -169,7 +169,7 @@ class AuthService {
     }
   }
 
-  /// Save User Details to Firestore
+  /// Save User Details to Firestore AND Update External API
   static Future<void> saveUserDetails({
     required String uid,
     required String name,
@@ -194,14 +194,15 @@ class AuthService {
     if (user != null) {
       await user.updateDisplayName(name);
 
-      // 2. Sync to External API (UPDATE)
-      // Note: We don't have the password here, send empty or modify backend to ignore
-      await UserSyncService.syncUser(
+      // 2. Sync to External API (UPDATE via PATCH)
+      await UserSyncService.updateUser(
+        uid: user.uid, // Use UID to identify record to update
         name: name,
         email: user.email ?? "",
         phone: phone,
         gender: gender,
-        birthday: birthday
+        birthday: birthday,
+        photoURL: user.photoURL,
       );
     }
   }
@@ -209,18 +210,15 @@ class AuthService {
   static Future<void> deleteAccount() async {
     final user = currentUser;
     if (user != null) {
-      String email = user.email ?? "";
       String uid = user.uid;
 
       try {
         // 1. Delete from Firestore
         await _firestore.collection('users').doc(uid).delete();
-        await _storage.ref().child('user_images').child('$uid.jpg').delete().catchError((_) {}); // Ignore if image doesn't exist
+        await _storage.ref().child('user_images').child('$uid.jpg').delete().catchError((_) {}); 
 
         // 2. Sync to External API (DELETE)
-        if (email.isNotEmpty) {
-          await UserSyncService.deleteUser(email);
-        }
+        await UserSyncService.deleteUser(uid);
 
         // 3. Delete from Firebase Auth
         await user.delete(); 
@@ -259,19 +257,14 @@ class AuthService {
     await currentUser?.reload();
   }
 
-  // ----------- THEMED ERROR MESSAGES -----------
   static String getExceptionMessage(dynamic e) {
     if (e is FirebaseAuthException) {
       switch (e.code) {
         case 'user-not-found':
           return 'We couldn\'t find an account. Want to join us?';
-
-        // --- ADD THIS NEW CASE HERE ---
         case 'invalid-credential':
         case 'wrong-password':
           return 'That password didn\'t match. Try again?';
-        // ------------------------------
-
         case 'email-already-in-use':
           return 'That email is already sipping coffee with us. Try logging in.';
         case 'invalid-email':

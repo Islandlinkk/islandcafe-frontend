@@ -19,9 +19,9 @@ abstract class VoucherModel with _$VoucherModel {
     required String code,
     String? description,
     required String discountType,
-    required num discountValue,
-    num? minOrderValue,
-    
+    @JsonKey(fromJson: _stringToNum) required num discountValue,
+    @JsonKey(fromJson: _stringToNum) num? minOrderValue,
+
     required DateTime startDate,
     required DateTime endDate,
     required bool isActive,
@@ -33,7 +33,7 @@ abstract class VoucherModel with _$VoucherModel {
   // --- Helpers ---
   String get formattedDiscount {
     // Check for both lowercase and uppercase from API
-    if (discountType.toUpperCase() == 'PERCENTAGE') {
+    if (discountType.toUpperCase() == 'PERCENT') {
       return '${discountValue.toStringAsFixed(0)}% OFF';
     } else {
       return '\$${discountValue.toStringAsFixed(2)} OFF';
