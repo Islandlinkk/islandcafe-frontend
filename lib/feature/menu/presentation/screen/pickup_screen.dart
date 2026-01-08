@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/rendering.dart';
@@ -47,7 +46,7 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
     final categoriesAsync = ref.watch(categoryProvider);
     final isSearchActive = ref.watch(isSearchActiveProvider);
     final searchQuery = ref.watch(searchQueryProvider);
-    final productsAsync = isSearchActive 
+    final productsAsync = isSearchActive
         ? ref.watch(filteredProductsProvider)
         : ref.watch(productProvider);
 
@@ -85,7 +84,11 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.search_off, size: 64, color: Theme.of(context).colorScheme.onSurface),
+                      Icon(
+                        Icons.search_off,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         'No products found',
@@ -100,14 +103,16 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                         'Try a different search term',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.5),
                         ),
                       ),
                     ],
                   ),
                 );
               }
-              
+
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -115,10 +120,9 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                   children: [
                     Text(
                       'Search Results (${products.length})',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     ...products.map(
@@ -128,7 +132,7 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                 ),
               );
             }
-            
+
             // Normal category view
             return Column(
               children: [
@@ -139,7 +143,11 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                         width: 120,
                         decoration: BoxDecoration(
                           color: Theme.of(context).scaffoldBackgroundColor,
-                          border: Border(right: BorderSide(color: Theme.of(context).dividerColor)),
+                          border: Border(
+                            right: BorderSide(
+                              color: Theme.of(context).dividerColor,
+                            ),
+                          ),
                         ),
                         child: ListView.builder(
                           itemCount: categories.length,
@@ -153,7 +161,9 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                                   selectedCategoryId = category.id;
                                   _isAutoScrolling = true;
                                 });
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
                                   _scrollToCategory(category.id);
                                 });
                               },
@@ -194,7 +204,9 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                                           style: Theme.of(context)
                                               .textTheme
                                               .titleLarge
-                                              ?.copyWith(fontWeight: FontWeight.bold),
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
                                       ],
                                     ),
@@ -206,8 +218,10 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                                             product.categoryId == category.id,
                                       )
                                       .map(
-                                        (item) =>
-                                            MenuItemCard(item: item, onTap: () {}),
+                                        (item) => MenuItemCard(
+                                          item: item,
+                                          onTap: () {},
+                                        ),
                                       ),
                                   const SizedBox(height: 16),
                                 ],
@@ -256,7 +270,9 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                                 children: [
                                   Icon(
                                     Icons.shopping_cart,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     size: 24,
                                   ),
                                   const SizedBox(width: 12),
@@ -265,7 +281,9 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
-                                      color: Theme.of(context).colorScheme.onSurface,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface,
                                     ),
                                   ),
                                 ],
@@ -277,13 +295,17 @@ class _PickupMenuViewState extends ConsumerState<PickupMenuView> {
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   const SizedBox(width: 4),
                                   Icon(
                                     Icons.chevron_right,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
                                     size: 24,
                                   ),
                                 ],

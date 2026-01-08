@@ -53,6 +53,18 @@ class CartModel {
   @HiveField(10)
   final String? note;
 
+  @HiveField(11)
+  final String? sizeId;
+
+  @HiveField(12)
+  final String? sugarId;
+
+  @HiveField(13)
+  final String? iceId;
+
+  @HiveField(14)
+  final String? extraShotId;
+
   const CartModel({
     required this.productId,
     required this.productName,
@@ -65,6 +77,10 @@ class CartModel {
     this.extraShot,
     this.discount,
     this.note,
+    this.sizeId,
+    this.sugarId,
+    this.iceId,
+    this.extraShotId,
   });
 
   double get totalPrice {

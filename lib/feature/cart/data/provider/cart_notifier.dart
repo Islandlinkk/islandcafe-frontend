@@ -27,8 +27,15 @@ class CartNotifier extends Notifier<CartState> {
   }
 
   Future<void> _initializeBox() async {
-    _cartBox = await Hive.openBox<CartModel>(_boxName);
-    state = _cartBox!.values.toList();
+    try {
+      _cartBox = await Hive.openBox<CartModel>(_boxName);
+      state = _cartBox!.values.toList();
+    } catch (e) {
+      // Clear incompatible data and reinitialize
+      await Hive.deleteBoxFromDisk(_boxName);
+      _cartBox = await Hive.openBox<CartModel>(_boxName);
+      state = [];
+    }
   }
 
   Future<void> _saveToBox() async {
@@ -56,6 +63,10 @@ class CartNotifier extends Notifier<CartState> {
         ice: existing.ice,
         extraShot: existing.extraShot,
         note: existing.note,
+        sizeId: existing.sizeId,
+        sugarId: existing.sugarId,
+        iceId: existing.iceId,
+        extraShotId: existing.extraShotId,
       );
 
       state = [
@@ -98,6 +109,10 @@ class CartNotifier extends Notifier<CartState> {
       ice: item.ice,
       extraShot: item.extraShot,
       note: item.note,
+      sizeId: item.sizeId,
+      sugarId: item.sugarId,
+      iceId: item.iceId,
+      extraShotId: item.extraShotId,
     );
 
     state = [

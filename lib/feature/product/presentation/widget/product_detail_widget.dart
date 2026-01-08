@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:island_cafe/core/widgets/loading_icon_button.dart';
 import 'package:island_cafe/feature/cart/data/model/cart_model.dart';
 import 'package:island_cafe/feature/cart/data/provider/cart_notifier.dart';
 import 'package:island_cafe/feature/cart/data/provider/cart_total_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/extraShot_provider.dart';
+import 'package:island_cafe/feature/product/data/provider/favorite_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/ice_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/product_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/size_provider.dart';
@@ -23,10 +25,10 @@ class ProductDetailWidget extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
-  bool _isFavorite = false;
   int _quantity = 1;
   final ScrollController _scrollController = ScrollController();
   bool _showAppBar = false;
+  bool _isFavoriteLoading = false;
 
   // Selection states
   String? _selectedSizeId;
@@ -142,7 +144,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
               color: _showAppBar
                   ? theme.appBarTheme.backgroundColor ?? colors.surface
                   : Colors.transparent,
-              boxShadow: _showAppBar 
+              boxShadow: _showAppBar
                   ? [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.3),
@@ -181,25 +183,78 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       )
                     else
                       const Spacer(),
-                    _buildIconButton(
-                      context,
-                      icon: _isFavorite
-                          ? Icons.favorite
-                          : Icons.favorite_border,
-                      // Fix: Use Primary Color for favorite
-                      color: _isFavorite ? colors.primary : colors.onSurface,
-                      onPressed: () {
-                        setState(() => _isFavorite = !_isFavorite);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              _isFavorite
-                                  ? 'Added to favorites'
-                                  : 'Removed from favorites',
-                            ),
-                            duration: const Duration(seconds: 1),
-                            behavior: SnackBarBehavior.floating,
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final favoritesAsync = ref.watch(myFavoritesProvider);
+                        final isFavorite = favoritesAsync.maybeWhen(
+                          data: (favorites) => favorites.any(
+                            (fav) => fav.product.id == product.id,
                           ),
+                          orElse: () => false,
+                        );
+
+                        return LoadingIconButton(
+                          icon: isFavorite
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: isFavorite ? colors.primary : colors.onSurface,
+                          isLoading: _isFavoriteLoading,
+                          onPressed: () async {
+                            setState(() {
+                              _isFavoriteLoading = true;
+                            });
+
+                            try {
+                              if (isFavorite) {
+                                await ref
+                                    .read(myFavoritesProvider.notifier)
+                                    .removeFavorite(product.id);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Removed from favorites'),
+                                      duration: Duration(seconds: 1),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              } else {
+                                await ref
+                                    .read(myFavoritesProvider.notifier)
+                                    .addFavorite(product.id);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Added to favorites'),
+                                      duration: Duration(seconds: 1),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      e.toString().replaceAll(
+                                        'Exception: ',
+                                        '',
+                                      ),
+                                    ),
+                                    backgroundColor: Colors.red,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _isFavoriteLoading = false;
+                                });
+                              }
+                            }
+                          },
                         );
                       },
                     ),
@@ -438,7 +493,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                     ),
                                     const SizedBox(height: 16),
                                     SizedBox(
-                                      height: 150,
+                                      height: 130,
                                       child: ListView.builder(
                                         scrollDirection: Axis.horizontal,
                                         itemCount: filteredProducts.length,
@@ -862,9 +917,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isSelected
-                            ? colors.primary
-                            : colors.onSurface,
+                        color: isSelected ? colors.primary : colors.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1252,6 +1305,10 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
               price: selectedExtraShot.priceModifier,
             )
           : null,
+      sizeId: selectedSize.id,
+      sugarId: selectedSugar?.id,
+      iceId: selectedIce?.id,
+      extraShotId: selectedExtraShot?.id,
     );
 
     ref.read(cartProvider.notifier).addToCart(cartItem);
