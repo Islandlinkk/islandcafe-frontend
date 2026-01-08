@@ -11,6 +11,7 @@ import 'package:island_cafe/feature/product/data/provider/size_provider.dart';
 import 'package:island_cafe/feature/product/data/provider/sugar_provider.dart';
 import 'package:island_cafe/feature/product/presentation/widget/cart_item_widget.dart';
 import 'package:island_cafe/feature/product/presentation/widget/related_product_widget.dart';
+import 'package:island_cafe/feature/theme/app_theme.dart';
 import 'package:island_cafe/feature/theme/loading_screen.dart';
 
 class ProductDetailWidget extends ConsumerStatefulWidget {
@@ -144,9 +145,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
               boxShadow: _showAppBar 
                   ? [
                       BoxShadow(
-                        color: theme.brightness == Brightness.dark
-                            ? Colors.grey.shade800
-                            : Colors.grey.shade500,
+                        color: Colors.black.withValues(alpha: 0.3),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -257,7 +256,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black,
+                                    color: colors.shadow.withValues(alpha: 0.3),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),
@@ -493,7 +492,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
               color: theme.cardColor, // Fix: Dynamic Background
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black,
+                  color: colors.shadow.withValues(alpha: 0.2),
                   spreadRadius: 1,
                   blurRadius: 10,
                   offset: const Offset(0, -3),
@@ -696,7 +695,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
+              Icon(Icons.error_outline, size: 64, color: colors.error),
               const SizedBox(height: 16),
               Text(
                 'Error loading product',
@@ -773,7 +772,7 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black,
+            color: colors.shadow.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1257,10 +1256,12 @@ class _ProductDetailWidgetState extends ConsumerState<ProductDetailWidget> {
 
     ref.read(cartProvider.notifier).addToCart(cartItem);
 
+    final theme = Theme.of(context);
+    final appColors = theme.appColors;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$_quantity x ${product.name} added to cart'),
-        backgroundColor: Colors.green,
+        backgroundColor: appColors.statusSuccess,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -1392,7 +1393,7 @@ class CartBottomSheetContent extends ConsumerWidget {
                 color: theme.cardColor,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black,
+                    color: colors.shadow.withValues(alpha: 0.2),
                     blurRadius: 10,
                     offset: const Offset(0, -3),
                   ),

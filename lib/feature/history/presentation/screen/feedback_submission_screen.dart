@@ -4,6 +4,7 @@ import 'package:island_cafe/core/route/route_name.dart';
 import 'package:island_cafe/feature/auth/presentation/widgets/auth_widgets.dart';
 import 'package:island_cafe/feature/auth/services/auth_service.dart';
 import 'package:island_cafe/feature/history/service/feedback_service.dart';
+import 'package:island_cafe/feature/theme/app_theme.dart';
 
 class FeedbackSubmissionScreen extends StatefulWidget {
   final String? orderId;
@@ -89,6 +90,8 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
         ScaffoldMessenger.of(context).clearSnackBars();
         
         // Show success message (same message regardless of images)
+        final theme = Theme.of(context);
+        final appColors = theme.appColors;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -96,22 +99,22 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
                 Container(
                   width: 24,
                   height: 24,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onPrimary,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.check,
-                    color: Colors.green,
+                    color: appColors.statusSuccess,
                     size: 16,
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Feedback submitted successfully!',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: theme.colorScheme.onPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -119,7 +122,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
               ],
             ),
             duration: const Duration(seconds: 2),
-            backgroundColor: Colors.green,
+            backgroundColor: appColors.statusSuccess,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
@@ -148,14 +151,16 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
 
         print('❌ Feedback submission error: $e');
 
+        final theme = Theme.of(context);
+        final appColors = theme.appColors;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $errorMessage'),
             duration: const Duration(seconds: 4),
-            backgroundColor: Colors.red,
+            backgroundColor: appColors.statusError,
             action: SnackBarAction(
               label: 'Retry',
-              textColor: Colors.white,
+              textColor: theme.colorScheme.onError,
               onPressed: () {
                 if (mounted) {
                   _submitFeedback();
@@ -174,19 +179,21 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: theme.appBarTheme.foregroundColor),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           'Submit Feedback',
           style: TextStyle(
-            color: Colors.black,
+            color: theme.appBarTheme.foregroundColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -199,12 +206,12 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Feedback Category Section
-            const Text(
+            Text(
               '*Feedback Category',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: colors.onSurface,
               ),
             ),
             const SizedBox(height: 12),
@@ -241,16 +248,16 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? const Color(0xFFFF6B6B)
+                              ? theme.appColors.feedbackAccent
                               : isHovered
-                                  ? Colors.grey[200]
-                                  : Colors.grey[100],
+                                  ? colors.surfaceContainerHighest
+                                  : colors.surfaceContainerHigh,
                           border: Border.all(
                             color: isSelected
-                                ? const Color(0xFFFF6B6B)
+                                ? theme.appColors.feedbackAccent
                                 : isHovered
-                                    ? Colors.grey[400]!
-                                    : Colors.grey[300]!,
+                                    ? colors.outline
+                                    : colors.outlineVariant,
                             width: isSelected ? 2 : isHovered ? 1.5 : 1,
                           ),
                           borderRadius: BorderRadius.circular(20),
@@ -259,7 +266,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
                           category,
                           style: TextStyle(
                             fontSize: 14,
-                            color: isSelected ? Colors.white : Colors.black87,
+                            color: isSelected ? colors.onPrimary : colors.onSurface,
                             fontWeight: isSelected
                                 ? FontWeight.w600
                                 : FontWeight.normal,
@@ -274,12 +281,12 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
             const SizedBox(height: 24),
 
             // Description Section
-            const Text(
+            Text(
               '*Description',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: colors.onSurface,
               ),
             ),
             const SizedBox(height: 12),
@@ -296,11 +303,11 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
               },
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: colors.surface,
                   border: Border.all(
                     color: _isDescriptionHovered
-                        ? Colors.grey[400]!
-                        : Colors.grey[300]!,
+                        ? colors.outline
+                        : colors.outlineVariant,
                     width: _isDescriptionHovered ? 1.5 : 1,
                   ),
                   borderRadius: BorderRadius.circular(8),
@@ -314,10 +321,11 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
                       setState(() {});
                     }
                   },
+                  style: TextStyle(color: colors.onSurface),
                   decoration: InputDecoration(
                     hintText:
                         'Please describe your feedback. For order issues, please contact our Online Customer Service.',
-                    hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+                    hintStyle: TextStyle(color: colors.onSurfaceVariant, fontSize: 14),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.all(16),
                     counterText: '',
@@ -330,7 +338,7 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
               alignment: Alignment.centerRight,
               child: Text(
                 '${_descriptionController.text.length}/500',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
               ),
             ),
             const SizedBox(height: 32),
@@ -339,8 +347,8 @@ class _FeedbackSubmissionScreenState extends State<FeedbackSubmissionScreen> {
             CoffeeButton(
               text: _isSubmitting ? 'SUBMITTING...' : 'SUBMIT FEEDBACK',
               onPressed: _isSubmitting ? null : _submitFeedback,
-              backgroundColor: const Color(0xFFFF6B6B),
-              textColor: Colors.white,
+              backgroundColor: theme.appColors.feedbackAccent,
+              textColor: colors.onPrimary,
             ),
           ],
         ),

@@ -1,14 +1,5 @@
 import 'package:flutter/material.dart';
 
-class CoffeeColors {
-  static const Color primary = Color(0xFF4E342E);
-  static const Color primaryLight = Color(0xFF795548);
-  static const Color accent = Color(0xFFA1887F);
-  static const Color background = Color(0xFFEFEBE9);
-  static const Color textDark = Color(0xFF3E2723);
-  static const Color surface = Colors.white;
-}
-
 class CoffeeAuthLayout extends StatelessWidget {
   final Widget child;
   final String title;

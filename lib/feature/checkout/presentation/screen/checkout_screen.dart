@@ -8,14 +8,16 @@ class CheckoutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: theme.appBarTheme.foregroundColor),
           onPressed: () async {
             context.go('/menu');
             
@@ -34,19 +36,19 @@ class CheckoutScreen extends StatelessWidget {
         ),
         title: Column(
           children: [
-            const Text(
+            Text(
               'CHECKOUT',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
-                color: Colors.black,
+                color: theme.appBarTheme.foregroundColor,
               ),
             ),
             Text(
               'PICKUP',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: colors.onSurfaceVariant,
                 fontWeight: FontWeight.normal,
               ),
             ),

@@ -97,15 +97,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 24),
                 Row(
                   children: [
-                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                    Expanded(child: Divider(color: Theme.of(context).dividerColor)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
                         'OR',
-                        style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                       ),
                     ),
-                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                    Expanded(child: Divider(color: Theme.of(context).dividerColor)),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -116,14 +116,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   children: [
                     Text(
                       "Already a member? ",
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                     GestureDetector(
                       onTap: _loading ? null : () => context.go('/login'),
-                      child: const Text(
+                      child: Text(
                         "Sign In",
                         style: TextStyle(
-                          color: CoffeeColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -140,7 +140,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           left: 10,
           child: IconButton(
             onPressed: () => context.go('/login'),
-            icon: const Icon(Icons.arrow_back_ios_new, color: CoffeeColors.primary),
+            icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).colorScheme.primary),
           ),
         ),
       ],

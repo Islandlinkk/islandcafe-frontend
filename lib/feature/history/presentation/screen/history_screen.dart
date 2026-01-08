@@ -6,6 +6,7 @@ import 'package:island_cafe/feature/history/data/model/feedback_model.dart';
 import 'package:island_cafe/feature/history/data/model/order_model.dart';
 import 'package:island_cafe/feature/history/data/provider/feedback_provider.dart';
 import 'package:island_cafe/feature/history/data/provider/order_provider.dart';
+import 'package:island_cafe/feature/theme/app_theme.dart';
 import 'package:island_cafe/feature/theme/loading_screen.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
@@ -27,16 +28,19 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
     // 1. WATCH THE PROVIDERS
     final feedbackAsyncValue = ref.watch(feedbackProvider);
     final ordersAsyncValue = ref.watch(ordersProvider);
+    
+    // 2. GET THEME
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'History',
           style: TextStyle(
-            color: Colors.black,
+            color: theme.appBarTheme.foregroundColor,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -44,7 +48,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black),
+            icon: Icon(Icons.refresh, color: theme.appBarTheme.foregroundColor),
             // 2. REFRESH USING RIVERPOD
             onPressed: () {
               ref.invalidate(feedbackProvider);
@@ -61,11 +65,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
             ref.invalidate(feedbackProvider);
           }
         },
-        backgroundColor: const Color(0xFFFF6B6B),
-        icon: const Icon(Icons.feedback, color: Colors.white),
-        label: const Text(
+        backgroundColor: theme.appColors.feedbackAccent,
+        icon: Icon(Icons.feedback, color: theme.colorScheme.onPrimary),
+        label: Text(
           'Submit Feedback',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold),
         ),
       ),
 
@@ -74,11 +78,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
         length: 2,
         child: Column(
           children: [
-            const TabBar(
-              labelColor: Colors.black,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: Colors.black,
-              tabs: [
+            TabBar(
+              labelColor: theme.colorScheme.onSurface,
+              unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+              indicatorColor: theme.colorScheme.primary,
+              tabs: const [
                 Tab(text: 'Orders'),
                 Tab(text: 'Feedback'),
               ],
@@ -96,14 +100,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
                           Icon(
                             Icons.error_outline,
                             size: 64,
-                            color: Colors.red[300],
+                            color: theme.colorScheme.error,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'Error loading orders',
                             style: TextStyle(
                               fontSize: 18,
-                              color: Colors.grey[600],
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                           Padding(
@@ -111,7 +115,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
                             child: Text(
                               error.toString(),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.grey),
+                              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                             ),
                           ),
                           ElevatedButton(
@@ -130,7 +134,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
                               Icon(
                                 Icons.shopping_bag_outlined,
                                 size: 64,
-                                color: Colors.grey[400],
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -138,7 +142,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.grey[600],
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -169,14 +173,14 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
                           Icon(
                             Icons.error_outline,
                             size: 64,
-                            color: Colors.red[300],
+                            color: theme.colorScheme.error,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'Error loading feedback',
                             style: TextStyle(
                               fontSize: 18,
-                              color: Colors.grey[600],
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                           Padding(
@@ -184,7 +188,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
                             child: Text(
                               error.toString(),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.grey),
+                              style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                             ),
                           ),
                           ElevatedButton(
@@ -203,7 +207,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
                               Icon(
                                 Icons.feedback_outlined,
                                 size: 64,
-                                color: Colors.grey[400],
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -211,7 +215,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.grey[600],
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -249,19 +253,22 @@ class OrderFeedbackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = theme.appColors;
     final dateFormat = DateFormat('MMM dd, yyyy • HH:mm');
     final statusColor = order.status == 'completed'
-        ? Colors.green
+        ? appColors.statusSuccess
         : order.status == 'pending'
-        ? Colors.orange
-        : Colors.red;
+        ? appColors.statusWarning
+        : appColors.statusError;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
+      color: theme.cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey[200]!),
+        side: BorderSide(color: theme.dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,10 +288,10 @@ class OrderFeedbackCard extends StatelessWidget {
                         children: [
                           Text(
                             'Order #${order.orderNumber}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -292,7 +299,7 @@ class OrderFeedbackCard extends StatelessWidget {
                             dateFormat.format(order.orderDate),
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -304,7 +311,7 @@ class OrderFeedbackCard extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -331,7 +338,7 @@ class OrderFeedbackCard extends StatelessWidget {
                               '${item.quantity}x',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Colors.grey[700],
+                                color: theme.colorScheme.onSurfaceVariant,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -340,7 +347,7 @@ class OrderFeedbackCard extends StatelessWidget {
                                 item.productName,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[700],
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ),
@@ -353,17 +360,17 @@ class OrderFeedbackCard extends StatelessWidget {
                     '+ ${order.items.length - 3} more items',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[500],
+                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 const SizedBox(height: 12),
                 Text(
                   'Total: \$${order.totalAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -380,19 +387,22 @@ class FeedbackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = theme.appColors;
     final dateFormat = DateFormat('MMM dd, yyyy • HH:mm');
     final statusColor = feedback.status == 'PENDING'
-        ? Colors.orange
+        ? appColors.statusWarning
         : feedback.status == 'RESOLVED'
-        ? Colors.green
-        : Colors.grey;
+        ? appColors.statusSuccess
+        : appColors.statusNeutral;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
+      color: theme.cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey[200]!),
+        side: BorderSide(color: theme.dividerColor),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -404,7 +414,10 @@ class FeedbackCard extends StatelessWidget {
               children: [
                 Text(
                   feedback.category,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
                 ),
                 Text(
                   feedback.status,
@@ -413,11 +426,17 @@ class FeedbackCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(feedback.description),
+            Text(
+              feedback.description,
+              style: TextStyle(color: theme.colorScheme.onSurface),
+            ),
             const SizedBox(height: 8),
             Text(
               dateFormat.format(feedback.createdAt),
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: TextStyle(
+                fontSize: 12,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),

@@ -97,9 +97,9 @@ Future<void> _handleEmailLogin() async {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () => context.push('/forgot-password'),
-                child: const Text(
+                child: Text(
                   'Forgot Password?',
-                  style: TextStyle(color: CoffeeColors.primaryLight),
+                  style: TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
               ),
             ),
@@ -117,7 +117,7 @@ Future<void> _handleEmailLogin() async {
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Text(
                     'OR',
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12),
                   ),
                 ),
                 Expanded(child: Divider(color: Theme.of(context).dividerColor)),
@@ -145,7 +145,7 @@ Future<void> _handleEmailLogin() async {
           left: 10,
           child: IconButton(
             onPressed: () => context.go('/profile'),
-            icon: const Icon(Icons.arrow_back_ios_new, color: CoffeeColors.primary),
+            icon: Icon(Icons.arrow_back_ios_new, color: Theme.of(context).colorScheme.primary),
           ),
         ),
       ],

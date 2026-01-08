@@ -52,11 +52,11 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
         child: Column(
           children: [
             const SizedBox(height: 50),
-            const CircularProgressIndicator(color: CoffeeColors.primary),
+            CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
             const SizedBox(height: 30),
-            const Text(
+            Text(
               "Waiting for confirmation...",
-              style: TextStyle(color: Colors.grey, fontSize: 16),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 16),
             ),
             const SizedBox(height: 50),
             TextButton(
@@ -64,7 +64,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                 AuthService.signOut();
                 ref.read(routerRefreshTriggerProvider.notifier).state++;
               },
-              child: const Text("Cancel / Sign Out", style: TextStyle(color: Colors.redAccent)),
+              child: Text("Cancel / Sign Out", style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ),
           ],
         ),

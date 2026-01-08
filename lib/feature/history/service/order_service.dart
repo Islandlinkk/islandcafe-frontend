@@ -127,6 +127,11 @@ class OrderService {
   // ==================== API METHODS ====================
 
   /// Fetch all orders from API
+  static Future<List<OrderModel>> fetchAllOrders() async {
+    return await fetchOrders();
+  }
+
+  /// Fetch orders from API (optionally filtered by userId)
   static Future<List<OrderModel>> fetchOrders({String? userId}) async {
     try {
       final baseUrl = ApiConfig.order;

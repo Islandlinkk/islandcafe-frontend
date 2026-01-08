@@ -4,6 +4,7 @@ import 'package:island_cafe/feature/cart/data/provider/cart_notifier.dart';
 import 'package:island_cafe/feature/cart/data/provider/cart_total_provider.dart';
 import 'package:island_cafe/feature/checkout/data/provider/pickup_time_provider.dart';
 import 'package:island_cafe/feature/product/presentation/widget/cart_item_widget.dart';
+import 'package:island_cafe/feature/theme/app_theme.dart';
 
 class CheckoutWidget extends ConsumerWidget {
   const CheckoutWidget({super.key});
@@ -20,7 +21,7 @@ class CheckoutWidget extends ConsumerWidget {
     return Column(
       children: [
         // Progress indicator
-        _buildProgressIndicator(isDark),
+        _buildProgressIndicator(context),
         const SizedBox(height: 24),
 
         // Main content
@@ -35,11 +36,11 @@ class CheckoutWidget extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 // Summary Section
-                _buildSummarySection(cart, isDark),
+                _buildSummarySection(cart, isDark, context),
                 const SizedBox(height: 16),
 
                 // Subtotal
-                _buildSubtotal(cartTotal, isDark),
+                _buildSubtotal(cartTotal, isDark, context),
                 const SizedBox(height: 16),
 
                 // Apply Voucher
@@ -51,7 +52,7 @@ class CheckoutWidget extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 // Frequently Bought Together
-                _buildFrequentlyBoughtTogether(isDark),
+                _buildFrequentlyBoughtTogether(isDark, context),
                 const SizedBox(height: 100), // Space for bottom bar
               ],
             ),
@@ -64,22 +65,26 @@ class CheckoutWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildProgressIndicator(bool isDark) {
+  Widget _buildProgressIndicator(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
-          _buildProgressStep('CART', true, true, isDark),
-          _buildProgressLine(true, isDark),
-          _buildProgressStep('CHECKOUT', true, true, isDark),
-          _buildProgressLine(false, isDark),
-          _buildProgressStep('PICKUP', false, true, isDark),
+          _buildProgressStep('CART', true, true, isDark, context),
+          _buildProgressLine(true, isDark, context),
+          _buildProgressStep('CHECKOUT', true, true, isDark, context),
+          _buildProgressLine(false, isDark, context),
+          _buildProgressStep('PICKUP', false, true, isDark, context),
         ],
       ),
     );
   }
 
-  Widget _buildProgressStep(String label, bool isCompleted, bool isActive, bool isDark) {
+  Widget _buildProgressStep(String label, bool isCompleted, bool isActive, bool isDark, BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final appColors = theme.appColors;
     return Column(
       children: [
         Container(
@@ -87,12 +92,12 @@ class CheckoutWidget extends ConsumerWidget {
           height: 24,
           decoration: BoxDecoration(
             color: isCompleted || isActive
-                ? const Color(0xFFFFC107)
-                : (isDark ? Colors.grey[700] : Colors.grey[300]),
+                ? appColors.progressActive
+                : colors.surfaceContainerHighest,
             shape: BoxShape.circle,
           ),
           child: isCompleted
-              ? const Icon(Icons.check, size: 16, color: Colors.white)
+              ? Icon(Icons.check, size: 16, color: colors.onPrimary)
               : null,
         ),
         const SizedBox(height: 4),
@@ -102,27 +107,33 @@ class CheckoutWidget extends ConsumerWidget {
             fontSize: 12,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
             color: isActive
-                ? (isDark ? Colors.white : Colors.black)
-                : Colors.grey,
+                ? colors.onSurface
+                : colors.onSurfaceVariant,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildProgressLine(bool isCompleted, bool isDark) {
+  Widget _buildProgressLine(bool isCompleted, bool isDark, BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final appColors = theme.appColors;
     return Expanded(
       child: Container(
         height: 2,
         margin: const EdgeInsets.only(bottom: 20),
         color: isCompleted
-            ? const Color(0xFFFFC107)
-            : (isDark ? Colors.grey[700] : Colors.grey[300]),
+            ? appColors.progressActive
+            : colors.surfaceContainerHighest,
       ),
     );
   }
 
   Widget _buildPickupTimeSection(WidgetRef ref, String selectedTime, bool isDark, BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final appColors = theme.appColors;
     final times = ['Now', '15 min', '30 min', '60 min'];
 
     return Column(
@@ -133,7 +144,7 @@ class CheckoutWidget extends ConsumerWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).textTheme.titleLarge?.color,
+            color: colors.onSurface,
           ),
         ),
         const SizedBox(height: 12),
@@ -149,12 +160,12 @@ class CheckoutWidget extends ConsumerWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : (isDark ? Colors.grey[800] : Colors.grey[100]),
+                        ? colors.primaryContainer
+                        : colors.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isSelected
-                          ? const Color(0xFFFFC107)
+                          ? appColors.progressActive
                           : Colors.transparent,
                       width: 1,
                     ),
@@ -167,7 +178,7 @@ class CheckoutWidget extends ConsumerWidget {
                       fontWeight: isSelected
                           ? FontWeight.w600
                           : FontWeight.normal,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: isSelected ? colors.onPrimaryContainer : colors.onSurface,
                     ),
                   ),
                 ),
@@ -179,7 +190,8 @@ class CheckoutWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummarySection(List cart, bool isDark) {
+  Widget _buildSummarySection(List cart, bool isDark, BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -188,7 +200,7 @@ class CheckoutWidget extends ConsumerWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black,
+            color: colors.onSurface,
           ),
         ),
         const SizedBox(height: 16),
@@ -213,7 +225,8 @@ class CheckoutWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildSubtotal(double total, bool isDark) {
+  Widget _buildSubtotal(double total, bool isDark, BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -222,7 +235,7 @@ class CheckoutWidget extends ConsumerWidget {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white : Colors.black,
+            color: colors.onSurface,
           ),
         ),
         Text(
@@ -230,7 +243,7 @@ class CheckoutWidget extends ConsumerWidget {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Colors.black,
+            color: colors.onSurface,
           ),
         ),
       ],
@@ -254,6 +267,9 @@ class CheckoutWidget extends ConsumerWidget {
   }
 
   Widget _buildPaymentMethod(bool isDark, BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final appColors = theme.appColors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -262,17 +278,17 @@ class CheckoutWidget extends ConsumerWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Theme.of(context).textTheme.titleLarge?.color,
+            color: colors.onSurface,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? Colors.grey[850] : Colors.grey[50],
+            color: colors.surfaceContainerHigh,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+              color: colors.outlineVariant,
             ),
           ),
           child: Row(
@@ -281,12 +297,12 @@ class CheckoutWidget extends ConsumerWidget {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF4CAF50),
+                  color: appColors.statusSuccess,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.payments_outlined,
-                  color: Colors.white,
+                  color: colors.onPrimary,
                   size: 24,
                 ),
               ),
@@ -300,7 +316,7 @@ class CheckoutWidget extends ConsumerWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black,
+                        color: colors.onSurface,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -308,7 +324,7 @@ class CheckoutWidget extends ConsumerWidget {
                       'Pay when you collect your order',
                       style: TextStyle(
                         fontSize: 13,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        color: colors.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -317,11 +333,11 @@ class CheckoutWidget extends ConsumerWidget {
               Container(
                 width: 24,
                 height: 24,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFC107),
+                decoration: BoxDecoration(
+                  color: appColors.progressActive,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.check, size: 16, color: Colors.white),
+                child: Icon(Icons.check, size: 16, color: colors.onPrimary),
               ),
             ],
           ),
@@ -330,7 +346,8 @@ class CheckoutWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildFrequentlyBoughtTogether(bool isDark) {
+  Widget _buildFrequentlyBoughtTogether(bool isDark, BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     // Mock data - replace with actual product data
     final recommendations = [
       {'name': 'Iced Caramel Macchiato', 'price': 3.41, 'image': ''},
@@ -345,7 +362,7 @@ class CheckoutWidget extends ConsumerWidget {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black,
+            color: colors.onSurface,
           ),
         ),
         const SizedBox(height: 12),
@@ -360,10 +377,10 @@ class CheckoutWidget extends ConsumerWidget {
                 width: 140,
                 margin: const EdgeInsets.only(right: 12),
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[850] : Colors.grey[50],
+                  color: colors.surfaceContainerHigh,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+                    color: colors.outlineVariant,
                   ),
                 ),
                 child: Column(
@@ -372,7 +389,7 @@ class CheckoutWidget extends ConsumerWidget {
                     Container(
                       height: 100,
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.grey[700] : Colors.grey[300],
+                        color: colors.surfaceContainerHighest,
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(12),
                         ),
@@ -381,7 +398,7 @@ class CheckoutWidget extends ConsumerWidget {
                         child: Icon(
                           Icons.coffee,
                           size: 40,
-                          color: isDark ? Colors.grey[500] : Colors.grey,
+                          color: colors.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -395,7 +412,7 @@ class CheckoutWidget extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black,
+                              color: colors.onSurface,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -406,7 +423,7 @@ class CheckoutWidget extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: isDark ? Colors.grey[300] : Colors.grey[700],
+                              color: colors.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -423,13 +440,16 @@ class CheckoutWidget extends ConsumerWidget {
   }
 
   Widget _buildBottomBar(BuildContext context, double total, bool isDark) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final appColors = theme.appColors;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[900] : Colors.white,
+        color: theme.cardColor,
         boxShadow: [
           BoxShadow(
-            color: (isDark ? Colors.black : Colors.grey),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, -3),
           ),
@@ -447,7 +467,7 @@ class CheckoutWidget extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: colors.onSurface,
                   ),
                 ),
                 Text(
@@ -455,7 +475,7 @@ class CheckoutWidget extends ConsumerWidget {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: colors.onSurface,
                   ),
                 ),
               ],
@@ -471,17 +491,17 @@ class CheckoutWidget extends ConsumerWidget {
                       content: Text(
                         'Processing checkout...',
                         style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black,
+                          color: colors.onSurface,
                         ),
                       ),
                       duration: const Duration(seconds: 2),
-                      backgroundColor: isDark ? Colors.grey[800] : Colors.white,
+                      backgroundColor: colors.surface,
                     ),
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFFC107),
-                  foregroundColor: Colors.black,
+                  backgroundColor: appColors.progressActive,
+                  foregroundColor: colors.onPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

@@ -95,10 +95,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                     GestureDetector(
                       onTap: _loading ? null : () => context.pop(),
-                      child: const Text(
+                      child: Text(
                         "Sign In",
                         style: TextStyle(
-                          color: CoffeeColors.surface,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -115,9 +115,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           left: 10,
           child: IconButton(
             onPressed: () => context.pop(),
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_back_ios_new,
-              color: CoffeeColors.primary,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),
