@@ -16,3 +16,6 @@ const String editProfileRoute = '/edit-profile';
 const String voucherRoute = '/voucher';
 const String feedbackSubmissionRoute = '/feedback-submission';
 const String checkoutRoute = '/checkout';
+const String faqsRoute = '/faqs';
+const String termsAndConditionsRoute = '/terms-and-conditions';
+const String aboutUsRoute = '/about-us';
