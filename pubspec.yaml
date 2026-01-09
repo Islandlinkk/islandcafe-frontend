@@ -56,7 +56,7 @@ dev_dependencies:
   json_serializable: ^6.8.0
   freezed: ^3.2.3
   riverpod_generator: ^3.0.3
-  hive_ce_generator: ^1.10.0 # <--- The CE generator
+  hive_ce_generator: ^1.9.3 # <--- The CE generator
 
   # Lints
   custom_lint: ^0.8.0
@@ -65,8 +65,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-  - .env
-  - assets/images/
+    - .env
+    - assets/images/
 
 flutter_launcher_icons:
   android: "ic_launcher"
