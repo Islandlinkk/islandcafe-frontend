@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:island_cafe/core/route/route_name.dart';
 import 'package:island_cafe/feature/theme/theme_notifier.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -11,11 +11,11 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // 1. Listen to the current theme
     final currentTheme = ref.watch(themeProvider);
-    
+
     // Get colors from the theme (Dynamic!)
     final surface = Theme.of(context).cardColor;
     final divider = Theme.of(context).dividerColor;
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -51,8 +51,11 @@ class SettingsScreen extends ConsumerWidget {
                   title: 'Appearance',
                   // 2. Show the current mode name (e.g., "System")
                   trailing: Text(
-                    currentTheme.name.capitalize(), 
-                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
+                    currentTheme.name.capitalize(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   // 3. Open the selector
                   onTap: () => _showAppearanceSheet(context, ref, currentTheme),
@@ -62,7 +65,10 @@ class SettingsScreen extends ConsumerWidget {
                   title: 'Language',
                   trailing: Text(
                     'English',
-                    style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   onTap: () {},
                 ),
@@ -77,17 +83,17 @@ class SettingsScreen extends ConsumerWidget {
                 _SettingsTile(
                   icon: Icons.help_outline,
                   title: 'FAQs',
-                  onTap: () {},
+                  onTap: () => context.push(faqsRoute),
                 ),
                 _SettingsTile(
                   icon: Icons.description_outlined,
                   title: 'Terms & Conditions',
-                  onTap: () {},
+                  onTap: () => context.push(termsAndConditionsRoute),
                 ),
                 _SettingsTile(
                   icon: Icons.info_outline,
                   title: 'About Us',
-                  onTap: () {},
+                  onTap: () => context.push(aboutUsRoute),
                 ),
               ],
             ),
@@ -107,7 +113,11 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   // --- THE BOTTOM SHEET ---
-  void _showAppearanceSheet(BuildContext context, WidgetRef ref, ThemeMode currentMode) {
+  void _showAppearanceSheet(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeMode currentMode,
+  ) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -178,9 +188,15 @@ class _ThemeOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(label),
-      trailing: isSelected 
-          ? Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary) 
-          : Icon(Icons.circle_outlined, color: Theme.of(context).colorScheme.onSurface),
+      trailing: isSelected
+          ? Icon(
+              Icons.check_circle,
+              color: Theme.of(context).colorScheme.primary,
+            )
+          : Icon(
+              Icons.circle_outlined,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
       onTap: () => onTap(mode),
     );
   }
@@ -256,18 +272,28 @@ class _SettingsTile extends StatelessWidget {
         child: Row(
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 24, color: Theme.of(context).colorScheme.onSurface),
+              Icon(
+                icon,
+                size: 24,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               const SizedBox(width: 16),
             ],
             Expanded(child: Text(title, style: titleStyle)),
             if (trailing != null) ...[
               DefaultTextStyle(
-                style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 child: trailing!,
               ),
               const SizedBox(width: 8),
             ],
-            Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface),
+            Icon(
+              Icons.chevron_right,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ],
         ),
       ),

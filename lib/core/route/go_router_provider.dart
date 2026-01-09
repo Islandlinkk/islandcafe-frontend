@@ -24,6 +24,9 @@ import 'package:island_cafe/feature/auth/services/auth_service.dart';
 import 'package:island_cafe/feature/history/presentation/screen/feedback_submission_screen.dart';
 import 'package:island_cafe/feature/checkout/presentation/screen/checkout_screen.dart';
 import 'package:island_cafe/feature/theme/splash_screen.dart';
+import 'package:island_cafe/feature/profile/presentation/screen/faqs_screen.dart';
+import 'package:island_cafe/feature/profile/presentation/screen/terms&conditions_screen.dart';
+import 'package:island_cafe/feature/profile/presentation/screen/about_us_screen.dart';
 
 final routerRefreshTriggerProvider = StateProvider<int>((ref) => 0);
 
@@ -204,6 +207,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             path: '/checkout',
             name: checkoutRoute,
             builder: (context, state) => const CheckoutScreen(),
+          ),
+          GoRoute(
+            path: '/faqs',
+            name: faqsRoute,
+            builder: (context, state) => const FAQsScreen(),
+          ),
+          GoRoute(
+            path: '/terms-and-conditions',
+            name: termsAndConditionsRoute,
+            builder: (context, state) => const TermsAndConditionsScreen(),
+          ),
+          GoRoute(
+            path: '/about-us',
+            name: aboutUsRoute,
+            builder: (context, state) => const AboutUsScreen(),
           ),
         ],
       ),
