@@ -34,7 +34,7 @@ A Flutter mobile application for ordering coffee and beverages from Island Cafe.
 
 1. Clone the repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/Islandlinkk/islandcafe-frontend.git
 cd islandcafe-frontend
 ```
 
